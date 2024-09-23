@@ -1,0 +1,28 @@
+[project]
+name = "orm_city"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "KyungMin.Ko", email = "rhrudals312@naver.com"},
+]
+dependencies = [
+    "django>=5.1.1",
+    "djangorestframework>=3.15.2",
+    "pillow>=10.4.0",
+    "pre-commit>=3.8.0",
+    "django-environ>=0.11.2",
+    "psycopg2>=2.9.9",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+
+[tool.pdm.scripts]
+m = "python src/manage.py"
+migs =  "python src/manage.py makemigrations"
+mig =  "python src/manage.py migrate"
