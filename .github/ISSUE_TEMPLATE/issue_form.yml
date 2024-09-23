@@ -8,7 +8,7 @@ body:
     attributes:
       label: '상위 작업 Ticket Number'
       description: '상위 작업의 Ticket Number를 기입해주세요'
-      placeholder: 'ORMC'
+      placeholder: 'ORMC-00'
     validations:
       required: true
 
