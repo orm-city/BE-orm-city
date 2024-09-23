@@ -45,8 +45,8 @@ jobs:
         id: create
         uses: atlassian/gajira-create@v3
         with:
-          project: DIAR
-          issuetype: Subtask
+          project: ORMC
+          issuetype: Task
           summary: "${{ github.event.issue.title }}"
           description: "${{ steps.md2jira.outputs.output-text }}"
           fields: |
