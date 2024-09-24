@@ -11,10 +11,10 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
-  - repo: local
-    hooks:
-      - id: add-branch-name-to-commit-message
-        name: Add branch name to commit message
-        entry: .git/hooks/prepare-commit-msg
-        language: script
-        stages: [prepare-commit-msg]
+  # - repo: local
+  #   hooks:
+  #     - id: add-branch-name-to-commit-message
+  #       name: Add branch name to commit message
+  #       entry: .git/hooks/prepare-commit-msg
+  #       language: script
+  #       stages: [prepare-commit-msg]
