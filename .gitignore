@@ -131,7 +131,7 @@ dmypy.json
 # Cython
 cython_debug/
 
-.github/
+
 node_modules/
 .vscode/
 package-lock.json
@@ -139,4 +139,3 @@ package.json
 supabase/
 migrations/
 .dockerignore
-
