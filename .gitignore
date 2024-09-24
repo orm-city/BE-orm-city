@@ -138,3 +138,5 @@ package-lock.json
 package.json
 supabase/
 migrations/
+.dockerignore
+

@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # 현재 체크아웃된 브랜치 이름을 가져오기
 BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
 
