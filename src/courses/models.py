@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from accounts.models import CustomUser
 
 
 class MajorCategory(models.Model):
@@ -59,7 +59,9 @@ class Enrollment(models.Model):
         ("completed", "완료"),
         ("expired", "만료"),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="사용자")
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, verbose_name="사용자"
+    )
     minor_category = models.ForeignKey(
         MinorCategory, on_delete=models.CASCADE, verbose_name="수강 과목"
     )
