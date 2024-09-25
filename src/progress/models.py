@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-class UserProgess(models.Model):
+class UserProgress(models.Model):
     """
     유저 수강 진행 모델
     """
