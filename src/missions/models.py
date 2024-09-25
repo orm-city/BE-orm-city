@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from courses.models import MinorCategory
+from itertools import chain
 
 
 class Mission(models.Model):
@@ -148,7 +149,9 @@ class MissionSubmission(models.Model):
         return f"{self.user.username}의 {self.mission.title} 제출"
 
     def calculate_total_score(self):
-        question_submissions = self.question_submissions.all()
+        question_submissions = chain(
+            self.code_submissions.all(), self.multiple_choice_submissions.all()
+        )
         self.total_score = sum(
             qs.score for qs in question_submissions if qs.score is not None
         )
@@ -166,7 +169,7 @@ class QuestionSubmission(models.Model):
     mission_submission = models.ForeignKey(
         MissionSubmission,
         on_delete=models.CASCADE,
-        related_name="question_submissions",
+        # related_name="question_submissions",
         verbose_name="미션 제출",
     )
     question = models.ForeignKey(
@@ -187,6 +190,13 @@ class MultipleChoiceSubmission(QuestionSubmission):
     """
     5지선다형 문제 제출 모델
     """
+
+    mission_submission = models.ForeignKey(
+        MissionSubmission,
+        on_delete=models.CASCADE,
+        related_name="multiple_choice_submissions",
+        verbose_name="미션 제출",
+    )
 
     selected_option = models.ForeignKey(
         MultipleChoiceOption, on_delete=models.CASCADE, verbose_name="선택한 답변"
@@ -212,6 +222,12 @@ class CodeSubmission(QuestionSubmission):
     코드 제출형 문제 제출 모델
     """
 
+    mission_submission = models.ForeignKey(
+        MissionSubmission,
+        on_delete=models.CASCADE,
+        related_name="code_submissions",
+        verbose_name="미션 제출",
+    )
     submitted_code = models.TextField(verbose_name="제출한 코드")
 
     class Meta:
