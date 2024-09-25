@@ -4,6 +4,7 @@ from io import BytesIO
 from django.http import HttpResponse
 from PIL import Image, ImageDraw, ImageFont
 import os
+from courses.models import MajorCategory, MinorCategory
 
 
 class Certificate(models.Model):
@@ -17,14 +18,14 @@ class Certificate(models.Model):
         help_text="수료증을 받은 사용자",
     )
     major_category = models.ForeignKey(
-        "MajorCategory",
+        MajorCategory,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
         help_text="수료한 대분류 코스",
     )
     minor_category = models.ForeignKey(
-        "MinorCategory",
+        MinorCategory,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
