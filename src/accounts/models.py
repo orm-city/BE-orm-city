@@ -63,32 +63,6 @@ class CustomUser(AbstractUser):
         verbose_name_plural = "사용자들"
 
 
-class UserProfile(models.Model):
-    """
-    사용자의 추가 정보를 저장하는 프로필 모델입니다.
-
-    이 모델은 CustomUser 모델과 일대일 관계를 가집니다.
-    """
-
-    user = models.OneToOneField(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="profile",
-        verbose_name="사용자",
-    )
-    bio = models.TextField(blank=True, verbose_name="자기소개")
-    profile_picture = models.ImageField(
-        upload_to="profile_pics/", blank=True, null=True, verbose_name="프로필 사진"
-    )
-
-    def __str__(self):
-        return f"{self.user.username}의 프로필"
-
-    class Meta:
-        verbose_name = "사용자 프로필"
-        verbose_name_plural = "사용자 프로필들"
-
-
 class UserActivity(models.Model):
     """
     사용자의 로그인 및 로그아웃 활동을 기록하는 모델입니다.
