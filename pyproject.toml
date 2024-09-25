@@ -26,5 +26,6 @@ distribution = false
 
 [tool.pdm.scripts]
 m = "python src/manage.py"
+r = "python src/manage.py runserver"
 migs =  "python src/manage.py makemigrations"
 mig =  "python src/manage.py migrate"
