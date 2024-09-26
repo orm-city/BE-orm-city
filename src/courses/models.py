@@ -11,6 +11,7 @@ class MajorCategory(models.Model):
     """
 
     name = models.CharField(max_length=100, verbose_name="대분류명")
+    price = models.PositiveIntegerField(verbose_name="강의가격", default=0)
 
     def __str__(self):
         return self.name
