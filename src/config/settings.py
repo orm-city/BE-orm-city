@@ -1,5 +1,4 @@
 import environ
-import os
 from pathlib import Path
 
 env = environ.Env(DEBUG=(bool, False))
@@ -65,9 +64,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            os.path.join(BASE_DIR, "config", "payment", "templates"),
-        ],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -132,3 +129,10 @@ AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+
+# IAMPORT settings
+
+IAMPORT = {
+    "IMP_KEY": env("IMP_KEY"),
+    "IMP_SECRET": env("IMP_SECRET"),
+}
