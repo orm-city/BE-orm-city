@@ -18,7 +18,7 @@ class PaymentCreateSerializer(serializers.Serializer):
             payment_status="PENDING",
         )
 
-
+      
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment

@@ -1,23 +1,17 @@
 from rest_framework import serializers
 from .models import MajorCategory, MinorCategory, Enrollment
 
-"""
-    대분류 강의 목록 가져오기
-"""
-
 
 class MajorCategorySerializer(serializers.ModelSerializer):
-    """
-    대분류(MajorCategory) 모델을 위한 시리얼라이저
-
-    이 시리얼라이저는 대분류의 id, 이름, 가격 정보를 직렬화/역직렬화합니다.
-    """
+  """
+    대분류 강의 목록 가져오기
+  """
 
     class Meta:
         model = MajorCategory
-        fields = ["id", "name", "price"]
-
-
+        fields = "__all__"
+        
+        
 class MinorCategorySerializer(serializers.ModelSerializer):
     """
     소분류(MinorCategory) 모델을 위한 시리얼라이저
@@ -27,7 +21,7 @@ class MinorCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MinorCategory
-        fields = ["id", "name", "major_category", "content", "order"]
+        fields = "__all__"
 
 
 class EnrollmentSerializer(serializers.ModelSerializer):
@@ -50,3 +44,4 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             "expiry_date",
             "status",
         ]
+
