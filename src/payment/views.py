@@ -5,6 +5,16 @@ from .models import MajorCategory
 from django.conf import settings
 
 
+class PaymentCreateView(generics.CreateAPIView):
+    # permission_classes = [IsAuthenticated]
+    serializer_class = PaymentCreateSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payment = serializer.save()
+        return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
+      
 class PaymentInfoAPIView(APIView):
     """
     결제할 강의의 정보를 전달
@@ -54,3 +64,8 @@ class PaymentInfoAPIView(APIView):
 #                 return Response({'status': 'failed', 'message': '강의를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 #         else:
 #             return Response({'status': 'failed', 'message': '결제 검증 실패'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
