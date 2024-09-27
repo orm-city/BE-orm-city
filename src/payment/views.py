@@ -3,6 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import MajorCategory
 from django.conf import settings
+from .serializers import PaymentCreateSerializer, PaymentSerializer
+from rest_framework import generics
+from rest_framework.permissions import AllowAny
 
 
 class PaymentCreateView(generics.CreateAPIView):
@@ -14,11 +17,14 @@ class PaymentCreateView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         payment = serializer.save()
         return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
-      
+
+
 class PaymentInfoAPIView(APIView):
     """
     결제할 강의의 정보를 전달
     """
+
+    permission_classes = [AllowAny]
 
     def get(self, request, major_category_id):
         try:
@@ -26,7 +32,9 @@ class PaymentInfoAPIView(APIView):
             data = {
                 "major_category_name": major_category.name,
                 "major_category_price": major_category.price,
-                "imp_key": settings.IMP_KEY,  # settings.py에서 IMP_CODE 가져오기
+                "imp_key": settings.IAMPORT[
+                    "IMP_KEY"
+                ],  # settings.py에서 IMP_CODE 가져오기
             }
             return Response(data, status=status.HTTP_200_OK)
         except MajorCategory.DoesNotExist:
@@ -64,8 +72,3 @@ class PaymentInfoAPIView(APIView):
 #                 return Response({'status': 'failed', 'message': '강의를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 #         else:
 #             return Response({'status': 'failed', 'message': '결제 검증 실패'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
