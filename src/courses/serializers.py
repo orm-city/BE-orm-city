@@ -9,7 +9,7 @@ from .models import MajorCategory
 class MajorCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MajorCategory
-        fields = ["id", "name", "price"]
+        fields = "__all__"
 
 
 """
