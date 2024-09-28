@@ -1,15 +1,10 @@
-from django.urls import path
-from .views import CertificatePreviewView, CertificateDownloadView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CertificateViewSet
+
+router = DefaultRouter()
+router.register(r"", CertificateViewSet, basename="certificate")
 
 urlpatterns = [
-    path(
-        "preview/<str:course_type>/<int:course_id>/",
-        CertificatePreviewView.as_view(),
-        name="certificate_preview",
-    ),
-    path(
-        "download/<str:course_type>/<int:course_id>/",
-        CertificateDownloadView.as_view(),
-        name="certificate_download",
-    ),
+    path("", include(router.urls)),
 ]
