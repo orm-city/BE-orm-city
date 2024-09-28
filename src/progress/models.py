@@ -29,14 +29,16 @@ class UserProgress(models.Model):
         default=0, validators=[MinValueValidator(0), MaxValueValidator(100)]
     )
     time_spent = models.DurationField(default=timezone.timedelta)  # 수강 진행 시간
+    last_position = models.PositiveIntegerField(default=0)  # 마지막 시청 위치 (초 단위)
 
     def __str__(self):
         return f"수강생:{self.user.username}, 강의:{self.video.name}, 수강률:({self.progress_percent}%)"
 
-    def update_progress(self, new_percent, additional_time):
+    def update_progress(self, new_percent, additional_time, last_position):
         self.progress_percent = min(100, max(0, new_percent))
         self.time_spent += additional_time
         self.last_accessed = timezone.now()
+        self.last_position = last_position
         if self.progress_percent == 100:
             self.is_completed = True
         self.save()
@@ -45,4 +47,5 @@ class UserProgress(models.Model):
         self.is_completed = False
         self.progress_percent = 0
         self.time_spent = timezone.timedelta()
+        self.last_position = 0
         self.save()
