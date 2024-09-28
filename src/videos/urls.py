@@ -15,9 +15,9 @@ urlpatterns = [
         VideoUploadPermissionAPIView.as_view(),
         name="video-upload-permission",
     ),
-    path("videos/<int:pk>/update/", VideoUpdateAPIView.as_view(), name="video-update"),
-    path("videos/<int:pk>/delete/", VideoDeleteAPIView.as_view(), name="video-delete"),
-    path("videos/<int:pk>/", VideoRetrieveAPIView.as_view(), name="video-retrieve"),
+    path("<int:pk>/update/", VideoUpdateAPIView.as_view(), name="video-update"),
+    path("<int:pk>/delete/", VideoDeleteAPIView.as_view(), name="video-delete"),
+    path("<int:pk>/", VideoRetrieveAPIView.as_view(), name="video-retrieve"),
     path(
         "user-progress/update/",
         UpdateUserProgressAPIView.as_view(),

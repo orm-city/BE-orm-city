@@ -1,5 +1,7 @@
 from django.db import models
 
+from courses.models import MinorCategory
+
 
 class Video(models.Model):
     """
@@ -9,7 +11,13 @@ class Video(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     video_url = models.URLField()
+    minor_category = models.ForeignKey(
+        MinorCategory,
+        on_delete=models.CASCADE,
+        related_name="videos",
+        verbose_name="소분류",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.title
+        return self.name
