@@ -11,9 +11,24 @@ from certificates.services import (
 
 
 class CertificatePreviewAPIView(APIView):
-    permission_classes = [AllowAny]
+    """
+    사용자의 인증서를 이미지로 생성하고, 이를 미리보기 형식으로 제공하는 API 뷰입니다.
+    """
+
+    permission_classes = [AllowAny]  # TODO: 바꿔야함
 
     def get(self, request, course_type=None, course_id=None):
+        """
+        GET 요청을 처리하여 인증서의 PNG 이미지를 생성합니다.
+
+        Args:
+            request (HttpRequest): 요청 객체.
+            course_type (str): 코스의 유형을 나타내는 문자열.
+            course_id (int): 코스의 ID.
+
+        Returns:
+            HttpResponse: 생성된 인증서의 PNG 이미지를 반환합니다. 성공 시 HTTP 200 응답을 반환하며, 코스를 찾지 못하거나 이미지 생성 중 오류가 발생한 경우 각각 HTTP 404, 500 응답을 반환합니다.
+        """
         user = request.user
 
         try:
@@ -31,9 +46,24 @@ class CertificatePreviewAPIView(APIView):
 
 
 class CertificateDownloadAPIView(APIView):
-    permission_classes = [AllowAny]
+    """
+    인증서를 PDF 파일로 생성하고, 이를 다운로드할 수 있도록 제공하는 API 뷰입니다.
+    """
+
+    permission_classes = [AllowAny]  # TODO: 바꿔야함
 
     def get(self, request, course_type=None, course_id=None):
+        """
+        GET 요청을 처리하여 인증서의 PDF 파일을 생성하고, 이를 첨부파일로 제공합니다.
+
+        Args:
+            request (HttpRequest): 요청 객체.
+            course_type (str): 코스의 유형을 나타내는 문자열.
+            course_id (int): 코스의 ID.
+
+        Returns:
+            HttpResponse: 생성된 인증서의 PDF 파일을 첨부파일로 반환합니다. 성공 시 HTTP 200 응답을 반환하며, 코스를 찾지 못하거나 PDF 생성 중 오류가 발생한 경우 각각 HTTP 404, 500 응답을 반환합니다.
+        """
         user = request.user
 
         try:
