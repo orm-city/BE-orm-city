@@ -1,11 +1,26 @@
-from PIL import Image, ImageDraw, ImageFont
-from io import BytesIO
 import os
+from io import BytesIO
+
 from django.conf import settings
-from courses.models import MinorCategory, MajorCategory
+from PIL import Image, ImageDraw, ImageFont
+
+from courses.models import MajorCategory, MinorCategory
 
 
 def get_course_name(course_id, course_type):
+    """
+    주어진 코스 ID와 코스 유형에 따라 해당 코스의 이름을 반환합니다.
+
+    Args:
+        course_id (int): 코스의 ID.
+        course_type (str): 코스의 유형 ('minor' 또는 'major').
+
+    Returns:
+        str: 코스의 이름.
+
+    Raises:
+        ValueError: 주어진 코스 ID에 해당하는 코스를 찾을 수 없거나, 유효하지 않은 코스 유형이 제공된 경우 발생합니다.
+    """
     if course_type == "minor":
         try:
             return MinorCategory.objects.get(id=course_id).name
@@ -21,6 +36,15 @@ def get_course_name(course_id, course_type):
 
 
 def load_image_and_fonts():
+    """
+    인증서 생성에 필요한 이미지 템플릿과 폰트를 로드합니다.
+
+    Returns:
+        tuple: 이미지 객체, 이름 폰트, 코스 이름 폰트를 포함한 튜플.
+
+    Raises:
+        FileNotFoundError: 이미지 파일이나 폰트 파일을 찾을 수 없는 경우 발생합니다.
+    """
     image_path = os.path.join(
         settings.STATICFILES_DIRS[0], "img", "certificate_template.png"
     )
@@ -41,16 +65,37 @@ def load_image_and_fonts():
 
 
 def calculate_text_position(draw, text, font, image_width, y_position):
+    """
+    주어진 텍스트를 이미지에 중앙 정렬하기 위한 X 위치를 계산합니다.
+
+    Args:
+        draw (ImageDraw): 이미지에 텍스트를 그리는 데 사용하는 ImageDraw 객체.
+        text (str): 이미지에 그릴 텍스트.
+        font (ImageFont): 텍스트에 사용할 폰트.
+        image_width (int): 이미지의 너비.
+        y_position (int): 텍스트의 Y 좌표.
+
+    Returns:
+        tuple: 텍스트의 X, Y 좌표를 포함한 튜플.
+    """
     text_width = draw.textbbox((0, 0), text, font=font)[2]
     position_x = (image_width - text_width) // 2
     return position_x, y_position
 
 
-def draw_text(draw, text, position, font, color):
-    draw.text(position, text, font=font, fill=color)
-
-
 def generate_certificate(user_name, course_name):
+    """
+    사용자 이름과 코스 이름을 포함한 인증서 이미지를 생성합니다.
+
+    이 함수는 인증서 템플릿 이미지를 로드하고, 사용자 이름과 코스 관련 텍스트를 이미지 중앙에 배치하여 인증서 이미지를 생성합니다.
+
+    Args:
+        user_name (str): 인증서에 표시할 사용자 이름.
+        course_name (str): 인증서에 표시할 코스 이름.
+
+    Returns:
+        Image: 생성된 인증서 이미지 객체.
+    """
     image, name_font, course_font = load_image_and_fonts()
     draw = ImageDraw.Draw(image)
 
@@ -66,12 +111,22 @@ def generate_certificate(user_name, course_name):
 
     for text, font, color, y_position in texts:
         position = calculate_text_position(draw, text, font, image.width, y_position)
-        draw_text(draw, text, position, font, color)
+        draw.text(position, text, font=font, fill=color)
 
     return image
 
 
 def generate_certificate_image(user_name, course_name):
+    """
+    사용자 이름과 코스 이름을 포함한 인증서 이미지를 생성하고, 이를 PNG 형식으로 반환합니다.
+
+    Args:
+        user_name (str): 인증서에 표시할 사용자 이름.
+        course_name (str): 인증서에 표시할 코스 이름.
+
+    Returns:
+        BytesIO: 생성된 인증서 이미지의 PNG 버퍼.
+    """
     image = generate_certificate(user_name, course_name)
 
     buffer = BytesIO()
@@ -82,6 +137,16 @@ def generate_certificate_image(user_name, course_name):
 
 
 def generate_certificate_pdf(user_name, course_name):
+    """
+    사용자 이름과 코스 이름을 포함한 인증서 이미지를 생성하고, 이를 PDF 형식으로 반환합니다.
+
+    Args:
+        user_name (str): 인증서에 표시할 사용자 이름.
+        course_name (str): 인증서에 표시할 코스 이름.
+
+    Returns:
+        BytesIO: 생성된 인증서 이미지의 PDF 버퍼.
+    """
     image = generate_certificate(user_name, course_name)
 
     buffer = BytesIO()
