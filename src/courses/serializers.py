@@ -3,15 +3,15 @@ from .models import MajorCategory, MinorCategory, Enrollment
 
 
 class MajorCategorySerializer(serializers.ModelSerializer):
-  """
+    """
     대분류 강의 목록 가져오기
-  """
+    """
 
     class Meta:
         model = MajorCategory
         fields = "__all__"
-        
-        
+
+
 class MinorCategorySerializer(serializers.ModelSerializer):
     """
     소분류(MinorCategory) 모델을 위한 시리얼라이저
@@ -44,4 +44,3 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             "expiry_date",
             "status",
         ]
-
