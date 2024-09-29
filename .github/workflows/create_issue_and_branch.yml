@@ -1,13 +1,12 @@
-name: Create Jira Normal issue
+name: Create Jira issue
 on:
   issues:
     types:
       - opened
 jobs:
   create-issue:
-    name: Create Jira Normal issue
+    name: Create Jira issue
     runs-on: ubuntu-latest
-    if: contains(join(github.event.issue.labels.*.name, ','), 'issue')
     steps:
       - name: Login
         uses: atlassian/gajira-login@v3
@@ -25,7 +24,7 @@ jobs:
         uses: stefanbuck/github-issue-praser@v3
         id: issue-parser
         with:
-          template-path: .github/ISSUE_TEMPLATE/04_normal_issue_form.yml
+          template-path: .github/ISSUE_TEMPLATE/issue_form.yml
 
       - name: Log Issue Parser
         run: |
@@ -53,7 +52,7 @@ jobs:
           fields: |
             {
               "parent": {
-                "key": "${{ steps.issue-parser.outputs.parentKey }}"
+                "key": "${{ steps.issue-parser.outputs.issueparser_parentKey }}"
               }
             }
 

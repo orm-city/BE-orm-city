@@ -1,6 +1,6 @@
-name: '버그 이슈 생성'
-description: 'BE-orm-city에 버그 이슈를 생성하며, 생성된 이슈는 Jira와 연동됩니다.'
-labels: [bug]
+name: 'orm-city 백엔드 이슈 생성'
+description: 'BE-orm-city에 이슈를 생성하며, 생성된 이슈는 Jira와 연동됩니다.'
+labels: [order]
 title: '이슈 이름을 작성해주세요'
 body:
   - type: input
@@ -26,9 +26,27 @@ body:
       label: '상세 내용(Details)'
       description: '이슈에 대해서 자세히 설명해주세요'
       value: |
-        # 이슈 세부 사항
-        - 추가 세부 정보
-        - [ ] 체크리스트 항목1
-        - [ ] 체크리스트 항목2
+        - About Details
     validations:
       required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: '체크리스트(Tasks)'
+      description: '해당 이슈에 대해 필요한 작업목록을 작성해주세요'
+      value: |
+        - [ ] Task1
+        - [ ] Task2
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: '참조(References)'
+      description: '해당 이슈과 관련된 레퍼런스를 참조해주세요'
+      value: |
+        - Reference1
+    validations:
+      required: false
