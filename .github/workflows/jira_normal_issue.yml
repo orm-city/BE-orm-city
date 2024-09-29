@@ -7,7 +7,7 @@ jobs:
   create-issue:
     name: Create Jira issue
     runs-on: ubuntu-latest
-    if: contains(join(github.event.issue.labels.*.name, ','), 'enhancement')
+    if: contains(join(github.event.issue.labels.*.name, ','), 'issue')
     steps:
       - name: Login
         uses: atlassian/gajira-login@v3
