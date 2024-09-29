@@ -7,6 +7,7 @@ jobs:
   create-issue:
     name: Create Jira issue
     runs-on: ubuntu-latest
+    if: contains(join(github.event.issue.labels.*.name, ','), 'enhancement')
     steps:
       - name: Login
         uses: atlassian/gajira-login@v3
@@ -24,7 +25,7 @@ jobs:
         uses: stefanbuck/github-issue-praser@v3
         id: issue-parser
         with:
-          template-path: .github/ISSUE_TEMPLATE/issue_form.yml
+          template-path: .github/ISSUE_TEMPLATE/03_enhancement_issue_form.yml
 
       - name: Log Issue Parser
         run: |
@@ -49,6 +50,7 @@ jobs:
           issuetype: Task
           summary: "${{ github.event.issue.title }}"
           description: "${{ steps.md2jira.outputs.output-text }}"
+          assignee: "${{ github.event.issue.user.login }}"
           fields: |
             {
               "parent": {
@@ -75,3 +77,10 @@ jobs:
           actions: "update-issue"
           token: ${{ secrets.GITHUB_TOKEN }}
           title: "${{ steps.create.outputs.issue }} ${{ github.event.issue.title }}"
+
+      - name: Assign issue to creator
+        uses: actions-ecosystem/action-assign-issue@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          issue_number: ${{ github.event.issue.number }}
+          assignees: ${{ github.event.issue.user.login }}
