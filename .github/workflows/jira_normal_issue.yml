@@ -1,11 +1,11 @@
-name: Create Jira issue
+name: Create Jira Normal issue
 on:
   issues:
     types:
       - opened
 jobs:
   create-issue:
-    name: Create Jira issue
+    name: Create Jira Normal issue
     runs-on: ubuntu-latest
     if: contains(join(github.event.issue.labels.*.name, ','), 'issue')
     steps:
@@ -26,6 +26,7 @@ jobs:
         id: issue-parser
         with:
           template-path: .github/ISSUE_TEMPLATE/04_normal_issue_form.yml
+
       - name: Log Issue Parser
         run: |
           echo '${{ steps.issue-parser.outputs.jsonString }}'
@@ -52,7 +53,7 @@ jobs:
           fields: |
             {
               "parent": {
-                "key": "${{ steps.issue-parser.outputs.issueparser_parentKey }}"
+                "key": "${{ steps.issue-parser.outputs.parentKey }}"
               }
             }
 
