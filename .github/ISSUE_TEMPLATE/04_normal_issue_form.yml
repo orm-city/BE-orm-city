@@ -1,0 +1,33 @@
+name: '일반 이슈 생성'
+description: 'BE-orm-city에 문서 이슈를 생성하며, 생성된 이슈는 Jira와 연동됩니다.'
+labels: [issue]
+title: '이슈 이름을 작성해주세요'
+body:
+  - type: input
+    id: parentKey
+    attributes:
+      label: '상위 작업 Ticket Number'
+      description: '상위 작업의 Ticket Number를 기입해주세요'
+      placeholder: 'ORMC-00'
+    validations:
+      required: true
+
+  - type: input
+    id: description
+    attributes:
+      label: '이슈 내용(Description)'
+      description: '이슈에 대해서 간략히 설명해주세요'
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: '상세 내용(Details)'
+      description: '이슈에 대해서 자세히 설명해주세요'
+      value: |
+        # MarkDown 형식으로도 작성할 수 있습니다..
+        - About Details
+        - [ ] 체크리스트
+    validations:
+      required: true
