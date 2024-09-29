@@ -1,17 +1,13 @@
+# https://docs.djangoproject.com/en/5.1/topics/http/urls/
+from django.conf import settings
 from django.contrib import admin
-from django.urls import path, include
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from django.urls import include, path
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("accounts/", include("accounts.urls")),
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("api/v1/certificates/", include("certificates.urls")),
-    path("api/v1/courses/", include("courses.urls")),
-    path("api/v1/payment/", include("payment.urls")),
-    path("api/v1/videos/", include("videos.urls")),
+    path("api/", include("api.urls")),
 ]
+
+if settings.ADMIN_ENABLED is True:
+    urlpatterns += [
+        path("admin/", admin.site.urls),
+    ]
