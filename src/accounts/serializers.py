@@ -12,14 +12,12 @@ class CustomUserSerializer(serializers.ModelSerializer):
     Attributes:
         password (CharField): 사용자 비밀번호. 쓰기 전용이며 Django의 기본 비밀번호 검증을 사용합니다.
         password2 (CharField): 비밀번호 확인 필드. 쓰기 전용입니다.
-        is_subscription_active (BooleanField): 사용자의 구독 활성 상태. 읽기 전용입니다.
     """
 
     password = serializers.CharField(
         write_only=True, required=True, validators=[validate_password]
     )
     password2 = serializers.CharField(write_only=True, required=True)
-    is_subscription_active = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = CustomUser
@@ -34,12 +32,10 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "role",
             "nickname",
             "total_study_time",
-            "subscription_end_date",
             "gender",
             "contact_number",
-            "is_subscription_active",
         ]
-        read_only_fields = ["id", "total_study_time", "subscription_end_date"]
+        read_only_fields = ["id", "total_study_time"]
         extra_kwargs = {
             "email": {"required": True},
             "first_name": {"required": True},
