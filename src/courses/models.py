@@ -50,9 +50,9 @@ class MinorCategory(models.Model):
 
 class Enrollment(models.Model):
     """
-    수강 신청 모델
+    수강 신청 모델 (MajorCategory 기반)
 
-    이 모델은 사용자의 과목 수강 신청 정보를 나타냅니다.
+    이 모델은 사용자의 대분류(MajorCategory) 과목 수강 신청 정보를 나타냅니다.
     """
 
     STATUS_CHOICES = [
@@ -61,10 +61,16 @@ class Enrollment(models.Model):
         ("expired", "만료"),
     ]
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, verbose_name="사용자"
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+        verbose_name="사용자",
     )
-    minor_category = models.ForeignKey(
-        MinorCategory, on_delete=models.CASCADE, verbose_name="수강 과목"
+    major_category = models.ForeignKey(
+        MajorCategory,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+        verbose_name="수강 대분류",
     )
     enrollment_date = models.DateTimeField(
         auto_now_add=True, verbose_name="수강 신청일"
@@ -75,8 +81,9 @@ class Enrollment(models.Model):
     )
 
     def __str__(self):
-        return f"{self.user.username} - {self.minor_category.name}"
+        return f"{self.user.username} - {self.major_category.name}"
 
     class Meta:
         verbose_name = "수강 신청"
         verbose_name_plural = "수강 신청 목록"
+        unique_together = ["user", "major_category"]
