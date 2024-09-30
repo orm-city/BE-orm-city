@@ -4,20 +4,10 @@ from courses.models import MajorCategory
 
 
 class Payment(models.Model):
-    # 결제 상태
-    PAYMENT_STATUS_CHOICES = [
-        ("PENDING", "결제대기"),
-        ("COMPLETED", "결제완료"),
-        ("FAILED", "결제실패"),
-        ("CANCELLED", "결제취소"),
-    ]
-    # 환불 상태
-    REFUND_STATUS_CHOICES = [
-        ("NOT_REQUESTED", "요청없음"),
-        ("REQUESTED", "요청됨"),
-        ("COMPLETED", "요청완료"),
-        ("FAILED", "요청실패"),
-    ]
+    """
+    결제 모델 정의
+    """
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="payments"
     )
@@ -27,10 +17,26 @@ class Payment(models.Model):
     total_amount = models.PositiveIntegerField()
     payment_date = models.DateTimeField(auto_now_add=True)
     receipt_url = models.URLField(null=True, blank=True)
+    merchant_uid = models.CharField(
+        max_length=100, unique=True, null=True
+    )  # 아임포트 결제 고유 아이디
     payment_status = models.CharField(
-        max_length=10, choices=PAYMENT_STATUS_CHOICES, default="PENDING"
+        max_length=20,
+        choices=[
+            ("ready", "미결제"),
+            ("paid", "결제완료"),
+            ("cancelled", "결제취소"),
+            ("failed", "결제실패"),
+        ],
+        default="PENDING",
     )
-
     refund_status = models.CharField(
-        max_length=20, choices=REFUND_STATUS_CHOICES, default="NOT_REQUESTED"
+        max_length=20,
+        choices=[
+            ("NOT_REQUESTED", "요청 없음"),
+            ("REQUESTED", "환불 요청됨"),
+            ("COMPLETED", "환불 완료"),
+            ("FAILED", "환불 실패"),
+        ],
+        default="NOT_REQUESTED",
     )
