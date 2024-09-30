@@ -18,6 +18,8 @@ dependencies = [
     "boto3>=1.35.26",
     "django-cors-headers>=4.4.0",
     "drf-spectacular>=0.27.2",
+    "pytest>=8.3.3",
+    "pytest-django>=4.9.0",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
@@ -36,3 +38,7 @@ mig =  "python src/manage.py migrate"
 
 [tool.ruff]
 exclude = ["src/config/settings"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "src.config.settings.dev"
+pythonpath = ". src"
