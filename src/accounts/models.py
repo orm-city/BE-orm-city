@@ -28,9 +28,6 @@ class CustomUser(AbstractUser):
     total_study_time = models.DurationField(
         default=timezone.timedelta(), verbose_name="총 학습 시간"
     )
-    subscription_end_date = models.DateTimeField(
-        null=True, blank=True, verbose_name="구독 종료일"
-    )
 
     # 새로 추가된 필드
     gender = models.CharField(
@@ -43,17 +40,6 @@ class CustomUser(AbstractUser):
     contact_number = models.CharField(
         validators=[phone_regex], max_length=13, blank=True, verbose_name="연락처"
     )
-
-    def is_subscription_active(self):
-        """
-        사용자의 구독이 현재 활성 상태인지 확인합니다.
-
-        Returns:
-            bool: 구독이 활성 상태이면 True, 그렇지 않으면 False를 반환합니다.
-        """
-        return (
-            self.subscription_end_date and self.subscription_end_date > timezone.now()
-        )
 
     def __str__(self):
         return self.username

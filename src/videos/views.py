@@ -21,9 +21,30 @@ from courses.models import Enrollment, MinorCategory  # 테스트용 코드
 
 
 class VideoUploadPermissionAPIView(APIView):
+    """
+    클라이언트가 비디오 파일을 AWS S3 버킷에 업로드하기 위한 사전 서명된 URL을 요청할 수 있는 API 뷰입니다.
+    이 뷰는 비디오 업로드를 위한 presign_url을 생성하고, 해당 URL을 데이터베이스에 저장된 비디오 객체와 함께 반환합니다.
+
+    Methods:
+        get(request, *args, **kwargs):
+            클라이언트로부터 GET 요청을 처리하여 사전 서명된 S3 URL을 생성하고, 비디오 객체를 데이터베이스에 저장한 후 URL과 비디오 ID를 반환합니다.
+
+        get_presigned_post():
+            AWS S3에 비디오 파일을 업로드하기 위한 사전 서명된 POST URL을 생성합니다.
+    """
+
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
+        """
+        클라이언트로부터 GET 요청을 처리하여 AWS S3 버킷에 비디오 파일을 업로드하기 위한
+        사전 서명된 URL을 생성하고, 해당 URL과 비디오 객체의 ID를 반환합니다.
+
+        Returns:
+            Response: presigned URL과 비디오 객체의 ID가 포함된 JSON 응답.
+            HTTP 200: URL과 비디오 ID가 성공적으로 생성된 경우.
+            HTTP 500: S3 URL 생성 중 오류가 발생한 경우.
+        """
         try:
             presigned_post = self.get_presigned_post()
 
@@ -53,8 +74,13 @@ class VideoUploadPermissionAPIView(APIView):
 
     def get_presigned_post(self):
         """
-        2분 동안 유효한 AWS S3 버킷의 사전 서명된 URL을 생성합니다.
-        :return: 사전 서명된 POST URL
+        AWS S3 버킷에 비디오 파일을 업로드하기 위한 사전 서명된 POST URL을 생성합니다.
+
+        Returns:
+            dict: 사전 서명된 POST URL과 관련된 필드들을 포함한 딕셔너리.
+
+        Raises:
+            ClientError: S3 URL 생성 중 오류가 발생할 경우 예외를 발생시킵니다.
         """
         s3_client = boto3.client(
             "s3",
@@ -84,9 +110,35 @@ class VideoUploadPermissionAPIView(APIView):
 
 
 class VideoRetrieveAPIView(APIView):
+    """
+    특정 비디오의 정보를 조회하고, 해당 비디오 파일에 대한 S3 presign_url을 생성하여 반환하는 API 뷰입니다.
+
+    Methods:
+        get(request, *args, **kwargs):
+            클라이언트로부터 GET 요청을 처리하여 비디오 객체를 조회하고, S3 사전 서명된 URL과 사용자의 마지막 시청 위치를 반환합니다.
+
+        get_presigned_url(s3_url):
+            S3에 저장된 객체에 대한 사전 서명된 GET URL을 생성합니다.
+    """
+
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
+        """
+        비디오 ID를 기반으로 비디오 객체를 조회하고, 해당 비디오 파일에 대한 S3 사전 서명된 URL과
+        사용자의 마지막 시청 위치를 반환합니다.
+
+        Args:
+            request (HttpRequest): 클라이언트로부터 전달된 HTTP 요청 객체.
+            *args: 가변 인자 리스트.
+            **kwargs: URL 패턴에서 전달된 추가적인 키워드 인자들, 여기서는 비디오 ID (pk)를 포함합니다.
+
+        Returns:
+            Response: 비디오 URL과 사용자의 마지막 시청 위치가 포함된 JSON 응답.
+            HTTP 200: 요청이 성공적으로 처리된 경우.
+            HTTP 404: 비디오 객체를 찾을 수 없는 경우.
+            HTTP 500: S3 URL 생성 중 오류가 발생한 경우.
+        """
         video_id = kwargs.get("pk")
         try:
             video = Video.objects.get(id=video_id)
@@ -119,9 +171,16 @@ class VideoRetrieveAPIView(APIView):
 
     def get_presigned_url(self, s3_url):
         """
-        S3 객체에 대한 사전 서명된 URL을 생성합니다.
-        :param s3_url: S3에 저장된 객체의 URL
-        :return: 사전 서명된 GET URL
+        S3 객체에 접근할 수 있는 사전 서명된 GET URL을 생성합니다.
+
+        Args:
+            s3_url (str): S3에 저장된 객체의 URL.
+
+        Returns:
+            str: S3 객체에 접근할 수 있는 사전 서명된 GET URL.
+
+        Raises:
+            ClientError: S3 URL 생성 중 오류가 발생할 경우 예외를 발생시킵니다.
         """
         s3_client = boto3.client(
             "s3",
@@ -147,11 +206,37 @@ class VideoRetrieveAPIView(APIView):
 
 
 class VideoUpdateAPIView(generics.UpdateAPIView):
+    """
+
+    이 뷰는 기존 S3에 저장된 비디오 파일을 삭제하고, 새로운 비디오 파일을 업로드하기 위한 사전 서명된 URL을 생성한 후,
+    비디오 객체의 URL을 새로 생성된 S3 URL로 업데이트합니다.
+
+    Attributes:
+        queryset (QuerySet): 업데이트할 비디오 객체의 쿼리셋입니다. 모든 비디오 객체를 대상으로 합니다.
+        serializer_class (Serializer): 비디오 객체를 직렬화하는 데 사용되는 직렬화 클래스입니다.
+        permission_classes (list): 이 API 뷰에 접근할 수 있는 권한을 정의합니다. `AllowAny`로 설정되어 있어, 인증되지 않은 사용자도 이 엔드포인트에 접근할 수 있습니다.
+
+    Methods:
+        put(request, *args, **kwargs):
+            클라이언트로부터 PUT 요청을 처리하여 기존 비디오 객체를 S3에서 삭제하고, 새로운 S3 URL로 비디오 객체를 업데이트합니다.
+    """
+
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
     permission_classes = [AllowAny]
 
     def put(self, request, *args, **kwargs):
+        """
+        기존 비디오 객체를 업데이트하고, 새로운 비디오 파일을 업로드하기 위한 S3 사전 서명된 URL을 생성하여 반환합니다.
+
+        기존 S3 객체를 삭제한 후, 새로운 객체를 업로드할 수 있는 URL을 생성하고,
+        비디오 객체의 URL을 새로 생성된 URL로 업데이트합니다. 또한, 비디오에 대한 진행 정보를 초기화합니다.
+
+        Returns:
+            Response: 새로 생성된 S3 URL과 업데이트된 비디오 객체의 ID가 포함된 JSON 응답.
+            HTTP 200: 요청이 성공적으로 처리된 경우.
+            HTTP 500: S3 객체 삭제 또는 생성 중 오류가 발생한 경우.
+        """
         video = self.get_object()
 
         s3_client = boto3.client(
@@ -212,10 +297,37 @@ class VideoUpdateAPIView(generics.UpdateAPIView):
 
 
 class VideoDeleteAPIView(generics.DestroyAPIView):
+    """
+    클라이언트가 특정 비디오 객체를 삭제할 수 있는 API 뷰입니다.
+
+    이 뷰는 S3에서 해당 비디오 파일을 삭제하고, 데이터베이스에서 해당 비디오 객체를 제거합니다.
+
+    Attributes:
+        queryset (QuerySet): 삭제할 비디오 객체의 쿼리셋입니다. 모든 비디오 객체를 대상으로 합니다.
+        permission_classes (list): 이 API 뷰에 접근할 수 있는 권한을 정의합니다. `AllowAny`로 설정되어 있어, 인증되지 않은 사용자도 이 엔드포인트에 접근할 수 있습니다.
+
+    Methods:
+        delete(request, *args, **kwargs):
+            클라이언트로부터 DELETE 요청을 처리하여 S3에서 비디오 파일을 삭제하고, 데이터베이스에서 비디오 객체를 제거합니다.
+    """
+
     queryset = Video.objects.all()
     permission_classes = [AllowAny]
 
     def delete(self, request, *args, **kwargs):
+        """
+        특정 비디오 객체를 삭제하고, S3에서 해당 비디오 파일을 제거합니다.
+
+        Args:
+            request (HttpRequest): 클라이언트로부터 전달된 HTTP 요청 객체.
+            *args: 가변 인자 리스트.
+            **kwargs: URL 패턴에서 전달된 추가적인 키워드 인자들.
+
+        Returns:
+            Response: 비디오 객체가 성공적으로 삭제되었음을 알리는 JSON 응답.
+            HTTP 204: 비디오 객체가 성공적으로 삭제된 경우.
+            HTTP 500: S3에서 파일을 삭제하는 중 오류가 발생한 경우.
+        """
         video = self.get_object()
         s3_client = boto3.client(
             "s3",
@@ -243,9 +355,36 @@ class VideoDeleteAPIView(generics.DestroyAPIView):
 
 
 class UpdateUserProgressAPIView(APIView):
+    """
+    사용자의 비디오 시청 진행 정보를 업데이트할 수 있는 API 뷰입니다.
+
+    이 뷰는 사용자가 특정 비디오에 대해 시청한 진행 상태를 업데이트합니다.
+    요청 데이터에는 비디오 ID, 진행 비율, 시청 시간, 마지막 재생 위치가 포함되어야 합니다.
+
+    Methods:
+        post(request, *args, **kwargs):
+            클라이언트로부터 POST 요청을 받아 사용자의 비디오 시청 진행 정보를 업데이트합니다.
+    """
+
     permission_classes = [AllowAny]  # TODO: 실제 배포 시 IsAuthenticated로 변경
 
     def post(self, request, *args, **kwargs):
+        """
+        사용자의 비디오 시청 진행 정보를 업데이트합니다.
+
+        요청 데이터로 비디오 ID, 진행 비율, 시청 시간, 마지막 재생 위치를 받아, 해당 비디오에 대한 사용자의 진행 정보를 업데이트합니다.
+
+        Args:
+            request (HttpRequest): 클라이언트로부터 전달된 HTTP 요청 객체.
+            *args: 가변 인자 리스트.
+            **kwargs: URL 패턴에서 전달된 추가적인 키워드 인자들.
+
+        Returns:
+            Response: 진행 정보가 성공적으로 업데이트되었음을 알리는 JSON 응답.
+            HTTP 200: 진행 정보가 성공적으로 업데이트된 경우.
+            HTTP 400: 요청 데이터가 잘못되었거나 누락된 경우.
+            HTTP 404: 비디오 또는 등록 정보를 찾을 수 없는 경우.
+        """
         User = get_user_model()
         user = User.objects.get(id=2)  # 실제 환경에서는 request.user를 사용하세요.
 
