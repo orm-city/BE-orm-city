@@ -68,7 +68,7 @@ class PaymentCompleteAPIView(APIView):
             "Authorization": f"Bearer {token}",
         }
         response = requests.get(url, headers=headers)
-        payment_data = response.json()
+        payment_data = response.json()  # 아임포트 api 응답 파싱 data
         logger.info(f"Iamport payment data: {payment_data}")
 
         if payment_data["code"] == 0:
