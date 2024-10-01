@@ -17,9 +17,10 @@ class Payment(models.Model):
     total_amount = models.PositiveIntegerField()
     payment_date = models.DateTimeField(auto_now_add=True)
     receipt_url = models.URLField(null=True, blank=True)
-    merchant_uid = models.CharField(
-        max_length=100, unique=True, null=True
-    )  # 아임포트 결제 고유 아이디
+    merchant_uid = models.CharField(max_length=100, unique=True, null=True)
+    # 아임포트 결제 고유 아이디
+    imp_uid = models.CharField(max_length=100, unique=True, null=True)
+
     payment_status = models.CharField(
         max_length=20,
         choices=[

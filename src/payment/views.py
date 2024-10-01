@@ -118,6 +118,7 @@ class PaymentCompleteAPIView(APIView):
                 merchant_uid=merchant_uid,
                 payment_status="paid",
                 receipt_url=f"https://api.iamport.kr/payments/{imp_uid}",
+                imp_uid=imp_uid,
             )
             logger.info(f"Payment created successfully: id={payment.id}")
             return Response(
