@@ -27,8 +27,8 @@ DJANGO_APPS = [
 
 PROJECTS_APPS = [
     "accounts",
-    "api",
     "certificates",
+    "core",
     "courses",
     "dashboards",
     "missions",

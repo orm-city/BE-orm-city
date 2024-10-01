@@ -15,7 +15,7 @@ class IsEnrolledInCourse(BasePermission):
         # 강의와 연관된 Video 객체를 사용하여 해당 강의에 사용자가 등록되었는지 확인
         try:
             enrollment = Enrollment.objects.get(  # noqa
-                user=request.user, minor_category=obj.minor_category
+                user=request.user, major_category=obj.major_category
             )
             return True
         except Enrollment.DoesNotExist:
@@ -60,8 +60,11 @@ class IsEnrolledOrAdmin(BasePermission):
         # 사용자가 해당 강의에 등록되었는지 확인
         try:
             enrollment = Enrollment.objects.get(  # noqa
-                user=request.user, minor_category=obj.minor_category
+                user=request.user, major_category=obj.minor_category.major_category
             )
             return True
         except Enrollment.DoesNotExist:
+            return False
+        except AttributeError:
+            # minor_category가 없거나 잘못된 접근일 경우 처리
             return False

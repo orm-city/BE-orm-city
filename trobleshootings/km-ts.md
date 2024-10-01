@@ -1,3 +1,23 @@
+## 날짜(24-10-00)
+
+### 문제 상황
+
+- 어떤 것을 하려다가 문제가 발생했는가?
+- 발행한 환경, 프로그램, 경로
+- 발생한 문제(에러)
+
+### 원인
+
+- 추정되는 원인
+- 실제 원인
+
+### 최종 해결
+
+- 최종 해결을 위한 시행 착오(optional)
+- 해결 방법
+
+### 참고 자료
+
 # 트러블 슈팅 목록
 ## 24-09-24
 1. 도커에서 마이그레이션 명령어가 사용이 안되는 문제
@@ -14,13 +34,3 @@ npx supabase login
 docker 키기
 npx supabase start
 npx supabase db reset --linked
-
-
-pdm migs accounts
-pdm migs certificates
-pdm migs courses
-pdm migs dashboards
-pdm migs missions
-pdm migs payment
-pdm migs progress
-pdm migs videos
