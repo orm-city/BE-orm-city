@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from django.utils import timezone
 from .models import CustomUser, UserActivity
 from .serializers import CustomUserSerializer, UserActivitySerializer
@@ -84,12 +85,17 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     """
-    사용자 로그아웃을 처리하는 뷰.
+    사용자 로그아웃을 처리하는 API 뷰.
 
-    이 뷰는 사용자의 리프레시 토큰을 블랙리스트에 추가하고, 로그아웃 시간을 기록합니다.
+    이 뷰는 사용자의 리프레시 토큰을 블랙리스트에 추가하고,
+    해당 사용자의 가장 최근 UserActivity 기록의 로그아웃 시간을 업데이트합니다.
 
     Attributes:
-        permission_classes: 이 뷰에 접근할 수 있는 권한(인증된 사용자만 허용).
+        permission_classes (list): 이 뷰에 접근할 수 있는 권한을 정의합니다.
+                                   [IsAuthenticated]로 설정되어 인증된 사용자만 접근 가능합니다.
+
+    Methods:
+        post(request): POST 요청을 처리하여 사용자 로그아웃을 수행합니다.
     """
 
     permission_classes = [IsAuthenticated]
@@ -98,24 +104,60 @@ class LogoutView(APIView):
         """
         POST 요청을 처리하여 사용자 로그아웃을 수행합니다.
 
+        이 메서드는 다음과 같은 작업을 수행합니다:
+        1. 요청에서 리프레시 토큰을 추출합니다.
+        2. 해당 토큰을 블랙리스트에 추가합니다.
+        3. 사용자의 가장 최근 UserActivity 기록을 찾아 로그아웃 시간을 업데이트합니다.
+
         Args:
-            request: 클라이언트로부터의 HTTP 요청 객체.
+            request (Request): 클라이언트로부터의 HTTP 요청 객체.
+                               이 요청의 데이터에는 'refresh' 키로 리프레시 토큰이 포함되어야 합니다.
 
         Returns:
-            Response: 성공 또는 실패 상태를 나타내는 응답.
+            Response: 로그아웃 처리 결과를 나타내는 HTTP 응답.
+                      - 성공 시: 205 상태 코드와 성공 메시지를 반환합니다.
+                      - 실패 시: 400 또는 500 상태 코드와 오류 메시지를 반환합니다.
+
+        Raises:
+            KeyError: 'refresh' 키가 요청 데이터에 없을 경우 발생합니다.
+            TokenError: 제공된 토큰이 유효하지 않거나 이미 블랙리스트에 있는 경우 발생합니다.
+            Exception: 예상치 못한 오류가 발생할 경우 처리합니다.
+
+        Note:
+            - 이 메서드는 djangorestframework-simplejwt의 RefreshToken을 사용하여 토큰을 처리합니다.
+            - UserActivity 모델을 사용하여 사용자의 로그아웃 시간을 기록합니다.
+            - 모든 예외는 적절한 HTTP 응답으로 처리되어 클라이언트에게 반환됩니다.
         """
         try:
             refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
-            user_activity = UserActivity.objects.filter(
-                user=request.user, logout_time__isnull=True
-            ).latest("login_time")
-            user_activity.logout_time = timezone.now()
-            user_activity.save()
-            return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+            user_activity = (
+                UserActivity.objects.filter(user=request.user, logout_time__isnull=True)
+                .order_by("-login_time")
+                .first()
+            )
+
+            if user_activity:
+                user_activity.logout_time = timezone.now()
+                user_activity.save()
+
+            return Response(
+                {"detail": "Successfully logged out."},
+                status=status.HTTP_205_RESET_CONTENT,
+            )
+        except KeyError:
+            return Response(
+                {"detail": "Refresh token is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except TokenError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
