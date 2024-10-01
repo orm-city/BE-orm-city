@@ -140,4 +140,4 @@ supabase/
 
 .dockerignore
 .ruff_cache
-migrations/
+src/*/migrations/*
