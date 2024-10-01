@@ -28,7 +28,7 @@ class Payment(models.Model):
             ("cancelled", "결제취소"),
             ("failed", "결제실패"),
         ],
-        default="PENDING",
+        default="ready",
     )
     refund_status = models.CharField(
         max_length=20,

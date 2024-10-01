@@ -20,10 +20,12 @@ class PaymentInfoAPIView(APIView):
     def get(self, request, major_category_id):
         try:
             major_category = MajorCategory.objects.get(id=major_category_id)
+            user = request.user
             data = {
                 "major_category_id": major_category.id,
                 "major_category_name": major_category.name,
                 "major_category_price": major_category.price,
+                "username": user.username,
                 "imp_key": settings.IAMPORT["IMP_KEY"],
             }
             return Response(data, status=status.HTTP_200_OK)
@@ -48,7 +50,7 @@ class PaymentCompleteAPIView(APIView):
             "Accept": "*/*",
         }
         body = {
-            "imp_key": settings.IAMPORT["IMP_SECRET"],
+            "imp_key": settings.IAMPORT["IMP_KEY"],
             "imp_secret": settings.IAMPORT["IMP_SECRET"],
         }
         try:
@@ -88,6 +90,7 @@ class PaymentCompleteAPIView(APIView):
         merchant_uid = request.data.get("merchant_uid")
         major_category_id = request.data.get("major_category_id")
         total_amount = request.data.get("total_amount")
+        # receipt_url = request.data.get("receipt_url")
 
         logger.info(f"Payment request received: {request.data}")
 
@@ -109,7 +112,7 @@ class PaymentCompleteAPIView(APIView):
 
         if self.verify_iamport_payment(imp_uid, total_amount, iamport_token):
             payment = Payment.objects.create(
-                user=user,
+                username=user,
                 major_category=major_category,
                 total_amount=total_amount,
                 merchant_uid=merchant_uid,
