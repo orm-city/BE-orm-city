@@ -71,6 +71,7 @@ class Enrollment(models.Model):
         on_delete=models.CASCADE,
         related_name="enrollments",
         verbose_name="수강 대분류",
+        null=True,
     )
     enrollment_date = models.DateTimeField(
         auto_now_add=True, verbose_name="수강 신청일"
