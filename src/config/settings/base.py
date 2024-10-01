@@ -40,6 +40,7 @@ PROJECTS_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",  # djangorestframework
     "rest_framework_simplejwt",  # djangorestframework-simplejwt
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",  # django-cors-headers
 ]
 
