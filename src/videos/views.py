@@ -12,15 +12,15 @@ from botocore.exceptions import ClientError
 
 from courses.models import Enrollment, MinorCategory
 from progress.models import UserProgress
-from videos.permissions import IsAdminUser, IsEnrolledOrAdmin
-from videos.models import Video
-from videos.serializers import VideoSerializer
-from videos.services import (
+from progress.services import UserProgressService
+from .permissions import IsAdminUser, IsEnrolledOrAdmin
+from .models import Video
+from .serializers import ProgressUpdateSerializer, VideoSerializer
+from .services import (
     get_s3_client,
     get_presigned_post,
     get_presigned_url,
 )
-from progress.services import UserProgressService
 
 
 class VideoViewSet(viewsets.ModelViewSet):
@@ -168,25 +168,21 @@ class VideoViewSet(viewsets.ModelViewSet):
 
 class UpdateUserProgressAPIView(APIView):
     permission_classes = [IsEnrolledOrAdmin]
+    throttle_scope = "progress"
 
     def post(self, request, *args, **kwargs):
+        # 데이터 검증
+        serializer = ProgressUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # 검증된 데이터 가져오기
+        video_id = serializer.validated_data["video_id"]
+        progress_percent = serializer.validated_data["progress_percent"]
+        time_spent = serializer.validated_data["time_spent"]
+        last_position = serializer.validated_data["last_position"]
+
         user = request.user
-
-        video_id = request.data.get("video_id")
-        progress_percent = request.data.get("progress_percent")
-        time_spent = request.data.get("time_spent")
-        last_position = request.data.get("last_position")
-
-        if (
-            not video_id
-            or progress_percent is None
-            or time_spent is None
-            or last_position is None
-        ):
-            return Response(
-                {"detail": "요청 데이터가 누락되었습니다."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         try:
             progress_percent = int(progress_percent)
@@ -211,6 +207,9 @@ class UpdateUserProgressAPIView(APIView):
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, video=video, enrollment=enrollment
             )
+            if created:
+                UserProgressService.reset_progress(user_progress)
+
             UserProgressService.update_progress(
                 progress_percent, timezone.timedelta(seconds=time_spent), last_position
             )

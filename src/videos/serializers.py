@@ -15,3 +15,10 @@ class VideoSerializer(serializers.ModelSerializer):
             "order",
             "created_at",
         )
+
+
+class ProgressUpdateSerializer(serializers.Serializer):
+    video_id = serializers.IntegerField()
+    progress_percent = serializers.IntegerField(min_value=0, max_value=100)
+    time_spent = serializers.IntegerField(min_value=0)
+    last_position = serializers.IntegerField(min_value=0)

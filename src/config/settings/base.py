@@ -127,6 +127,9 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_RATES": {
+        "progress": "7/min",  # 'progress' throttle 설정 (7 요청/분)
+    },
 }
 
 SPECTACULAR_SETTINGS = {
