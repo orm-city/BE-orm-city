@@ -27,8 +27,8 @@ DJANGO_APPS = [
 
 PROJECTS_APPS = [
     "accounts",
-    "api",
     "certificates",
+    "core",
     "courses",
     "dashboards",
     "missions",
@@ -40,6 +40,7 @@ PROJECTS_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",  # djangorestframework
     "rest_framework_simplejwt",  # djangorestframework-simplejwt
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",  # django-cors-headers
 ]
 
@@ -122,6 +123,9 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_RATES": {
+        "progress": "7/min",  # 'progress' throttle 설정 (7 요청/분)
+    },
 }
 
 SPECTACULAR_SETTINGS = {

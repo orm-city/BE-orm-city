@@ -15,8 +15,14 @@ INSTALLED_APPS += [  # noqa
     "drf_spectacular",  # drf_spectacular
 ]
 
-
 TOKEN_TEST = {
     "DJANGO_SUPERUSER_USERNAME" : env("DJANGO_SUPERUSER_USERNAME"),
     "DJANGO_SUPERUSER_PASSWORDenv": env("DJANGO_SUPERUSER_PASSWORD"),
+}
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
 }

@@ -17,6 +17,8 @@ class Video(models.Model):
         related_name="videos",
         verbose_name="소분류",
     )
+    duration = models.DurationField()  # 동영상의 길이
+    order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
