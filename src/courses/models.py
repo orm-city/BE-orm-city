@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from accounts.models import CustomUser
 
 
@@ -49,12 +51,6 @@ class MinorCategory(models.Model):
 
 
 class Enrollment(models.Model):
-    """
-    수강 신청 모델 (MajorCategory 기반)
-
-    이 모델은 사용자의 대분류(MajorCategory) 과목 수강 신청 정보를 나타냅니다.
-    """
-
     STATUS_CHOICES = [
         ("active", "진행중"),
         ("completed", "완료"),
@@ -79,6 +75,42 @@ class Enrollment(models.Model):
     status = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default="active", verbose_name="상태"
     )
+
+    def clean(self):
+        now = timezone.now()
+
+        # enrollment_date가 설정되지 않은 경우 (새로운 인스턴스 생성 시)
+        if not self.enrollment_date:
+            self.enrollment_date = now
+
+        # expiry_date가 naive datetime인 경우 aware로 변환
+        if self.expiry_date and self.expiry_date.tzinfo is None:
+            self.expiry_date = timezone.make_aware(self.expiry_date)
+
+        # 만료일이 현재보다 과거인 경우
+        if self.expiry_date and self.expiry_date < now:
+            raise ValidationError("수강 만료일은 현재 시간 이후여야 합니다.")
+
+        # 만료일이 수강 신청일보다 이전인 경우
+        if (
+            self.expiry_date
+            and self.enrollment_date
+            and self.expiry_date < self.enrollment_date
+        ):
+            raise ValidationError("수강 만료일은 수강 신청일 이후여야 합니다.")
+
+        # 수강 기간이 2년을 초과하는 경우
+        max_duration = timezone.timedelta(days=365 * 2)
+        if (
+            self.expiry_date
+            and self.enrollment_date
+            and (self.expiry_date - self.enrollment_date) > max_duration
+        ):
+            raise ValidationError("수강 기간은 2년을 초과할 수 없습니다.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - {self.major_category.name}"
