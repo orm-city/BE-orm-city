@@ -33,19 +33,3 @@ class UserProgress(models.Model):
 
     def __str__(self):
         return f"수강생:{self.user.username}, 강의:{self.video.name}, 수강률:({self.progress_percent}%)"
-
-    def update_progress(self, new_percent, additional_time, last_position):
-        self.progress_percent = min(100, max(0, new_percent))
-        self.time_spent += additional_time
-        self.last_accessed = timezone.now()
-        self.last_position = last_position
-        if self.progress_percent == 100:
-            self.is_completed = True
-        self.save()
-
-    def reset_progress(self):
-        self.is_completed = False
-        self.progress_percent = 0
-        self.time_spent = timezone.timedelta()
-        self.last_position = 0
-        self.save()

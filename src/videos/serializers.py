@@ -5,4 +5,13 @@ from .models import Video
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+            "description",
+            "video_url",
+            "minor_category",
+            "duration",
+            "order",
+            "created_at",
+        )

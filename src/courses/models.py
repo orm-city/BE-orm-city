@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import CustomUser
+from .services import ProgressService
 
 
 class MajorCategory(models.Model):
@@ -19,6 +20,10 @@ class MajorCategory(models.Model):
     class Meta:
         verbose_name = "대분류"
         verbose_name_plural = "대분류 목록"
+
+    @property
+    def progress_percent(self):
+        return ProgressService.calculate_major_category_progress(self)
 
 
 class MinorCategory(models.Model):
@@ -46,6 +51,10 @@ class MinorCategory(models.Model):
 
     def __str__(self):
         return f"{self.major_category.name} - {self.name}"
+
+    @property
+    def progress_percent(self):
+        return ProgressService.calculate_category_progress(self)
 
 
 class Enrollment(models.Model):

@@ -12,10 +12,15 @@ from botocore.exceptions import ClientError
 
 from courses.models import Enrollment, MinorCategory
 from progress.models import UserProgress
-from core.permissions import IsAdminUser, IsEnrolledOrAdmin
+from videos.permissions import IsAdminUser, IsEnrolledOrAdmin
 from videos.models import Video
 from videos.serializers import VideoSerializer
-from videos.services import get_s3_client, get_presigned_post, get_presigned_url
+from videos.services import (
+    get_s3_client,
+    get_presigned_post,
+    get_presigned_url,
+)
+from progress.services import UserProgressService
 
 
 class VideoViewSet(viewsets.ModelViewSet):
@@ -25,7 +30,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["update", "destroy", "create"]:
             return [IsAdminUser()]
-        elif self.action == "retrieve":
+        elif self.action in ["retrieve", "list"]:
             return [IsEnrolledOrAdmin()]
         return super().get_permissions()
 
@@ -39,6 +44,7 @@ class VideoViewSet(viewsets.ModelViewSet):
                 description=request.data.get(
                     "description", "Auto-generated description"
                 ),
+                duration=request.data.get("duration", timezone.timedelta(seconds=0)),
                 video_url=s3_url,
                 minor_category=MinorCategory.objects.first(),
             )
@@ -205,7 +211,7 @@ class UpdateUserProgressAPIView(APIView):
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, video=video, enrollment=enrollment
             )
-            user_progress.update_progress(
+            UserProgressService.update_progress(
                 progress_percent, timezone.timedelta(seconds=time_spent), last_position
             )
 
