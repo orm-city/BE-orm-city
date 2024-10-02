@@ -1,9 +1,10 @@
 [project]
-name = "orm_city"
+name = "final_project"
 version = "0.1.0"
 description = "Default template for PDM package"
 authors = [
     {name = "KyungMin.Ko", email = "rhrudals312@naver.com"},
+    {name = "geza", email = ""},
 ]
 dependencies = [
     "django>=5.1.1",
@@ -17,6 +18,7 @@ dependencies = [
     "djangorestframework-simplejwt>=5.3.1",
     "boto3>=1.35.26",
     "django-cors-headers>=4.4.0",
+    "psycopg2-binary>=2.9.9",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
