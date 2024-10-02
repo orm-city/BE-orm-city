@@ -55,15 +55,3 @@ class UserOverallProgressSerializer(serializers.Serializer):
     completed_videos = serializers.IntegerField()
     overall_progress_percent = serializers.FloatField()
     total_time_spent = serializers.DurationField()
-
-
-# class UserProgressSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = UserProgress
-#         fields = [
-#             "video",
-#             "progress_percent",
-#             "last_accessed",
-#             "time_spent",
-#             "is_completed",
-#         ]
