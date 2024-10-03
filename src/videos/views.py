@@ -18,7 +18,9 @@ from .models import Video
 from .serializers import ProgressUpdateSerializer, VideoSerializer
 from .services import (
     get_s3_client,
-    get_presigned_post,
+    initiate_multipart_upload,
+    generate_presigned_urls_for_parts,
+    complete_multipart_upload,
     get_presigned_url,
 )
 
@@ -36,21 +38,34 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            presigned_post = get_presigned_post()
-            s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{presigned_post['fields']['key']}"
+            # 1. 멀티파트 업로드 시작
+            upload_id, filename = initiate_multipart_upload()
 
+            # 2. 클라이언트가 요청한 총 파트 수를 가져옴
+            total_parts = int(request.data.get("total_parts"))
+
+            # 3. 각 파트에 대해 presigned URL 생성
+            presigned_urls = generate_presigned_urls_for_parts(
+                upload_id, filename, total_parts
+            )
+
+            # 4. Video 객체 생성 (완료 전에도 URL이 있으므로 미리 생성)
             video = Video.objects.create(
                 name=request.data.get("name", "Auto-generated name"),
                 description=request.data.get(
                     "description", "Auto-generated description"
                 ),
                 duration=request.data.get("duration", timezone.timedelta(seconds=0)),
-                video_url=s3_url,
+                video_url=f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{filename}",
                 minor_category=MinorCategory.objects.first(),
             )
 
             return Response(
-                {"presigned_post": presigned_post, "video_id": video.id},
+                {
+                    "upload_id": upload_id,
+                    "presigned_urls": presigned_urls,
+                    "video_id": video.id,
+                },
                 status=status.HTTP_201_CREATED,
             )
         except ClientError as e:
@@ -164,6 +179,40 @@ class VideoViewSet(viewsets.ModelViewSet):
         return Response(
             {"detail": "Video deleted successfully"}, status=status.HTTP_204_NO_CONTENT
         )
+
+
+class CompleteUploadAPIView(APIView):
+    """
+    모든 파트가 업로드된 후 멀티파트 업로드를 완료하는 API 뷰.
+    클라이언트는 각 파트에 대해 S3로 업로드한 후 이 API를 호출하여 업로드를 완료합니다.
+    """
+
+    permission_classes = [IsAdminUser]  # 관리자 권한 필요
+
+    def post(self, request, *args, **kwargs):
+        # 클라이언트로부터 필요한 데이터 수집
+        upload_id = request.data.get("upload_id")
+        filename = request.data.get("filename")
+        parts = request.data.get("parts")  # 각 파트에 대한 ETag 및 PartNumber 포함
+
+        if not upload_id or not filename or not parts:
+            return Response(
+                {"detail": "upload_id, filename, 그리고 parts 필드가 필요합니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # 멀티파트 업로드 완료 처리
+            response = complete_multipart_upload(upload_id, filename, parts)
+            return Response(
+                {"detail": "Upload completed successfully", "response": response},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"Upload completion failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class UpdateUserProgressAPIView(APIView):
