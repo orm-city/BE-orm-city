@@ -1,4 +1,5 @@
 # PowerShell script for resetting Django migrations
+# 오류가 있는 것 같아서 수정해야 합니다. 잠시만 기다려주세요.
 # 실행 명령어 : .\reset_migrations.ps1
 # 권한 오류 발생 시 : Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
