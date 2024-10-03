@@ -74,7 +74,6 @@ class CustomUserAdmin(UserAdmin):
         "get_full_name",
         "role",
         "is_staff",
-        "is_subscription_active",
         "total_study_time",
     )
     list_filter = ("is_staff", "is_superuser", "is_active", "groups", "role", "gender")
@@ -95,21 +94,6 @@ class CustomUserAdmin(UserAdmin):
         return obj.get_full_name()
 
     get_full_name.short_description = "이름"
-
-    def is_subscription_active(self, obj):
-        """
-        사용자의 구독 상태를 확인합니다.
-
-        Args:
-            obj (CustomUser): 사용자 객체
-
-        Returns:
-            bool: 구독이 활성 상태이면 True, 그렇지 않으면 False
-        """
-        return obj.is_subscription_active()
-
-    is_subscription_active.boolean = True
-    is_subscription_active.short_description = "구독 활성 여부"
 
     def extend_subscription(self, request, queryset):
         """
