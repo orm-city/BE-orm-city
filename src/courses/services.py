@@ -1,4 +1,4 @@
-from django.db.models import Sum, F
+from django.db.models import Sum, F, FloatField, ExpressionWrapper
 from django.db.models.functions import Coalesce
 
 
@@ -9,7 +9,10 @@ class ProgressService:
         MinorCategory에서 동영상의 총 진행률을 계산.
         """
         video_stats = category.videos.annotate(
-            weighted_progress=F("userprogress__progress_percent") * F("duration")
+            weighted_progress=ExpressionWrapper(
+                F("progresses__progress_percent") * F("duration"),
+                output_field=FloatField(),
+            )
         ).aggregate(
             total_progress=Sum("weighted_progress"),
             total_video_duration=Sum("duration"),
@@ -40,7 +43,11 @@ class ProgressService:
             total_duration=Coalesce(Sum("videos__duration"), 0),
             weighted_progress=Coalesce(
                 Sum(
-                    F("videos__userprogress__progress_percent") * F("videos__duration")
+                    ExpressionWrapper(
+                        F("videos__progresses__progress_percent")
+                        * F("videos__duration"),
+                        output_field=FloatField(),
+                    )
                 ),
                 0,
             ),

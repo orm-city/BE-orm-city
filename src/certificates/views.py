@@ -1,13 +1,39 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse
 
+from certificates.models import Certificate
+from certificates.permissions import IsCertificateOwner
 from certificates.services import (
+    decrypt_certificate_data,
     generate_certificate_image,
     generate_certificate_pdf,
     get_course_name,
+    get_available_certificates,
+    get_course_model,
 )
+
+
+class AvailableCertificatesAPIView(APIView):
+    def get(self, request):
+        user = request.user
+        available_minor, available_major = get_available_certificates(user)
+
+        # 필요한 데이터를 반환
+        return Response(
+            {
+                "available_minor_certificates": [
+                    minor.name for minor in available_minor
+                ],
+                "available_major_certificates": [
+                    major.name for major in available_major
+                ],
+            }
+        )
 
 
 class CertificatePreviewAPIView(APIView):
@@ -15,7 +41,7 @@ class CertificatePreviewAPIView(APIView):
     사용자의 인증서를 이미지로 생성하고, 이를 미리보기 형식으로 제공하는 API 뷰입니다.
     """
 
-    permission_classes = [AllowAny]  # TODO: 바꿔야함
+    permission_classes = [IsAuthenticated, IsCertificateOwner]
 
     def get(self, request, course_type=None, course_id=None):
         """
@@ -46,24 +72,9 @@ class CertificatePreviewAPIView(APIView):
 
 
 class CertificateDownloadAPIView(APIView):
-    """
-    인증서를 PDF 파일로 생성하고, 이를 다운로드할 수 있도록 제공하는 API 뷰입니다.
-    """
-
-    permission_classes = [AllowAny]  # TODO: 바꿔야함
+    permission_classes = [IsAuthenticated, IsCertificateOwner]
 
     def get(self, request, course_type=None, course_id=None):
-        """
-        GET 요청을 처리하여 인증서의 PDF 파일을 생성하고, 이를 첨부파일로 제공합니다.
-
-        Args:
-            request (HttpRequest): 요청 객체.
-            course_type (str): 코스의 유형을 나타내는 문자열.
-            course_id (int): 코스의 ID.
-
-        Returns:
-            HttpResponse: 생성된 인증서의 PDF 파일을 첨부파일로 반환합니다. 성공 시 HTTP 200 응답을 반환하며, 코스를 찾지 못하거나 PDF 생성 중 오류가 발생한 경우 각각 HTTP 404, 500 응답을 반환합니다.
-        """
         user = request.user
 
         try:
@@ -71,8 +82,23 @@ class CertificateDownloadAPIView(APIView):
         except ValueError as e:
             return Response({"detail": str(e)}, status=404)
 
+        # 수료증 발급 또는 기존 수료증 가져오기
+        certificate, created = Certificate.objects.get_or_create(
+            user=user,
+            content_type=ContentType.objects.get_for_model(
+                get_course_model(course_type)
+            ),
+            object_id=course_id,
+        )
+
+        # 인증서가 새로 생성되었을 때 암호화된 데이터를 저장
+        if created:
+            certificate.generate_certificate()  # 수료증 데이터 암호화 및 저장
+
         try:
-            pdf_buffer = generate_certificate_pdf(user.username, course_name)
+            pdf_buffer = generate_certificate_pdf(
+                user.username, course_name, certificate.certificate_id
+            )
         except Exception:
             return Response({"detail": "인증서 생성 중 오류 발생"}, status=500)
 
@@ -81,3 +107,29 @@ class CertificateDownloadAPIView(APIView):
             f'attachment; filename="certificate_{course_id}_{course_type}.pdf"'
         )
         return response
+
+
+class VerifyCertificateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, certificate_id):
+        # 수료증을 DB에서 조회
+        certificate = get_object_or_404(Certificate, certificate_id=certificate_id)
+
+        try:
+            # 암호화된 수료증 데이터를 복호화
+            decrypted_data = decrypt_certificate_data(certificate.encrypted_data)
+
+            # 복호화된 데이터를 반환
+            return Response(
+                {
+                    "certificate_id": certificate.certificate_id,
+                    "decrypted_data": decrypted_data,
+                    "is_valid": True,
+                },
+                status=200,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": "Invalid certificate data", "error": str(e)}, status=400
+            )
