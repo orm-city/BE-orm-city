@@ -1,8 +1,12 @@
 import os
+from base64 import b64encode, b64decode
+import qrcode
 from io import BytesIO
 
 from django.conf import settings
+from django.db.models import Count, Q, F
 from PIL import Image, ImageDraw, ImageFont
+from Crypto.Cipher import AES
 
 from courses.models import MajorCategory, MinorCategory
 
@@ -83,7 +87,7 @@ def calculate_text_position(draw, text, font, image_width, y_position):
     return position_x, y_position
 
 
-def generate_certificate(user_name, course_name):
+def generate_certificate(user_name, course_name, certificate_id=None):
     """
     사용자 이름과 코스 이름을 포함한 인증서 이미지를 생성합니다.
 
@@ -113,6 +117,16 @@ def generate_certificate(user_name, course_name):
         position = calculate_text_position(draw, text, font, image.width, y_position)
         draw.text(position, text, font=font, fill=color)
 
+    qr_buffer = generate_certificate_qr(certificate_id)
+    qr_image = Image.open(qr_buffer)
+
+    # QR 코드 위치 설정 (하단 오른쪽 구석)
+    qr_position = (
+        image.width - qr_image.width - 50,
+        image.height - qr_image.height - 50,
+    )
+    image.paste(qr_image, qr_position)
+
     return image
 
 
@@ -136,7 +150,7 @@ def generate_certificate_image(user_name, course_name):
     return buffer
 
 
-def generate_certificate_pdf(user_name, course_name):
+def generate_certificate_pdf(user_name, course_name, certificate_id):
     """
     사용자 이름과 코스 이름을 포함한 인증서 이미지를 생성하고, 이를 PDF 형식으로 반환합니다.
 
@@ -147,10 +161,98 @@ def generate_certificate_pdf(user_name, course_name):
     Returns:
         BytesIO: 생성된 인증서 이미지의 PDF 버퍼.
     """
-    image = generate_certificate(user_name, course_name)
+    image = generate_certificate(user_name, course_name, certificate_id)
 
     buffer = BytesIO()
     image.save(buffer, format="PDF")
     buffer.seek(0)
 
     return buffer
+
+
+def generate_certificate_qr(certificate_id):
+    # QR 코드에 포함할 URL (수료증 진위 확인 API 경로)
+    frontend_host = getattr(settings, "FRONTEND_HOST", "http://localhost:5500")
+    qr_data = (
+        f"{frontend_host}/certificate_verification.html?certificate_id={certificate_id}"
+    )
+    qr = qrcode.make(qr_data)
+
+    # QR 코드를 메모리 내 이미지로 저장
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return buffer  # QR 코드가 저장된 buffer를 반환
+
+
+def get_course_model(course_type):
+    if course_type == "minor":
+        return MinorCategory
+    elif course_type == "major":
+        return MajorCategory
+    else:
+        raise ValueError("유효하지 않은 과정 유형입니다.")
+
+
+######################################################################
+## permissions.py
+def get_available_certificates(user):
+    # MinorCategory의 모든 동영상을 완료한 경우 발급 가능 목록
+    available_minor_certificates = MinorCategory.objects.annotate(
+        total_videos=Count("videos"),
+        completed_videos=Count(
+            "videos",
+            filter=Q(
+                videos__progresses__user=user, videos__progresses__is_completed=True
+            ),
+        ),
+    ).filter(total_videos=F("completed_videos"))
+
+    # MajorCategory의 모든 동영상을 완료한 경우 발급 가능 목록
+    available_major_certificates = MajorCategory.objects.annotate(
+        total_videos=Count("minor_categories__videos"),
+        completed_videos=Count(
+            "minor_categories__videos",
+            filter=Q(
+                minor_categories__videos__progresses__user=user,
+                minor_categories__videos__progresses__is_completed=True,
+            ),
+        ),
+    ).filter(total_videos=F("completed_videos"))
+
+    return available_minor_certificates, available_major_certificates
+
+
+######################################################################
+## 암호화, 복호화
+def encrypt_certificate_data(data):
+    # settings에서 암호화 키 가져오기
+    key = settings.CERTIFICATE_SECRET_KEY.encode("utf-8")
+    cipher = AES.new(key, AES.MODE_EAX)
+    ciphertext, tag = cipher.encrypt_and_digest(data.encode("utf-8"))
+
+    # Nonce, tag, ciphertext를 결합하여 저장
+    encrypted_data = b64encode(cipher.nonce + tag + ciphertext).decode("utf-8")
+    print(f"Encrypted Data: {encrypted_data}")
+    return encrypted_data
+
+
+def decrypt_certificate_data(encrypted_data):
+    # settings에서 암호화 키 가져오기
+    key = settings.CERTIFICATE_SECRET_KEY.encode("utf-8")
+    encrypted_data = b64decode(encrypted_data)
+
+    # Nonce, tag, ciphertext 분리
+    nonce = encrypted_data[:16]
+    tag = encrypted_data[16:32]
+    ciphertext = encrypted_data[32:]
+
+    print(f"Nonce: {nonce}, Tag: {tag}, Ciphertext: {ciphertext}")
+
+    # 복호화 시 Nonce 전달
+    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
+
+    # 복호화 진행 및 검증
+    data = cipher.decrypt_and_verify(ciphertext, tag)
+    return data.decode("utf-8")

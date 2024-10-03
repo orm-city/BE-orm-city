@@ -1,4 +1,5 @@
 from .base import *  # noqa
+import os
 
 DEBUG = True
 
@@ -20,3 +21,32 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "level": "DEBUG",  # 디버그 레벨로 설정
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.db.backends": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "DEBUG",  # 요청 관련 로그
+            "propagate": True,
+        },
+    },
+}
+
+
+FRONTEND_HOST = "http://localhost:5500"
+
+CERTIFICATE_SECRET_KEY = os.getenv(
+    "CERTIFICATE_SECRET_KEY", "a_very_secret_32_byte_long_key!!"
+)
