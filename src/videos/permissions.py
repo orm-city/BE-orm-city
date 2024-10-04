@@ -1,7 +1,6 @@
 from rest_framework import permissions
 
 from courses.models import Enrollment
-from videos.models import Video
 
 
 class IsAdminUser(permissions.BasePermission):
@@ -20,22 +19,28 @@ class IsEnrolledOrAdmin(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
+        # 관리자는 항상 허용
         if request.user.is_authenticated and request.user.role == "admin":
             return True
 
-        # 일반 사용자의 경우, 비디오의 소속 강의에 등록되었는지 확인
-        video_pk = view.kwargs.get("pk")
-        try:
-            video = Video.objects.get(pk=video_pk)
-            minor_category = video.minor_category
-            major_category = minor_category.major_category
-
-            # 사용자가 해당 MajorCategory에 등록되었는지 확인 (status가 active 또는 completed인 경우)
-            enrollment = Enrollment.objects.filter(
-                user=request.user,
-                major_category=major_category,
-                status__in=["active", "completed"],
+        # 비디오 목록 조회일 경우
+        if view.action == "list":
+            return Enrollment.objects.filter(
+                user=request.user, status__in=["active", "completed"]
             ).exists()
-            return enrollment
-        except Video.DoesNotExist:
-            return False
+
+        # 단일 비디오 조회일 경우, 객체 수준에서 권한 체크 진행
+        return True  # 임시로 True 반환
+
+    def has_object_permission(self, request, view, obj):
+        # 관리자는 항상 허용
+        if request.user.is_authenticated and request.user.role == "admin":
+            return True
+
+        # 비디오가 속한 major_category와 사용자 등록 상태 확인
+        major_category = obj.minor_category.major_category
+        return Enrollment.objects.filter(
+            user=request.user,
+            major_category=major_category,
+            status__in=["active", "completed"],
+        ).exists()
