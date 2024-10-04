@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
 from .models import CustomUser
 
 
@@ -49,7 +48,7 @@ class CustomUserAdmin(UserAdmin):
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
         (
             _("WinniVersity info"),
-            {"fields": ("role", "total_study_time", "subscription_end_date")},
+            {"fields": ("role", "total_study_time")},
         ),
     )
     add_fieldsets = (
@@ -79,7 +78,6 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ("is_staff", "is_superuser", "is_active", "groups", "role", "gender")
     search_fields = ("username", "first_name", "last_name", "email", "nickname")
     ordering = ("username",)
-    actions = ["extend_subscription"]
 
     def get_full_name(self, obj):
         """
@@ -94,28 +92,6 @@ class CustomUserAdmin(UserAdmin):
         return obj.get_full_name()
 
     get_full_name.short_description = "이름"
-
-    def extend_subscription(self, request, queryset):
-        """
-        선택된 사용자들의 구독 기간을 30일 연장합니다.
-
-        Args:
-            request (HttpRequest): 현재 요청 객체
-            queryset (QuerySet): 선택된 사용자들의 쿼리셋
-        """
-        for user in queryset:
-            if user.subscription_end_date:
-                user.subscription_end_date += timezone.timedelta(days=30)
-            else:
-                user.subscription_end_date = timezone.now() + timezone.timedelta(
-                    days=30
-                )
-            user.save()
-        self.message_user(
-            request, f"{queryset.count()}명의 사용자 구독이 30일 연장되었습니다."
-        )
-
-    extend_subscription.short_description = "선택된 사용자의 구독 30일 연장"
 
 
 admin.site.register(CustomUser, CustomUserAdmin)

@@ -1,23 +1,18 @@
 from rest_framework import serializers
 from .models import UserProgress
-from videos.serializers import VideoSerializer
-from courses.serializers import EnrollmentSerializer
+from courses.models import MajorCategory
 
 
 class UserProgressSerializer(serializers.ModelSerializer):
-    """
-    사용자의 학습 진행 상황을 직렬화하는 시리얼라이저.
-    비디오와 수강 정보를 포함하여 상세한 진행 상황을 제공합니다.
-    """
-
-    video = VideoSerializer(read_only=True)
-    enrollment = EnrollmentSerializer(read_only=True)
+    video_name = serializers.CharField(source="video.name", read_only=True)
 
     class Meta:
         model = UserProgress
         fields = [
             "id",
+            "user",
             "video",
+            "video_name",
             "enrollment",
             "is_completed",
             "last_accessed",
@@ -26,32 +21,54 @@ class UserProgressSerializer(serializers.ModelSerializer):
             "last_position",
         ]
         read_only_fields = [
-            "id",
+            "user",
             "video",
             "enrollment",
             "is_completed",
-            "last_accessed",
+            "progress_percent",
         ]
 
 
-class UserProgressUpdateSerializer(serializers.Serializer):
-    """
-    사용자의 학습 진행 상황 업데이트를 위한 시리얼라이저.
-    클라이언트로부터 받은 데이터의 유효성을 검사합니다.
-    """
+class UserProgressUpdateSerializer(serializers.ModelSerializer):
+    additional_time = serializers.DurationField(write_only=True)
+    last_position = serializers.IntegerField(write_only=True)
 
-    progress_percent = serializers.IntegerField(min_value=0, max_value=100)
-    additional_time = serializers.IntegerField(min_value=0)  # 초 단위
-    last_position = serializers.IntegerField(min_value=0)
+    class Meta:
+        model = UserProgress
+        fields = ["additional_time", "last_position"]
 
 
-class UserOverallProgressSerializer(serializers.Serializer):
-    """
-    사용자의 전체 학습 진행 상황 요약을 직렬화하는 시리얼라이저.
-    총 비디오 수, 완료된 비디오 수, 전체 진행률, 총 학습 시간 등을 포함합니다.
-    """
+class CategoryProgressSerializer(serializers.ModelSerializer):
+    progress_percent = serializers.FloatField()
 
-    total_videos = serializers.IntegerField()
-    completed_videos = serializers.IntegerField()
-    overall_progress_percent = serializers.FloatField()
-    total_time_spent = serializers.DurationField()
+    class Meta:
+        model = MajorCategory
+        fields = ["id", "name", "progress_percent"]
+
+
+class OverallProgressSerializer(serializers.Serializer):
+    overall_progress = serializers.FloatField()
+    category_progress = CategoryProgressSerializer(many=True)
+
+
+class VideoProgressSerializer(serializers.ModelSerializer):
+    video_name = serializers.CharField(source="video.name", read_only=True)
+
+    class Meta:
+        model = UserProgress
+        fields = [
+            "id",
+            "video",
+            "video_name",
+            "is_completed",
+            "progress_percent",
+            "time_spent",
+            "last_position",
+        ]
+        read_only_fields = [
+            "id",
+            "video",
+            "video_name",
+            "is_completed",
+            "progress_percent",
+        ]

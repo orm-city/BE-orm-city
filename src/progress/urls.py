@@ -1,20 +1,22 @@
 from django.urls import path
-from . import views
+from .views import (
+    UserProgressListView,
+    UserProgressUpdateView,
+    UserOverallProgressView,
+    UserProgressDetailView,
+)
 
 urlpatterns = [
+    path("", UserProgressListView.as_view(), name="user-progress-list"),
     path(
-        "overall/",
-        views.UserOverallProgressView.as_view(),
-        name="user-overall-progress",
+        "update/<int:pk>/",
+        UserProgressUpdateView.as_view(),
+        name="user-progress-update",
     ),
+    path("overall/", UserOverallProgressView.as_view(), name="user-overall-progress"),
     path(
         "video/<int:video_id>/",
-        views.UserProgressDetailView.as_view(),
+        UserProgressDetailView.as_view(),
         name="user-progress-detail",
-    ),
-    path(
-        "update/<int:video_id>/",
-        views.UpdateUserProgressView.as_view(),
-        name="update-user-progress",
     ),
 ]

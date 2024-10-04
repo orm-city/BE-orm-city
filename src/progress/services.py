@@ -1,34 +1,70 @@
 from django.utils import timezone
+from django.db.models import Avg
+from django.db import transaction
 
 
 class UserProgressService:
     @staticmethod
-    def calculate_progress(user_progress):
-        """진도율을 계산하여 반환하는 헬퍼 메서드"""
-        if user_progress.video.duration.total_seconds() == 0:
-            return 0
-        return (
-            user_progress.time_spent.total_seconds()
-            / user_progress.video.duration.total_seconds()
-        ) * 100
-
-    @staticmethod
-    def update_progress(user_progress, new_percent, additional_time, last_position):
+    @transaction.atomic
+    def update_progress(
+        user_progress, progress_percent, additional_time, last_position
+    ):
+        user_progress.progress_percent = min(progress_percent, 100)
         user_progress.time_spent += additional_time
-        progress = min(
-            new_percent, min(100, UserProgressService.calculate_progress(user_progress))
-        )
-        user_progress.progress_percent = progress
-        user_progress.last_accessed = timezone.now()
         user_progress.last_position = last_position
-        if user_progress.progress_percent >= 95:
+        user_progress.last_accessed = timezone.now()
+
+        if progress_percent >= 95:
             user_progress.is_completed = True
+
         user_progress.save()
+        return user_progress
 
     @staticmethod
+    @transaction.atomic
     def reset_progress(user_progress):
-        user_progress.is_completed = False
         user_progress.progress_percent = 0
         user_progress.time_spent = timezone.timedelta()
         user_progress.last_position = 0
+        user_progress.is_completed = False
         user_progress.save()
+        return user_progress
+
+    @staticmethod
+    def calculate_overall_progress(user):
+        from .models import Enrollment, UserProgress
+
+        enrollments = Enrollment.objects.filter(user=user, status="active")
+        if not enrollments:
+            return 0
+
+        overall_progress = (
+            UserProgress.objects.filter(enrollment__in=enrollments).aggregate(
+                Avg("progress_percent")
+            )["progress_percent__avg"]
+            or 0
+        )
+
+        return round(overall_progress, 2)
+
+    @staticmethod
+    def get_category_progress(user, major_category):
+        from .models import Enrollment, UserProgress
+        from videos.models import Video
+
+        enrollment = Enrollment.objects.filter(
+            user=user, major_category=major_category, status="active"
+        ).first()
+
+        if not enrollment:
+            return 0
+
+        videos = Video.objects.filter(minor_category__major_category=major_category)
+        progress = (
+            UserProgress.objects.filter(
+                user=user, video__in=videos, enrollment=enrollment
+            ).aggregate(Avg("progress_percent"))["progress_percent__avg"]
+            or 0
+        )
+
+        return round(progress, 2)

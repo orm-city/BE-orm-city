@@ -15,7 +15,7 @@ api_v1_patterns = [
     # path("dashboards/", include("dashboards.urls")),
     # path("missions/", include("missions.urls")),
     path("payment/", include("payment.urls")),
-    # path("progress/", include("progress.urls")),
+    path("progress/", include("progress.urls")),
     path("videos/", include("videos.urls")),
 ]
 
