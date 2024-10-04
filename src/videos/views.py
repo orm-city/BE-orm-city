@@ -1,5 +1,5 @@
+from datetime import timedelta
 from urllib.parse import urlparse
-from uuid import uuid4
 
 from django.conf import settings
 from django.utils import timezone
@@ -15,10 +15,13 @@ from progress.models import UserProgress
 from progress.services import UserProgressService
 from .permissions import IsAdminUser, IsEnrolledOrAdmin
 from .models import Video
-from .serializers import ProgressUpdateSerializer, VideoSerializer
+from .serializers import VideoSerializer
 from .services import (
+    check_multipart_upload_status,
     get_s3_client,
-    get_presigned_post,
+    initiate_multipart_upload,
+    generate_presigned_urls_for_parts,
+    complete_multipart_upload,
     get_presigned_url,
 )
 
@@ -36,24 +39,49 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            presigned_post = get_presigned_post()
-            s3_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{presigned_post['fields']['key']}"
+            # 1. 멀티파트 업로드 시작
+            upload_id, filename = initiate_multipart_upload()
+            print(f"Initiated upload with ID: {upload_id}")
 
+            # 2. 클라이언트가 요청한 총 파트 수를 가져옴
+            total_parts = int(request.data.get("total_parts"))
+
+            # 3. 각 파트에 대해 presigned URL 생성
+            presigned_urls = generate_presigned_urls_for_parts(
+                upload_id, filename, total_parts
+            )
+
+            # 프론트엔드에서 받은 duration 값 (초 단위)
+            duration_in_seconds = request.data.get("duration", 0)
+            duration_timedelta = timedelta(seconds=duration_in_seconds)
+
+            # minor_category_id로 minor_category 찾기
+            minor_category_id = request.data.get("minor_category_id")
+            minor_category = MinorCategory.objects.get(id=minor_category_id)
+
+            # Video 객체 생성
             video = Video.objects.create(
                 name=request.data.get("name", "Auto-generated name"),
                 description=request.data.get(
                     "description", "Auto-generated description"
                 ),
-                duration=request.data.get("duration", timezone.timedelta(seconds=0)),
-                video_url=s3_url,
-                minor_category=MinorCategory.objects.first(),
+                duration=duration_timedelta,
+                video_url=f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{filename}",
+                minor_category=minor_category,
             )
 
             return Response(
-                {"presigned_post": presigned_post, "video_id": video.id},
+                {
+                    "upload_id": upload_id,
+                    "presigned_urls": presigned_urls,
+                    "video_id": video.id,
+                    "filename": filename,
+                },
                 status=status.HTTP_201_CREATED,
             )
+
         except ClientError as e:
+            # S3 오류 처리
             return Response(
                 {"detail": f"S3 URL 생성 중 오류 발생: {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -103,32 +131,40 @@ class VideoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        # 새 Presigned URL 생성
+        # 새 비디오에 대한 멀티파트 업로드 생성
         try:
-            filename = str(uuid4()) + ".mp4"
-            presigned_post = s3_client.generate_presigned_post(
-                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                Key=filename,
-                Fields={"Content-Type": "video/mp4"},
-                Conditions=[
-                    {"Content-Type": "video/mp4"},
-                    ["content-length-range", 1, 1024 * 1024 * 500],
-                ],
-                ExpiresIn=120,
+            # 1. 멀티파트 업로드 시작
+            upload_id, filename = initiate_multipart_upload()
+
+            # 2. 클라이언트가 요청한 총 파트 수를 가져옴
+            total_parts = int(request.data.get("total_parts"))
+
+            # 3. 각 파트에 대해 presigned URL 생성
+            presigned_urls = generate_presigned_urls_for_parts(
+                upload_id, filename, total_parts
             )
 
+            # 비디오 URL 업데이트
             video.video_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{filename}"
             video.save()
 
+            # 비디오 프로그레스 초기화
             UserProgress.objects.filter(video=video).update(last_position=0)
 
+            # 4. 클라이언트에게 presigned URL 및 업로드 ID 반환
             return Response(
-                {"presigned_post": presigned_post, "video_id": video.id},
+                {
+                    "upload_id": upload_id,
+                    "presigned_urls": presigned_urls,
+                    "video_id": video.id,
+                    "filename": filename,
+                },
                 status=status.HTTP_200_OK,
             )
+
         except ClientError as e:
             return Response(
-                {"detail": f"S3 URL 생성 중 오류 발생: {e}"},
+                {"detail": f"새 비디오 업로드 중 오류 발생: {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except Exception as e:
@@ -166,23 +202,87 @@ class VideoViewSet(viewsets.ModelViewSet):
         )
 
 
+class CompleteUploadAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, *args, **kwargs):
+        upload_id = request.data.get("upload_id")
+        filename = request.data.get("filename")
+        parts = request.data.get("parts")
+
+        print(f"Received completion request for upload ID: {upload_id}")
+
+        if not upload_id or not filename or not parts:
+            return Response(
+                {"detail": "upload_id, filename, 그리고 parts 필드가 필요합니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # 업로드 상태 확인
+            uploaded_parts = check_multipart_upload_status(upload_id, filename)
+
+            if uploaded_parts is None:
+                return Response(
+                    {
+                        "detail": "Upload not found or expired. Please start a new upload."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # 클라이언트가 보낸 parts와 실제 업로드된 parts 비교
+            if len(uploaded_parts) != len(parts):
+                return Response(
+                    {"detail": "업로드된 파트 수가 일치하지 않습니다."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # ETag 비교 (선택적)
+            for client_part, uploaded_part in zip(parts, uploaded_parts):
+                if client_part["ETag"].strip('"') != uploaded_part["ETag"].strip('"'):
+                    return Response(
+                        {
+                            "detail": f"파트 {client_part['PartNumber']}의 ETag가 일치하지 않습니다."
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            # 멀티파트 업로드 완료 처리
+            response = complete_multipart_upload(upload_id, filename, parts)
+            return Response(
+                {"detail": "Upload completed successfully", "response": response},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"Error during upload completion: {str(e)}")
+            return Response(
+                {"detail": f"Upload completion failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class UpdateUserProgressAPIView(APIView):
     permission_classes = [IsEnrolledOrAdmin]
     throttle_scope = "progress"
 
     def post(self, request, *args, **kwargs):
-        # 데이터 검증
-        serializer = ProgressUpdateSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        # 검증된 데이터 가져오기
-        video_id = serializer.validated_data["video_id"]
-        progress_percent = serializer.validated_data["progress_percent"]
-        time_spent = serializer.validated_data["time_spent"]
-        last_position = serializer.validated_data["last_position"]
-
         user = request.user
+
+        video_id = request.data.get("video_id")
+        progress_percent = request.data.get("progress_percent")
+        time_spent = request.data.get("time_spent")
+        last_position = request.data.get("last_position")
+
+        if (
+            not video_id
+            or progress_percent is None
+            or time_spent is None
+            or last_position is None
+        ):
+            return Response(
+                {"detail": "요청 데이터가 누락되었습니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             progress_percent = int(progress_percent)
@@ -207,11 +307,15 @@ class UpdateUserProgressAPIView(APIView):
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, video=video, enrollment=enrollment
             )
+
             if created:
                 UserProgressService.reset_progress(user_progress)
 
             UserProgressService.update_progress(
-                progress_percent, timezone.timedelta(seconds=time_spent), last_position
+                user_progress,
+                progress_percent,
+                timezone.timedelta(seconds=time_spent),
+                last_position,
             )
 
             return Response(
