@@ -1,108 +1,139 @@
 from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate
 from .models import CustomUser, UserActivity
 
 
-class CustomUserSerializer(serializers.ModelSerializer):
-    """CustomUser 모델을 위한 시리얼라이저.
-
-    이 시리얼라이저는 사용자 생성, 수정, 조회를 위한 필드들을 정의합니다.
-    비밀번호 유효성 검사와 확인 과정을 포함합니다.
-
-    Attributes:
-        password (CharField): 사용자 비밀번호. 쓰기 전용이며 Django의 기본 비밀번호 검증을 사용합니다.
-        password2 (CharField): 비밀번호 확인 필드. 쓰기 전용입니다.
+class UserSerializer(serializers.ModelSerializer):
     """
+    CustomUser 모델의 필드 정보를 직렬화하는 Serializer.
 
-    password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password]
-    )
-    password2 = serializers.CharField(write_only=True, required=True)
+    Meta 클래스:
+        model (CustomUser): 직렬화할 모델.
+        fields (list): 포함할 필드 목록 ['id', 'email', 'username', 'role', 'nickname'].
+        read_only_fields (list): 읽기 전용 필드 목록 ['email', 'role'].
+    """
 
     class Meta:
         model = CustomUser
-        fields = [
-            "id",
-            "username",
-            "email",
-            "password",
-            "password2",
-            "first_name",
-            "last_name",
-            "role",
-            "nickname",
-            "total_study_time",
-            "gender",
-            "contact_number",
-        ]
-        read_only_fields = ["id", "total_study_time"]
-        extra_kwargs = {
-            "email": {"required": True},
-            "first_name": {"required": True},
-            "last_name": {"required": True},
-        }
+        fields = ["id", "email", "username", "role", "nickname"]
+        read_only_fields = ["email", "role"]
 
-    def validate(self, attrs):
-        """입력된 데이터의 유효성을 검사합니다.
-        비밀번호와 비밀번호 확인 필드가 일치하는지 확인합니다.
 
-        Args:
-            attrs (dict): 유효성을 검사할 데이터 딕셔너리.
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+    사용자 등록을 위한 Serializer.
 
-        Returns:
-            dict: 유효성이 확인된 데이터 딕셔너리.
+    필드:
+        password (CharField): 비밀번호 필드. 쓰기 전용.
 
-        Raises:
-            serializers.ValidationError: 비밀번호가 일치하지 않을 경우 발생합니다.
-        """
-        if attrs.get("password") != attrs.get("password2"):
-            raise serializers.ValidationError(
-                {"password": "Password fields didn't match."}
-            )
-        return attrs
+    Meta 클래스:
+        model (CustomUser): 직렬화할 모델.
+        fields (list): 포함할 필드 목록 ['email', 'username', 'password', 'nickname'].
+    """
+
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ["email", "username", "password", "nickname"]
 
     def create(self, validated_data):
-        """새로운 CustomUser 인스턴스를 생성합니다.
+        """
+        유효성 검사를 통과한 데이터를 사용하여 새 사용자를 생성합니다.
+
         Args:
-            validated_data (dict): 유효성이 검증된 데이터 딕셔너리.
+            validated_data (dict): 유효성 검사를 통과한 데이터.
 
         Returns:
-            CustomUser: 새로 생성된 CustomUser 인스턴스.
+            CustomUser: 생성된 사용자 객체.
         """
-        validated_data.pop("password2")
-        user = CustomUser.objects.create_user(**validated_data)
+        user = CustomUser.objects.create_user(
+            email=validated_data["email"],
+            username=validated_data["username"],
+            password=validated_data["password"],
+            nickname=validated_data.get("nickname", ""),
+        )
         return user
 
-    def update(self, instance, validated_data):
-        """기존 CustomUser 인스턴스를 업데이트합니다.
-        비밀번호가 제공된 경우, 이를 별도로 처리합니다.
+
+class UserLoginSerializer(serializers.Serializer):
+    """
+    사용자 로그인을 처리하기 위한 Serializer.
+
+    필드:
+        email (EmailField): 사용자의 이메일.
+        password (CharField): 사용자의 비밀번호.
+    """
+
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        """
+        제공된 자격 증명을 사용해 사용자를 인증합니다.
 
         Args:
-            instance (CustomUser): 업데이트할 CustomUser 인스턴스.
-            validated_data (dict): 유효성이 검증된 업데이트 데이터.
+            data (dict): 사용자 이메일과 비밀번호.
 
         Returns:
-            CustomUser: 업데이트된 CustomUser 인스턴스.
+            CustomUser: 인증된 사용자 객체.
+
+        Raises:
+            serializers.ValidationError: 자격 증명이 잘못된 경우 발생.
         """
-        if "password" in validated_data:
-            password = validated_data.pop("password")
-            validated_data.pop("password2", None)
-            instance.set_password(password)
-        return super().update(instance, validated_data)
+        user = authenticate(email=data["email"], password=data["password"])
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Incorrect Credentials")
 
 
 class UserActivitySerializer(serializers.ModelSerializer):
-    """UserActivity 모델을 위한 시리얼라이저.
-
-    사용자의 로그인/로그아웃 활동을 기록하고 조회하는 데 사용됩니다.
-
-    Attributes:
-        user (StringRelatedField): 활동과 관련된 사용자. 문자열로 표현됩니다.
     """
+    사용자 활동 정보를 직렬화하는 Serializer.
 
-    user = serializers.StringRelatedField()
+    Meta 클래스:
+        model (UserActivity): 직렬화할 모델.
+        fields (list): 포함할 필드 목록 ['login_time', 'logout_time'].
+    """
 
     class Meta:
         model = UserActivity
-        fields = ["id", "user", "login_time", "logout_time", "ip_address"]
-        read_only_fields = ["id", "user", "login_time", "ip_address"]
+        fields = ["login_time", "logout_time"]
+
+
+class ManagerCreationSerializer(serializers.ModelSerializer):
+    """
+    관리자 사용자를 생성하기 위한 Serializer.
+
+    필드:
+        password (CharField): 비밀번호 필드. 쓰기 전용.
+
+    Meta 클래스:
+        model (CustomUser): 직렬화할 모델.
+        fields (list): 포함할 필드 목록 ['email', 'username', 'password', 'nickname'].
+    """
+
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ["email", "username", "password", "nickname"]
+
+    def create(self, validated_data):
+        """
+        유효성 검사를 통과한 데이터를 사용해 관리자 사용자를 생성합니다.
+
+        Args:
+            validated_data (dict): 유효성 검사를 통과한 데이터.
+
+        Returns:
+            CustomUser: 생성된 관리자 사용자 객체.
+        """
+        user = CustomUser.objects.create_user(
+            email=validated_data["email"],
+            username=validated_data["username"],
+            password=validated_data["password"],
+            nickname=validated_data.get("nickname", ""),
+            role="manager",
+        )
+        return user
