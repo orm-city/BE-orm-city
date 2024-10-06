@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from rest_framework import status, viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -13,7 +14,7 @@ from botocore.exceptions import ClientError
 from courses.models import Enrollment, MinorCategory
 from progress.models import UserProgress
 from progress.services import UserProgressService
-from .permissions import IsAdminUser, IsEnrolledOrAdmin
+from .permissions import IsManagerOrAdmin, IsEnrolledOrAdminOrManager
 from .models import Video
 from .serializers import VideoSerializer
 from .services import (
@@ -31,19 +32,19 @@ class VideoViewSet(viewsets.ModelViewSet):
     serializer_class = VideoSerializer
 
     def get_permissions(self):
+        if self.action == "list":
+            return [AllowAny()]
         if self.action in ["update", "destroy", "create"]:
-            return [IsAdminUser()]
-        elif self.action in ["retrieve", "list"]:
-            return [IsEnrolledOrAdmin()]
+            return [IsManagerOrAdmin()]
+        elif self.action in ["retrieve"]:
+            return [IsEnrolledOrAdminOrManager()]
         return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
         try:
-            # 1. 멀티파트 업로드 시작
             upload_id, filename = initiate_multipart_upload()
             print(f"Initiated upload with ID: {upload_id}")
 
-            # 2. 클라이언트가 요청한 총 파트 수를 가져옴
             total_parts = int(request.data.get("total_parts"))
 
             # 3. 각 파트에 대해 presigned URL 생성
@@ -203,7 +204,7 @@ class VideoViewSet(viewsets.ModelViewSet):
 
 
 class CompleteUploadAPIView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsManagerOrAdmin]
 
     def post(self, request, *args, **kwargs):
         upload_id = request.data.get("upload_id")
@@ -262,7 +263,7 @@ class CompleteUploadAPIView(APIView):
 
 
 class UpdateUserProgressAPIView(APIView):
-    permission_classes = [IsEnrolledOrAdmin]
+    permission_classes = [IsEnrolledOrAdminOrManager]
     throttle_scope = "progress"
 
     def post(self, request, *args, **kwargs):
