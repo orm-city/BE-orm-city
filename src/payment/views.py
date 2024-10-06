@@ -219,20 +219,30 @@ class RefundAPIView(APIView):
     authentication_classes = [JWTAuthentication]
 
     def get_iamport_token(self):
+        url = "https://api.iamport.kr/users/getToken"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "imp_key": settings.IAMPORT["IMP_REST_API_KEY"],
+            "imp_secret": settings.IAMPORT["IMP_SECRET"],
+        }
         try:
-            response = requests.post(
-                "https://api.iamport.kr/users/getToken",
-                data={
-                    "imp_key": settings.IAMPORT["IMP_KEY"],
-                    "imp_secret": settings.IAMPORT["IMP_SECRET"],
-                },
-            )
+            response = requests.post(url, data=json.dumps(data), headers=headers)
             response.raise_for_status()
             result = response.json()
+            logger.info(f"아임포트 API 응답: {result}")  # 전체 응답 로깅
             if result.get("code") == 0:
                 return result.get("response", {}).get("access_token")
+            else:
+                logger.error(f"아임포트 토큰 발급 실패: {result}")
+                return None
         except requests.RequestException as e:
-            print(f"아임포트 토큰 발급 중 오류 발생: {str(e)}")
+            # 기존 로깅 유지
+            logger.error(
+                f"아임포트 인증 실패. 사용된 IMP_KEY: {settings.IAMPORT['IMP_KEY']}"
+            )
+            logger.error(
+                f"전체 응답 내용: {e.response.text if hasattr(e.response, 'text') else 'No response text'}"
+            )
         return None
 
     def post(self, request, payment_id):
@@ -252,6 +262,12 @@ class RefundAPIView(APIView):
 
         try:
             access_token = self.get_iamport_token()
+            if not access_token:
+                return Response(
+                    {"error": "결제 시스템 연결에 실패했습니다."},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+
             refund_result = self.request_refund(
                 access_token, payment.imp_uid, payment.total_amount
             )
@@ -285,10 +301,14 @@ class RefundAPIView(APIView):
 
     def request_refund(self, access_token, imp_uid, amount):
         url = "https://api.iamport.kr/payments/cancel"
-        headers = {"Authorization": access_token}
+        headers = {"Authorization": access_token, "Content-Type": "application/json"}
         data = {"imp_uid": imp_uid, "amount": amount, "reason": "고객 환불 요청"}
         try:
-            response = requests.post(url, json=data, headers=headers)
+            response = requests.post(
+                url,
+                data=json.dumps(data, ensure_ascii=False).encode("utf-8"),
+                headers=headers,
+            )
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
