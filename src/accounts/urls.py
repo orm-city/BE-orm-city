@@ -11,6 +11,8 @@ from .views import (
     ManagerCreationView,
     ChangeUserRoleView,
 )
+from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
+
 
 router = DefaultRouter()
 router.register(r"users", UserManagementViewSet)
@@ -27,10 +29,12 @@ urlpatterns = [
     path(
         "change-role/<int:user_id>/", ChangeUserRoleView.as_view(), name="change_role"
     ),
+    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
 """
-사용자 관리, 인증, 프로필, 활동, 계정 삭제 및 관리자 생성 등 사용자 관련 기능에 대한 URL 패턴을 정의하는 모듈.
+사용자 관리, 인증, 프로필, 활동, 계정 삭제 및 관리자 생성 등 사용자 관련 기능에 대한 UㄴRL 패턴을 정의하는 모듈.
 
 - `UserManagementViewSet`: 사용자 목록 관리.
 - `RegisterView`: 사용자 등록.
