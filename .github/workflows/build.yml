@@ -36,7 +36,7 @@ jobs:
 
         envkey_DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
         envkey_DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
-
+        directory: ./app/src
     - id: commit
       uses: pr-mpt/actions-commit-hash@v2
 
