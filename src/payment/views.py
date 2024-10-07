@@ -3,18 +3,45 @@ import logging
 from datetime import timedelta
 import requests
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import MajorCategory, Payment
+from .models import MajorCategory, Payment, Enrollment
+from accounts.models import CustomUser
 from .serializers import PaymentDetailSerializer
 from .permissions import IsAuthenticatedAndAllowed
 
 logger = logging.getLogger(__name__)
+
+
+# class PaymentInfoAPIView(APIView):
+#     """
+#     아임포트 결제창 실행시, 상품정보,유저정보 제공하는 API 뷰
+#     """
+
+#     permission_classes = [IsAuthenticatedAndAllowed]
+
+#     def get(self, request, major_category_id):
+#         try:
+#             major_category = MajorCategory.objects.get(id=major_category_id)
+#             user = request.user
+#             data = {
+#                 "major_category_id": major_category.id,
+#                 "major_category_name": major_category.name,
+#                 "major_category_price": major_category.price,
+#                 "username": user.username,
+#                 "imp_key": settings.IAMPORT["IMP_KEY"],
+#             }
+#             return Response(data, status=status.HTTP_200_OK)
+#         except MajorCategory.DoesNotExist:
+#             return Response(
+#                 {"error": "해당 강의를 찾을 수 없습니다."},
+#                 status=status.HTTP_404_NOT_FOUND,
+#             )
 
 
 class PaymentInfoAPIView(APIView):
@@ -32,7 +59,7 @@ class PaymentInfoAPIView(APIView):
                 "major_category_id": major_category.id,
                 "major_category_name": major_category.name,
                 "major_category_price": major_category.price,
-                "username": user.username,
+                "user_id": user.id,  # 사용자 ID 사용
                 "imp_key": settings.IAMPORT["IMP_KEY"],
             }
             return Response(data, status=status.HTTP_200_OK)
@@ -88,7 +115,6 @@ class PaymentCompleteAPIView(APIView):
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             payment_data = response.json()
-            # 여기까진 문제가 없어야 맞는데 말이죠
         except requests.exceptions.RequestException as e:
             logger.error(f"아임포트 API 호출 실패: {e}")
             raise ValidationError("결제 정보 확인 실패")
@@ -113,53 +139,129 @@ class PaymentCompleteAPIView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        user = request.user
+        user_id = request.data.get("user_id")
         imp_uid = request.data.get("imp_uid")
         merchant_uid = request.data.get("merchant_uid")
         major_category_id = request.data.get("major_category_id")
         total_amount = request.data.get("total_amount")
 
-        if not all([imp_uid, merchant_uid, major_category_id, total_amount]):
+        logger.info(f"Received payment data: {request.data}")
+
+        if not all([user_id, imp_uid, merchant_uid, major_category_id, total_amount]):
+            logger.error("Missing required payment information")
             raise ValidationError("필수 결제 정보가 누락되었습니다.")
 
-        logger.info(f"결제 요청 수신: {request.data}")
-
         try:
+            user = CustomUser.objects.get(id=user_id)
             major_category = MajorCategory.objects.get(id=major_category_id)
-        except ObjectDoesNotExist:
-            logger.error(f"해당 강의를 찾을 수 없음: id={major_category_id}")
+        except CustomUser.DoesNotExist:
+            logger.error(f"User not found: user_id={user_id}")
+            raise ValidationError("해당 사용자를 찾을 수 없습니다.")
+        except MajorCategory.DoesNotExist:
+            logger.error(
+                f"Major category not found: major_category_id={major_category_id}"
+            )
             raise ValidationError("해당 강의를 찾을 수 없습니다.")
 
-        # 중복 결제 확인
         if Payment.objects.filter(imp_uid=imp_uid).exists():
-            logger.warning(f"중복 결제 시도: imp_uid={imp_uid}")
+            logger.warning(f"Duplicate payment attempt: imp_uid={imp_uid}")
             raise ValidationError("이미 처리된 결제입니다.")
 
-        iamport_token = self.get_iamport_token()
-        if iamport_token:
-            self.verify_iamport_payment(imp_uid, total_amount, iamport_token)
-        else:
-            logger.info(f"{iamport_token}")
+        # Payment 생성
+        try:
+            payment = Payment.objects.create(
+                user=user,
+                major_category=major_category,
+                total_amount=total_amount,
+                merchant_uid=merchant_uid,
+                payment_status="paid",
+                receipt_url=f"https://api.iamport.kr/payments/{imp_uid}",
+                imp_uid=imp_uid,
+            )
+            logger.info(f"Payment created successfully: id={payment.id}")
+        except Exception as e:
+            logger.error(f"Failed to create payment: {str(e)}")
+            raise ValidationError("결제 정보 생성 중 오류가 발생했습니다.")
 
-        payment = Payment.objects.create(
-            user=user,
-            major_category=major_category,
-            total_amount=total_amount,
-            merchant_uid=merchant_uid,
-            payment_status="paid",
-            receipt_url=f"https://api.iamport.kr/payments/{imp_uid}",
-            imp_uid=imp_uid,
-        )
-        logger.info(f"결제 정보 생성 완료: id={payment.id}")
+        # Enrollment 생성
+        try:
+            enrollment = Enrollment.objects.create(
+                user=user,
+                major_category=major_category,
+                enrollment_date=timezone.now(),
+                expiry_date=timezone.now() + timezone.timedelta(days=365 * 2 - 1),
+                status="active",
+            )
+            logger.info(f"Enrollment created successfully: id={enrollment.id}")
+
+            payment.enrollment = enrollment
+            payment.save()
+            logger.info(
+                f"Payment updated with enrollment: payment_id={payment.id}, enrollment_id={enrollment.id}"
+            )
+        except Exception as e:
+            logger.error(f"Failed to create enrollment: {str(e)}")
+            raise ValidationError(f"수강 등록 중 오류가 발생했습니다: {str(e)}")
 
         return Response(
             {
-                "message": "결제가 성공적으로 완료되었습니다.",
+                "message": "결제 및 수강 등록이 성공적으로 완료되었습니다.",
                 "payment_id": payment.id,
+                "enrollment_id": enrollment.id,
                 "status": payment.payment_status,
             },
             status=status.HTTP_201_CREATED,
         )
+
+    # @transaction.atomic
+    # def post(self, request):
+    #     user = request.user
+    #     imp_uid = request.data.get("imp_uid")
+    #     merchant_uid = request.data.get("merchant_uid")
+    #     major_category_id = request.data.get("major_category_id")
+    #     total_amount = request.data.get("total_amount")
+
+    #     if not all([imp_uid, merchant_uid, major_category_id, total_amount]):
+    #         raise ValidationError("필수 결제 정보가 누락되었습니다.")
+
+    #     logger.info(f"결제 요청 수신: {request.data}")
+
+    #     try:
+    #         major_category = MajorCategory.objects.get(id=major_category_id)
+    #     except ObjectDoesNotExist:
+    #         logger.error(f"해당 강의를 찾을 수 없음: id={major_category_id}")
+    #         raise ValidationError("해당 강의를 찾을 수 없습니다.")
+
+    #     # 중복 결제 확인
+    #     if Payment.objects.filter(imp_uid=imp_uid).exists():
+    #         logger.warning(f"중복 결제 시도: imp_uid={imp_uid}")
+    #         raise ValidationError("이미 처리된 결제입니다.")
+
+    #     iamport_token = self.get_iamport_token()
+    #     if iamport_token:
+    #         self.verify_iamport_payment(imp_uid, total_amount, iamport_token)
+    #     else:
+    #         logger.info(f"{iamport_token}")
+
+    #     payment = Payment.objects.create(
+    #         user=user,
+    #         major_category=major_category,
+    #         total_amount=total_amount,
+    #         merchant_uid=merchant_uid,
+    #         payment_status="paid",
+    #         receipt_url=f"https://api.iamport.kr/payments/{imp_uid}",
+    #         imp_uid=imp_uid,
+    #     )
+    #     logger.info(f"결제 정보 생성 완료: id={payment.id}")
+
+    #     return Response(
+    #         {
+    #             "message": "결제가 성공적으로 완료되었습니다.",
+    #             "payment_id": payment.id,
+    #             "status": payment.payment_status,
+    #         },
+    #         status=status.HTTP_201_CREATED,
+    #     )
 
 
 class UserPaymentsView(APIView):

@@ -89,14 +89,30 @@ def create_enrollment(self):
     return None
 
 
-def save(self, *args, **kwargs):
-    is_new = self.pk is None
-    super().save(*args, **kwargs)
-    if is_new and self.payment_status == "paid":
-        self.create_enrollment()  # enrollment 변수 제거
-        if self.enrollment:
-            # 생성된 enrollment를 payment와 연결 (선택적)
-            super().save(update_fields=["enrollment"])
+# def save(self, *args, **kwargs):
+#     is_new = self.pk is None
+#     super().save(*args, **kwargs)
+#     if is_new and self.payment_status == "paid":
+#         logger.info(f"Calling create_enrollment for payment {self.id}")
+#         self.create_enrollment()
+
+# def create_enrollment(self):
+#     logger.info(f"Starting create_enrollment for payment {self.id}")
+#     logger.info(f"User: {self.user}, Major Category: {self.major_category}")
+#     try:
+#         enrollment = Enrollment.objects.create(
+#             user=self.user,
+#             major_category=self.major_category,
+#             enrollment_date=self.payment_date,
+#             expiry_date=self.payment_date + timezone.timedelta(days=365 * 2),
+#             status="active"
+#         )
+#         self.enrollment = enrollment
+#         self.save(update_fields=['enrollment'])
+#         logger.info(f"Enrollment created successfully for payment {self.id}")
+#     except Exception as e:
+#         logger.error(f"Failed to create enrollment for payment {self.id}: {str(e)}", exc_info=True)
+#         raise  #
 
 
 class Meta:
