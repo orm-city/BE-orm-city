@@ -28,8 +28,6 @@ class CustomUserAdmin(UserAdmin):
                     "last_name",
                     "email",
                     "nickname",
-                    "gender",
-                    "contact_number",
                 )
             },
         ),
@@ -48,7 +46,7 @@ class CustomUserAdmin(UserAdmin):
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
         (
             _("WinniVersity info"),
-            {"fields": ("role", "total_study_time")},
+            {"fields": ("role",)},
         ),
     )
     add_fieldsets = (
@@ -73,9 +71,8 @@ class CustomUserAdmin(UserAdmin):
         "get_full_name",
         "role",
         "is_staff",
-        "total_study_time",
     )
-    list_filter = ("is_staff", "is_superuser", "is_active", "groups", "role", "gender")
+    list_filter = ("is_staff", "is_superuser", "is_active", "groups", "role")
     search_fields = ("username", "first_name", "last_name", "email", "nickname")
     ordering = ("username",)
 
