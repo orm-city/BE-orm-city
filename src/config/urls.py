@@ -8,7 +8,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-api_v1_patterns = [
+urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("certificates/", include("certificates.urls")),
     path("courses/", include("courses.urls")),
@@ -20,7 +20,7 @@ api_v1_patterns = [
 ]
 
 # drf_spectacular
-api_v1_patterns += [
+urlpatterns += [
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "schema/swagger-ui/",
@@ -34,10 +34,6 @@ api_v1_patterns += [
     ),
 ]
 
-# Main urlpatterns
-urlpatterns = [
-    path("api/v1/", include(api_v1_patterns)),
-]
 
 if settings.ADMIN_ENABLED:
     urlpatterns += [
