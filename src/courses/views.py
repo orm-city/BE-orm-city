@@ -1,4 +1,6 @@
 from rest_framework import generics
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from .models import MajorCategory, MinorCategory, Enrollment
 from .serializers import (
     MajorCategorySerializer,
@@ -15,6 +17,7 @@ class MajorCategoryListView(generics.ListAPIView):
     """
 
     queryset = MajorCategory.objects.all()
+    permission_classes = [AllowAny]
     serializer_class = MajorCategorySerializer
 
 
@@ -27,12 +30,30 @@ class MinorCategoryListView(generics.ListAPIView):
     """
 
     serializer_class = MinorCategorySerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         major_category_id = self.kwargs.get("major_category_id")
         return MinorCategory.objects.filter(
             major_category_id=major_category_id
         ).order_by("order")
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        # 총 비디오 개수 계산
+        total_video_count = sum(
+            minor_category.videos.count() for minor_category in queryset
+        )
+
+        # 기본 응답에 total_video_count 추가
+        return Response(
+            {
+                "minor_categories": serializer.data,
+                "total_video_count": total_video_count,
+            }
+        )
 
 
 class UserEnrollmentListView(generics.ListAPIView):
@@ -46,4 +67,3 @@ class UserEnrollmentListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Enrollment.objects.filter(user=self.request.user)
-
