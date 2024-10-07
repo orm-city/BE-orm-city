@@ -17,6 +17,5 @@ RUN pdm install --prod --no-lock --no-editable --no-self
 # 소스 코드 복사
 COPY ./src /app/src
 
-RUN pdm run python src/manage.py makemigrations
 # 컨테이너 시작 시 PDM의 가상 환경을 활성화하고 Django 서버 실행
 CMD ["pdm", "run", "python", "src/manage.py", "runserver", "0.0.0.0:8000"]
