@@ -1,6 +1,7 @@
 # 공식 Python 3.12-slim 이미지 사용
 FROM python:3.12-slim
 
+ENV DJANGO_SETTINGS_MODULE=src.config.settings.prod
 # PostgreSQL 개발 패키지와 gcc 설치 (최소 의존성 설치 후 캐시 정리)
 RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
 
