@@ -39,6 +39,7 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
             "payment_status",
             "payment_date",
             "is_refundable",
+            "refund_deadline",
         ]
 
     def get_is_refundable(self, obj):

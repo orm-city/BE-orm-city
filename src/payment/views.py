@@ -1,6 +1,5 @@
 import json
 import logging
-from datetime import timedelta
 import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -16,32 +15,6 @@ from .serializers import PaymentDetailSerializer
 from .permissions import IsAuthenticatedAndAllowed
 
 logger = logging.getLogger(__name__)
-
-
-# class PaymentInfoAPIView(APIView):
-#     """
-#     아임포트 결제창 실행시, 상품정보,유저정보 제공하는 API 뷰
-#     """
-
-#     permission_classes = [IsAuthenticatedAndAllowed]
-
-#     def get(self, request, major_category_id):
-#         try:
-#             major_category = MajorCategory.objects.get(id=major_category_id)
-#             user = request.user
-#             data = {
-#                 "major_category_id": major_category.id,
-#                 "major_category_name": major_category.name,
-#                 "major_category_price": major_category.price,
-#                 "username": user.username,
-#                 "imp_key": settings.IAMPORT["IMP_KEY"],
-#             }
-#             return Response(data, status=status.HTTP_200_OK)
-#         except MajorCategory.DoesNotExist:
-#             return Response(
-#                 {"error": "해당 강의를 찾을 수 없습니다."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
 
 
 class PaymentInfoAPIView(APIView):
@@ -177,6 +150,8 @@ class PaymentCompleteAPIView(APIView):
                 payment_status="paid",
                 receipt_url=f"https://api.iamport.kr/payments/{imp_uid}",
                 imp_uid=imp_uid,
+                refund_deadline=timezone.now()
+                + timezone.timedelta(days=7),  # 7일 환불 기한 설정
             )
             logger.info(f"Payment created successfully: id={payment.id}")
         except Exception as e:
@@ -209,75 +184,24 @@ class PaymentCompleteAPIView(APIView):
                 "payment_id": payment.id,
                 "enrollment_id": enrollment.id,
                 "status": payment.payment_status,
+                "refund_deadline": payment.refund_deadline,
             },
             status=status.HTTP_201_CREATED,
         )
 
-    # @transaction.atomic
-    # def post(self, request):
-    #     user = request.user
-    #     imp_uid = request.data.get("imp_uid")
-    #     merchant_uid = request.data.get("merchant_uid")
-    #     major_category_id = request.data.get("major_category_id")
-    #     total_amount = request.data.get("total_amount")
-
-    #     if not all([imp_uid, merchant_uid, major_category_id, total_amount]):
-    #         raise ValidationError("필수 결제 정보가 누락되었습니다.")
-
-    #     logger.info(f"결제 요청 수신: {request.data}")
-
-    #     try:
-    #         major_category = MajorCategory.objects.get(id=major_category_id)
-    #     except ObjectDoesNotExist:
-    #         logger.error(f"해당 강의를 찾을 수 없음: id={major_category_id}")
-    #         raise ValidationError("해당 강의를 찾을 수 없습니다.")
-
-    #     # 중복 결제 확인
-    #     if Payment.objects.filter(imp_uid=imp_uid).exists():
-    #         logger.warning(f"중복 결제 시도: imp_uid={imp_uid}")
-    #         raise ValidationError("이미 처리된 결제입니다.")
-
-    #     iamport_token = self.get_iamport_token()
-    #     if iamport_token:
-    #         self.verify_iamport_payment(imp_uid, total_amount, iamport_token)
-    #     else:
-    #         logger.info(f"{iamport_token}")
-
-    #     payment = Payment.objects.create(
-    #         user=user,
-    #         major_category=major_category,
-    #         total_amount=total_amount,
-    #         merchant_uid=merchant_uid,
-    #         payment_status="paid",
-    #         receipt_url=f"https://api.iamport.kr/payments/{imp_uid}",
-    #         imp_uid=imp_uid,
-    #     )
-    #     logger.info(f"결제 정보 생성 완료: id={payment.id}")
-
-    #     return Response(
-    #         {
-    #             "message": "결제가 성공적으로 완료되었습니다.",
-    #             "payment_id": payment.id,
-    #             "status": payment.payment_status,
-    #         },
-    #         status=status.HTTP_201_CREATED,
-    #     )
-
 
 class UserPaymentsView(APIView):
-    """
-    현재 인증된 사용자의 결제 정보 전체 조회
-    """
-
     permission_classes = [IsAuthenticatedAndAllowed]
     authentication_classes = [JWTAuthentication]
 
     def get(self, request):
         payments = Payment.objects.filter(user=request.user).order_by("-payment_date")
+        current_time = timezone.now()
 
         payment_list = []
         for payment in payments:
-            is_refundable = payment.payment_date >= (timezone.now() - timedelta(days=7))
+            days_since_payment = (current_time - payment.payment_date).days
+            is_refundable = days_since_payment < 7
             payment_list.append(
                 {
                     "id": payment.id,
@@ -285,6 +209,7 @@ class UserPaymentsView(APIView):
                     "date": payment.payment_date,
                     "status": payment.payment_status,
                     "is_refundable": is_refundable,
+                    "days_since_payment": days_since_payment,  # 디버깅을 위해 추가
                 }
             )
 

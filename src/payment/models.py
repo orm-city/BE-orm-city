@@ -22,7 +22,6 @@ class Payment(models.Model):
         related_name="payments",
         verbose_name="수강 대분류",
     )
-
     enrollment = models.OneToOneField(
         Enrollment,
         on_delete=models.SET_NULL,
@@ -65,59 +64,43 @@ class Payment(models.Model):
         default="NOT_REQUESTED",
         verbose_name="환불 상태",
     )
+    refund_deadline = models.DateTimeField(
+        verbose_name="환불 가능 기한", null=True, blank=True
+    )
 
     ENROLLMENT_DURATION = timezone.timedelta(days=365 * 2)
+    DEFAULT_REFUND_PERIOD = timezone.timedelta(days=7)
 
+    def save(self, *args, **kwargs):
+        if not self.refund_deadline and self.payment_date:
+            self.refund_deadline = self.payment_date + self.DEFAULT_REFUND_PERIOD
+        super().save(*args, **kwargs)
 
-def create_enrollment(self):
-    if self.payment_status == "paid" and not self.enrollment:
-        try:
-            enrollment, created = Enrollment.objects.get_or_create(
-                user=self.user,
-                major_category=self.major_category,
-                defaults={
-                    "enrollment_date": self.payment_date,
-                    "expiry_date": self.payment_date + self.ENROLLMENT_DURATION,
-                    "status": "active",
-                },
-            )
-            self.enrollment = enrollment
-            return enrollment
-        except Exception as e:
-            # 로그 기록 또는 에러 처리
-            print(f"Enrollment creation failed: {str(e)}")
-    return None
+    def is_refundable(self):
+        return timezone.now() <= self.refund_deadline
 
+    def create_enrollment(self):
+        if self.payment_status == "paid" and not self.enrollment:
+            try:
+                enrollment, created = Enrollment.objects.get_or_create(
+                    user=self.user,
+                    major_category=self.major_category,
+                    defaults={
+                        "enrollment_date": self.payment_date,
+                        "expiry_date": self.payment_date + self.ENROLLMENT_DURATION,
+                        "status": "active",
+                    },
+                )
+                self.enrollment = enrollment
+                return enrollment
+            except Exception as e:
+                # 로그 기록 또는 에러 처리
+                print(f"Enrollment creation failed: {str(e)}")
+        return None
 
-# def save(self, *args, **kwargs):
-#     is_new = self.pk is None
-#     super().save(*args, **kwargs)
-#     if is_new and self.payment_status == "paid":
-#         logger.info(f"Calling create_enrollment for payment {self.id}")
-#         self.create_enrollment()
-
-# def create_enrollment(self):
-#     logger.info(f"Starting create_enrollment for payment {self.id}")
-#     logger.info(f"User: {self.user}, Major Category: {self.major_category}")
-#     try:
-#         enrollment = Enrollment.objects.create(
-#             user=self.user,
-#             major_category=self.major_category,
-#             enrollment_date=self.payment_date,
-#             expiry_date=self.payment_date + timezone.timedelta(days=365 * 2),
-#             status="active"
-#         )
-#         self.enrollment = enrollment
-#         self.save(update_fields=['enrollment'])
-#         logger.info(f"Enrollment created successfully for payment {self.id}")
-#     except Exception as e:
-#         logger.error(f"Failed to create enrollment for payment {self.id}: {str(e)}", exc_info=True)
-#         raise  #
-
-
-class Meta:
-    verbose_name = "결제"
-    verbose_name_plural = "결제 목록"
+    class Meta:
+        verbose_name = "결제"
+        verbose_name_plural = "결제 목록"
 
     def __str__(self):
         return f"{self.user.username}의 {self.major_category.name} 결제"
