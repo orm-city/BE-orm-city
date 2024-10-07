@@ -1,19 +1,26 @@
-import requests
-import logging
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
-from .models import MajorCategory, Payment
-from django.conf import settings
-from django.db import transaction
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
 import json
+import logging
+from datetime import timedelta
+import requests
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import transaction
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from .models import MajorCategory, Payment
+from .serializers import PaymentDetailSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 class PaymentInfoAPIView(APIView):
     """
-    결제 정보를 제공하는 API 뷰
+    아임포트 결제창 실행시, 결제 정보를 제공하는 API 뷰
     """
 
     permission_classes = [AllowAny]
@@ -35,9 +42,6 @@ class PaymentInfoAPIView(APIView):
                 {"error": "해당 강의를 찾을 수 없습니다."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-
-
-logger = logging.getLogger(__name__)
 
 
 class PaymentCompleteAPIView(APIView):
@@ -159,114 +163,154 @@ class PaymentCompleteAPIView(APIView):
         )
 
 
-# class PaymentCompleteAPIView(APIView):
-#     permission_classes = [AllowAny]
-#     http_method_names = ['post', 'options']
+class UserPaymentsView(APIView):
+    """
+    현재 인증된 사용자의 결제 전체 정보 조회
+    """
 
-#     def get_iamport_token(self):
-#         url = "https://api.iamport.kr/users/getToken"
-#         headers = {
-#             "Content-Type": "application/json",
-#             "charset": "UTF-8",
-#             "Accept": "*/*",
-#         }
-#         body = {
-#             "imp_key": settings.IAMPORT["IMP_KEY"],
-#             "imp_secret": settings.IAMPORT["IMP_SECRET"],
-#         }
-#         try:
-#             response = requests.post(
-#                 url,
-#                 headers=headers,
-#                 data=json.dumps(body, ensure_ascii=False, indent="\t"),
-#             )
-#             return response
-#         except Exception as ex:
-#             print(ex)
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
-#     def verify_iamport_payment(self, imp_uid, amount, token):
-#         url = f"https://api.iamport.kr/payments/{imp_uid}"
-#         headers = {
-#             "Content-Type": "application/json",
-#             "Authorization": f"Bearer {token}",
-#         }
-#         response = requests.get(url, headers=headers)
+    def get(self, request):
+        payments = Payment.objects.filter(user=request.user).order_by("-payment_date")
 
-#         if response.status_code != 200:
-#             logger.error(f"Failed to call Iamport API: status_code={response.status_code}, response={response.text}")
-#             return False
+        payment_list = []
+        for payment in payments:
+            is_refundable = payment.payment_date >= (timezone.now() - timedelta(days=7))
+            payment_list.append(
+                {
+                    "id": payment.id,
+                    "amount": payment.total_amount,
+                    "date": payment.payment_date,
+                    "status": payment.payment_status,
+                    "is_refundable": is_refundable,
+                }
+            )
 
-#         try:
-#             payment_data = response.json()
-#         except ValueError as e:
-#             logger.error(f"Error parsing Iamport API response: {e}")
-#             return False
+        return Response(payment_list)
 
-#         logger.info(f"Iamport payment data: {payment_data}")
 
-#         if payment_data["code"] == 0:
-#             if "response" not in payment_data:
-#                 logger.error(f"No response key in Iamport API response: {payment_data}")
-#                 return False
+class PaymentDetailView(APIView):
+    """
+    해당 결제 정보 불러오기
+    """
 
-#             iamport_amount = int(payment_data["response"]["amount"])
-#             iamport_status = payment_data["response"]["status"]
-#             logger.info(
-#                 f"Verification check: status={iamport_status}, amount={iamport_amount} vs {amount}"
-#             )
-#             return iamport_status == "paid" and iamport_amount == int(amount)
-#         else:
-#             logger.error(f"Failed to get payment data from Iamport: {payment_data}")
-#             return False
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
-#     def post(self, request):
-#         user = request.user
-#         imp_uid = request.data.get("imp_uid")
-#         merchant_uid = request.data.get("merchant_uid")
-#         major_category_id = request.data.get("major_category_id")
-#         total_amount = request.data.get("total_amount")
-#         # receipt_url = request.data.get("receipt_url")
+    def get(self, request, payment_id):
+        try:
+            payment = Payment.objects.get(id=payment_id, user=request.user)
+            serializer = PaymentDetailSerializer(payment)
+            return Response(serializer.data)
+        except Payment.DoesNotExist:
+            return Response(
+                {"error": "결제 정보를 찾을 수 없습니다."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-#         logger.info(f"Payment request received: {request.data}")
 
-#         try:
-#             major_category = MajorCategory.objects.get(id=major_category_id)
-#         except MajorCategory.DoesNotExist:
-#             logger.error(f"MajorCategory not found: id={major_category_id}")
-#             return Response(
-#                 {"error": "해당 강의를 찾을 수 없습니다."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
+class RefundAPIView(APIView):
+    """
+    환불 처리
+    """
 
-#         iamport_token = self.get_iamport_token()
-#         if not iamport_token:
-#             return Response(
-#                 {"error": "아임포트 인증에 실패했습니다."},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             )
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
-#         if self.verify_iamport_payment(imp_uid, total_amount, iamport_token):
-#             payment = Payment.objects.create(
-#                 username=user,
-#                 major_category=major_category,
-#                 total_amount=total_amount,
-#                 merchant_uid=merchant_uid,
-#                 payment_status="paid",
-#                 receipt_url=f"https://api.iamport.kr/payments/{imp_uid}",
-#                 imp_uid=imp_uid,
-#             )
-#             logger.info(f"Payment created successfully: id={payment.id}")
-#             return Response(
-#                 {
-#                     "message": "결제가 성공적으로 완료되었습니다.",
-#                     "payment_id": payment.id,
-#                     "status": payment.payment_status,
-#                 },
-#                 status=status.HTTP_201_CREATED,
-#             )
-#         else:
-#             logger.warning(f"Payment verification failed: imp_uid={imp_uid}")
-#             return Response(
-#                 {"error": "결제 검증에 실패했습니다."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
+    def get_iamport_token(self):
+        url = "https://api.iamport.kr/users/getToken"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "imp_key": settings.IAMPORT["IMP_REST_API_KEY"],
+            "imp_secret": settings.IAMPORT["IMP_SECRET"],
+        }
+        try:
+            response = requests.post(url, data=json.dumps(data), headers=headers)
+            response.raise_for_status()
+            result = response.json()
+            logger.info(f"아임포트 API 응답: {result}")  # 전체 응답 로깅
+            if result.get("code") == 0:
+                return result.get("response", {}).get("access_token")
+            else:
+                logger.error(f"아임포트 토큰 발급 실패: {result}")
+                return None
+        except requests.RequestException as e:
+            # 기존 로깅 유지
+            logger.error(
+                f"아임포트 인증 실패. 사용된 IMP_KEY: {settings.IAMPORT['IMP_KEY']}"
+            )
+            logger.error(
+                f"전체 응답 내용: {e.response.text if hasattr(e.response, 'text') else 'No response text'}"
+            )
+        return None
+
+    def post(self, request, payment_id):
+        try:
+            payment = Payment.objects.get(id=payment_id, user=request.user)
+        except Payment.DoesNotExist:
+            return Response(
+                {"error": "결제 정보를 찾을 수 없습니다."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if payment.refund_status != "NOT_REQUESTED":
+            return Response(
+                {"error": "이미 환불이 진행 중이거나 완료되었습니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            access_token = self.get_iamport_token()
+            if not access_token:
+                return Response(
+                    {"error": "결제 시스템 연결에 실패했습니다."},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+
+            refund_result = self.request_refund(
+                access_token, payment.imp_uid, payment.total_amount
+            )
+
+            if refund_result.get("code") == 0:
+                payment.refund_status = "COMPLETED"
+                payment.payment_status = "cancelled"
+                payment.save()
+                return Response(
+                    {"message": "환불이 성공적으로 처리되었습니다."},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                payment.refund_status = "FAILED"
+                payment.save()
+                error_message = refund_result.get(
+                    "message", "환불 처리에 실패했습니다."
+                )
+                logger.error(f"Refund failed: {error_message}")
+                return Response(
+                    {"error": error_message}, status=status.HTTP_400_BAD_REQUEST
+                )
+        except Exception as e:
+            payment.refund_status = "FAILED"
+            payment.save()
+            logger.exception(f"Exception during refund process: {str(e)}")
+            return Response(
+                {"error": "환불 처리 중 오류가 발생했습니다."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def request_refund(self, access_token, imp_uid, amount):
+        url = "https://api.iamport.kr/payments/cancel"
+        headers = {"Authorization": access_token, "Content-Type": "application/json"}
+        data = {"imp_uid": imp_uid, "amount": amount, "reason": "고객 환불 요청"}
+        try:
+            response = requests.post(
+                url,
+                data=json.dumps(data, ensure_ascii=False).encode("utf-8"),
+                headers=headers,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logger.exception(f"Request failed during request_refund: {str(e)}")
+            raise
