@@ -7,23 +7,22 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import MajorCategory, Payment
 from .serializers import PaymentDetailSerializer
-
+from .permissions import IsAuthenticatedAndAllowed
 
 logger = logging.getLogger(__name__)
 
 
 class PaymentInfoAPIView(APIView):
     """
-    아임포트 결제창 실행시, 결제 정보를 제공하는 API 뷰
+    아임포트 결제창 실행시, 상품정보,유저정보 제공하는 API 뷰
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedAndAllowed]
 
     def get(self, request, major_category_id):
         try:
@@ -45,7 +44,7 @@ class PaymentInfoAPIView(APIView):
 
 
 class PaymentCompleteAPIView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedAndAllowed]
     http_method_names = ["post"]
 
     def get_iamport_token(self):
@@ -165,10 +164,10 @@ class PaymentCompleteAPIView(APIView):
 
 class UserPaymentsView(APIView):
     """
-    현재 인증된 사용자의 결제 전체 정보 조회
+    현재 인증된 사용자의 결제 정보 전체 조회
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedAndAllowed]
     authentication_classes = [JWTAuthentication]
 
     def get(self, request):
@@ -195,7 +194,7 @@ class PaymentDetailView(APIView):
     해당 결제 정보 불러오기
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedAndAllowed]
     authentication_classes = [JWTAuthentication]
 
     def get(self, request, payment_id):
@@ -215,7 +214,7 @@ class RefundAPIView(APIView):
     환불 처리
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedAndAllowed]
     authentication_classes = [JWTAuthentication]
 
     def get_iamport_token(self):
