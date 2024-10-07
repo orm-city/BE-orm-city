@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir pdm
 
 # PDM 프로젝트 파일 복사 및 종속성 설치
 COPY pyproject.toml pdm.lock /app/
-RUN pdm install --prod --no-lock --no-editable --no-self
+RUN pdm install --prod --no-lock --no-editable --no-self && pdm run python src/manage.py makemigrations
 
 # 소스 코드 복사
 COPY ./src /app/src
