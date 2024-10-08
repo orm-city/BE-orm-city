@@ -5,23 +5,22 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import MajorCategory, Payment, Enrollment
+
 from accounts.models import CustomUser
+from .models import MajorCategory, Payment, Enrollment
 from .serializers import PaymentDetailSerializer
 from .permissions import IsAuthenticatedAndAllowed
+
 
 logger = logging.getLogger(__name__)
 
 
 class PaymentInfoAPIView(APIView):
-    """
-    아임포트 결제창 실행시, 상품정보,유저정보 제공하는 API 뷰
-    """
-
     permission_classes = [IsAuthenticatedAndAllowed]
 
     def get(self, request, major_category_id):
