@@ -140,3 +140,5 @@ supabase/
 
 .dockerignore
 .ruff_cache
+src/*/migrations/*
+!src/*/migrations/__init__.py
