@@ -13,7 +13,11 @@ from .serializers import (
     VideoProgressSerializer,
 )
 from .services import UserProgressService
-from .permission import CanViewUserProgress
+from .permissions import CanViewUserProgress
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserProgressListView(generics.ListAPIView):  # 테스트 완료
@@ -43,8 +47,10 @@ class UserProgressUpdateView(generics.UpdateAPIView):  # 테스트 완료
     queryset = UserProgress.objects.all()
 
     def update(self, request, *args, **kwargs):
+        logger.debug(f"received data: {request.data}")
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
         additional_time = serializer.validated_data["additional_time"]
