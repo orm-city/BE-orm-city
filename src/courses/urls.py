@@ -1,22 +1,20 @@
-from django.urls import path
-from .views import MajorCategoryListView, MinorCategoryListView, UserEnrollmentListView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import MajorCategoryViewSet, MinorCategoryViewSet, EnrollmentViewSet
+
+router = DefaultRouter()
+router.register(r"major-categories", MajorCategoryViewSet, basename="majorcategory")
+router.register(r"minor-categories", MinorCategoryViewSet, basename="minorcategory")
+router.register(r"enrollments", EnrollmentViewSet, basename="enrollment")
+
+# EnrollmentViewSet의 custom action을 명시적으로 등록
+enrollment_complete = EnrollmentViewSet.as_view({"post": "complete_enrollment"})
 
 urlpatterns = [
+    path("", include(router.urls)),
     path(
-        "major-categories/", MajorCategoryListView.as_view(), name="major-category-list"
+        "enrollments/<int:pk>/complete/",
+        enrollment_complete,
+        name="enrollment-complete-enrollment",
     ),
-    # 모든 대분류 목록을 반환하는 엔드포인트
-    path(
-        "major-categories/<int:major_category_id>/minor-categories/",
-        MinorCategoryListView.as_view(),
-        name="minor-category-list",
-    ),
-    # 특정 대분류에 속한 소분류 목록을 반환하는 엔드포인트
-    path(
-        "user-enrollments/",
-        UserEnrollmentListView.as_view(),
-        name="user-enrollment-list",
-    ),
-    # 현재 로그인한 사용자의 수강신청 목록을 반환하는 엔드포인트
 ]
-
