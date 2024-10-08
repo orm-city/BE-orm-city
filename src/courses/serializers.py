@@ -1,5 +1,8 @@
 from rest_framework import serializers
+
+from videos.models import Video
 from .models import MajorCategory, MinorCategory, Enrollment
+from videos.serializers import VideoSerializer
 
 
 class MajorCategorySerializer(serializers.ModelSerializer):
@@ -15,13 +18,25 @@ class MajorCategorySerializer(serializers.ModelSerializer):
 class MinorCategorySerializer(serializers.ModelSerializer):
     """
     소분류(MinorCategory) 모델을 위한 시리얼라이저
-
     이 시리얼라이저는 소분류의 id, 이름, 관련 대분류, 내용, 순서 정보를 직렬화/역직렬화합니다.
     """
 
+    videos = VideoSerializer(many=True, read_only=True)
+
     class Meta:
         model = MinorCategory
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+            "content",
+            "order",
+            "videos",
+        )
+
+    def get_videos(self, obj):
+        # 마이너 카테고리에 포함된 비디오만 필터링
+        videos = Video.objects.filter(minor_category=obj)
+        return VideoSerializer(videos, many=True).data
 
 
 class EnrollmentSerializer(serializers.ModelSerializer):
