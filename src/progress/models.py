@@ -51,10 +51,12 @@ class UserProgress(models.Model):
             raise ValidationError("additional_time must be non-negative")
 
         # Video 총 길이 가져오기
-        video_duration = self.video.duration.total_seconds()
+        video_duration = (
+            self.video.duration.total_seconds()
+        )  # total_seconds(): float 타입 반환
 
         # last_position 제한
-        self.last_position = min(int(last_position), int(video_duration))
+        self.last_position = min(float(last_position), video_duration)
 
         # progress_percent 계산
         self.progress_percent = min(
