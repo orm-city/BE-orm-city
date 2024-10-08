@@ -42,7 +42,6 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",  # djangorestframework-simplejwt
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",  # django-cors-headers
-    "drf_spectacular",  # drf-spectacular
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECTS_APPS + THIRD_PARTY_APPS

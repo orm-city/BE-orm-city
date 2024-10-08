@@ -83,6 +83,28 @@ class MinorCategoryViewSet(viewsets.ModelViewSet):
             permission_classes = [IsEnrolledOrAdmin]
         return [permission() for permission in permission_classes]
 
+    def get_major_category_queryset(self, major_category_id):
+        return self.queryset.filter(major_category_id=major_category_id).order_by(
+            "order"
+        )
+
+    def list(self, request, *args, **kwargs):
+        major_category_id = request.query_params.get("major_category_id")
+        if major_category_id:
+            queryset = self.get_major_category_queryset(major_category_id)
+        else:
+            queryset = self.queryset
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def by_major_category(self, request, major_id=None):
+        if major_id is None:
+            return Response({"error": "major_category_id is required"}, status=400)
+        queryset = self.get_major_category_queryset(major_id)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 
 # EnrollmentViewSet with @extend_schema_view
 @extend_schema_view(
