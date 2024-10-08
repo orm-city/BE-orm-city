@@ -16,10 +16,37 @@ from .models import MajorCategory, Payment, Enrollment
 from .serializers import PaymentDetailSerializer
 from .permissions import IsAuthenticatedAndAllowed
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(
+    summary="아임포트 결제정보",
+    description="대분류명(대카테고리 수강명), 수강금액 정보를 아임포트 결제창에 전달합니다.",
+    parameters=[
+        OpenApiParameter(
+            name="major_category_id",
+            description="ID of the major category",
+            required=True,
+            type=int,
+        ),
+    ],
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "major_category_id": {"type": "integer"},
+                "major_category_name": {"type": "string"},
+                "major_category_price": {"type": "number"},
+                "user_id": {"type": "integer"},
+                "imp_key": {"type": "string"},
+            },
+        },
+        404: {"description": "Major category not found"},
+    },
+)
 class PaymentInfoAPIView(APIView):
     permission_classes = [IsAuthenticatedAndAllowed]
 
@@ -42,6 +69,41 @@ class PaymentInfoAPIView(APIView):
             )
 
 
+@extend_schema(
+    summary="결제 생성(수강정보,수강신청 저장)",
+    description="수강 결제가 생성되면 해당 수강상품에 대한 enrollment 데이터가 등록됩니다. ",
+    request={
+        "type": "object",
+        "properties": {
+            "user_id": {"type": "integer"},
+            "imp_uid": {"type": "string"},
+            "merchant_uid": {"type": "string"},
+            "major_category_id": {"type": "integer"},
+            "total_amount": {"type": "number"},
+        },
+        "required": [
+            "user_id",
+            "imp_uid",
+            "merchant_uid",
+            "major_category_id",
+            "total_amount",
+        ],
+    },
+    responses={
+        201: {
+            "type": "object",
+            "properties": {
+                "message": {"type": "string"},
+                "payment_id": {"type": "integer"},
+                "enrollment_id": {"type": "integer"},
+                "status": {"type": "string"},
+                "refund_deadline": {"type": "string", "format": "date-time"},
+            },
+        },
+        400: {"description": "올바르지 않은 결제정보이거나 중복 결제입니다."},
+        404: {"description": "사용자 혹은 major category 정보가 확인되지 않습니다."},
+    },
+)
 class PaymentCompleteAPIView(APIView):
     permission_classes = [IsAuthenticatedAndAllowed]
     http_method_names = ["post"]
