@@ -452,7 +452,6 @@ class CompleteUploadAPIView(APIView):
         ),
     },
     tags=["videos"],
-    throttle_scope="progress",
 )
 class UpdateUserProgressAPIView(APIView):
     permission_classes = [IsEnrolledOrAdminOrManager]

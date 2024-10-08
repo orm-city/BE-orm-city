@@ -17,4 +17,10 @@ urlpatterns = [
         enrollment_complete,
         name="enrollment-complete-enrollment",
     ),
+    # MinorCategory를 MajorCategory ID로 필터링하는 URL 추가
+    path(
+        "minor-categories/by-major/<int:major_id>/",
+        MinorCategoryViewSet.as_view({"get": "by_major_category"}),
+        name="minorcategory-by-major",
+    ),
 ]
