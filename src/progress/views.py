@@ -13,6 +13,11 @@ from .serializers import (
     VideoProgressSerializer,
 )
 from .services import UserProgressService
+from .permissions import CanViewUserProgress
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserProgressListView(generics.ListAPIView):  # 테스트 완료
@@ -22,6 +27,7 @@ class UserProgressListView(generics.ListAPIView):  # 테스트 완료
     이 뷰는 GET 요청에 대해 현재 인증된 사용자의 모든 비디오별 학습 진행 정보를 반환합니다.
     """
 
+    permission_classes = [CanViewUserProgress]
     serializer_class = UserProgressSerializer
 
     def get_queryset(self):
@@ -36,12 +42,15 @@ class UserProgressUpdateView(generics.UpdateAPIView):  # 테스트 완료
     Enrollment 검사를 통해 유효한 수강 신청 상태인지 확인합니다.
     """
 
+    permission_classes = [CanViewUserProgress]
     serializer_class = UserProgressUpdateSerializer
     queryset = UserProgress.objects.all()
 
     def update(self, request, *args, **kwargs):
+        logger.debug(f"received data: {request.data}")
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
         additional_time = serializer.validated_data["additional_time"]
@@ -82,6 +91,7 @@ class UserProgressUpdateView(generics.UpdateAPIView):  # 테스트 완료
 
 
 class UserOverallProgressView(APIView):
+    permission_classes = [CanViewUserProgress]
     """
     사용자의 전체 학습 진행 상황을 제공하는 뷰
 
@@ -130,6 +140,7 @@ class UserProgressDetailView(generics.RetrieveAPIView):
     이 뷰는 GET 요청에 대해 현재 인증된 사용자의 특정 비디오에 대한 학습 진행 정보를 반환합니다.
     """
 
+    permission_classes = [CanViewUserProgress]
     serializer_class = VideoProgressSerializer
 
     def get_object(self):

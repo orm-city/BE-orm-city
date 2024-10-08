@@ -22,6 +22,14 @@ class Payment(models.Model):
         related_name="payments",
         verbose_name="수강 대분류",
     )
+    enrollment = models.OneToOneField(
+        Enrollment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payment",
+        verbose_name="등록 정보",
+    )
     total_amount = models.PositiveIntegerField(verbose_name="결제 금액")
     payment_date = models.DateTimeField(auto_now_add=True, verbose_name="결제일")
     receipt_url = models.URLField(null=True, blank=True, verbose_name="영수증 URL")
@@ -31,7 +39,9 @@ class Payment(models.Model):
     imp_uid = models.CharField(
         max_length=100, unique=True, null=True, verbose_name="아임포트 거래 고유번호"
     )
-
+    refund_amount = models.PositiveIntegerField(
+        verbose_name="환불 금액", default=0, help_text="환불된 총 금액"
+    )
     payment_status = models.CharField(
         max_length=20,
         choices=[
@@ -54,34 +64,39 @@ class Payment(models.Model):
         default="NOT_REQUESTED",
         verbose_name="환불 상태",
     )
+    refund_deadline = models.DateTimeField(
+        verbose_name="환불 가능 기한", null=True, blank=True
+    )
 
     ENROLLMENT_DURATION = timezone.timedelta(days=365 * 2)
+    DEFAULT_REFUND_PERIOD = timezone.timedelta(days=7)
+
+    def save(self, *args, **kwargs):
+        if not self.refund_deadline and self.payment_date:
+            self.refund_deadline = self.payment_date + self.DEFAULT_REFUND_PERIOD
+        super().save(*args, **kwargs)
+
+    def is_refundable(self):
+        return timezone.now() <= self.refund_deadline
 
     def create_enrollment(self):
-        if self.payment_status == "paid" and not hasattr(self, "enrollment"):
+        if self.payment_status == "paid" and not self.enrollment:
             try:
-                enrollment = Enrollment.objects.create(
+                enrollment, created = Enrollment.objects.get_or_create(
                     user=self.user,
                     major_category=self.major_category,
-                    enrollment_date=self.payment_date,
-                    expiry_date=self.payment_date + self.ENROLLMENT_DURATION,
-                    status="active",
+                    defaults={
+                        "enrollment_date": self.payment_date,
+                        "expiry_date": self.payment_date + self.ENROLLMENT_DURATION,
+                        "status": "active",
+                    },
                 )
+                self.enrollment = enrollment
                 return enrollment
             except Exception as e:
                 # 로그 기록 또는 에러 처리
                 print(f"Enrollment creation failed: {str(e)}")
         return None
-
-    def save(self, *args, **kwargs):
-        is_new = self.pk is None
-        super().save(*args, **kwargs)
-        if is_new and self.payment_status == "paid":
-            enrollment = self.create_enrollment()
-            if enrollment:
-                # 생성된 enrollment를 payment와 연결 (선택적)
-                self.enrollment = enrollment
-                super().save(update_fields=["enrollment"])
 
     class Meta:
         verbose_name = "결제"

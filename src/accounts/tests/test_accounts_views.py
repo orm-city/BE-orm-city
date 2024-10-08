@@ -3,7 +3,6 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from accounts.models import CustomUser, UserActivity
-from rest_framework_simplejwt.tokens import RefreshToken
 
 
 @pytest.fixture
@@ -12,104 +11,240 @@ def api_client():
 
 
 @pytest.fixture
-def create_user():
-    def make_user(username="testuser", password="testpass123"):
-        return CustomUser.objects.create_user(username=username, password=password)
-
-    return make_user
-
-
-@pytest.mark.django_db
-def test_register_view(api_client):
-    url = reverse("accounts:register")
-    data = {
-        "username": "newuser",
-        "password": "newpass123",
-        "password2": "newpass123",
-        "email": "newuser@example.com",
-        "first_name": "New",  # 추가됨
-        "last_name": "User",  # 추가됨
+def user_data():
+    return {
+        "email": "test@example.com",
+        "username": "testuser",
+        "password": "testpassword",
     }
-    response = api_client.post(url, data)
-    print(f"Response status code: {response.status_code}")
-    print(f"Response content: {response.content}")
-    assert response.status_code == status.HTTP_201_CREATED
-    assert CustomUser.objects.filter(username="newuser").exists()
-    assert UserActivity.objects.filter(user__username="newuser").exists()
+
+
+@pytest.fixture
+def create_user(user_data):
+    return CustomUser.objects.create_user(**user_data)
 
 
 @pytest.mark.django_db
-def test_logout_view(api_client, create_user):
-    user = create_user()
-    refresh = RefreshToken.for_user(user)
-    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
-    url = reverse("accounts:logout")
-    data = {"refresh": str(refresh)}
-    response = api_client.post(url, data)
-    print(f"Response status code: {response.status_code}")
-    print(f"Response content: {response.content}")
-    assert response.status_code == status.HTTP_205_RESET_CONTENT
+class TestUserManagementViewSet:
+    @pytest.fixture
+    def admin_user(self):
+        return CustomUser.objects.create_superuser(
+            email="admin@example.com",
+            username="admin",
+            password="adminpass",
+            role="admin",
+        )
+
+    def test_list_users_as_admin(self, api_client, admin_user):
+        # GIVEN
+        api_client.force_authenticate(user=admin_user)
+
+        # WHEN
+        response = api_client.get(reverse("user-list"))
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) > 0
+
+    def test_list_users_as_student(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=user)
+
+        # WHEN
+        response = api_client.get(reverse("user-list"))
+
+        # THEN
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_retrieve_user_as_admin(self, api_client, admin_user, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=admin_user)
+
+        # WHEN
+        response = api_client.get(reverse("user-detail", kwargs={"pk": user.pk}))
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["username"] == user.username
+
+    def test_retrieve_own_user_as_student(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=user)
+
+        # WHEN
+        response = api_client.get(reverse("user-detail", kwargs={"pk": user.pk}))
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["username"] == user.username
+
+    def test_retrieve_other_user_as_student(self, api_client, create_user):
+        # GIVEN
+        user1 = create_user
+        user2 = CustomUser.objects.create_user(
+            email="user2@example.com", username="user2", password="testpass"
+        )
+        api_client.force_authenticate(user=user1)
+
+        # WHEN
+        response = api_client.get(reverse("user-detail", kwargs={"pk": user2.pk}))
+
+        # THEN
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db
-def test_logout_view(api_client, create_user):  # noqa
-    user = create_user()
-    refresh = RefreshToken.for_user(user)
-    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
-    url = reverse("accounts:logout")
-    data = {"refresh": str(refresh)}
-    response = api_client.post(url, data)
-    print(f"Response status code: {response.status_code}")
-    print(f"Response content: {response.content}")
-    assert response.status_code == status.HTTP_205_RESET_CONTENT
+class TestRegisterView:
+    def test_register_user(self, api_client, user_data):
+        # GIVEN
+        url = reverse("register")
+
+        # WHEN
+        response = api_client.post(url, user_data)
+
+        # THEN
+        assert response.status_code == status.HTTP_201_CREATED
+        assert "user" in response.data
+        assert "refresh" in response.data
+        assert "access" in response.data
 
 
 @pytest.mark.django_db
-def test_user_profile_view(api_client, create_user):
-    user = create_user()
-    api_client.force_authenticate(user=user)
-    url = reverse("accounts:profile")
-    response = api_client.get(url)
-    assert response.status_code == status.HTTP_200_OK
-    assert response.data["username"] == "testuser"
+class TestLoginView:
+    def test_login_user(self, api_client, create_user, user_data):
+        # GIVEN
+        url = reverse("login")
+        user = create_user  # noqa
 
-    update_data = {"first_name": "Updated", "last_name": "User"}
-    response = api_client.patch(url, update_data)
-    assert response.status_code == status.HTTP_200_OK
-    assert response.data["first_name"] == "Updated"
-    assert response.data["last_name"] == "User"
+        # WHEN
+        response = api_client.post(
+            url, {"email": user_data["email"], "password": user_data["password"]}
+        )
 
-
-@pytest.mark.django_db
-def test_user_activity_list_view(api_client, create_user):
-    user = create_user()
-    UserActivity.objects.create(user=user, ip_address="127.0.0.1")
-    api_client.force_authenticate(user=user)
-    url = reverse("accounts:activity")
-    response = api_client.get(url)
-    assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert "user" in response.data
+        assert "refresh" in response.data
+        assert "access" in response.data
 
 
 @pytest.mark.django_db
-def test_delete_account_view(api_client, create_user):
-    user = create_user()
-    api_client.force_authenticate(user=user)
-    url = reverse("accounts:delete")
-    data = {"password": "testpass123"}
-    response = api_client.post(url, data)
-    assert response.status_code == status.HTTP_200_OK
-    user.refresh_from_db()
-    assert not user.is_active
+class TestLogoutView:
+    def test_logout_user(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=user)
+        refresh = api_client.post(
+            reverse("login"), {"email": user.email, "password": "testpassword"}
+        ).data["refresh"]
+
+        # WHEN
+        response = api_client.post(reverse("logout"), {"refresh_token": refresh})
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["detail"] == "Successfully logged out."
 
 
 @pytest.mark.django_db
-def test_delete_account_view_wrong_password(api_client, create_user):
-    user = create_user()
-    api_client.force_authenticate(user=user)
-    url = reverse("accounts:delete")
-    data = {"password": "wrongpassword"}
-    response = api_client.post(url, data)
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    user.refresh_from_db()
-    assert user.is_active
+class TestUserProfileView:
+    def test_retrieve_user_profile(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=user)
+
+        # WHEN
+        response = api_client.get(reverse("profile"))
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["username"] == user.username
+
+    def test_update_user_profile(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=user)
+        update_data = {"username": "newusername"}
+
+        # WHEN
+        response = api_client.patch(reverse("profile"), update_data)
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["username"] == "newusername"
+
+
+@pytest.mark.django_db
+class TestUserActivityListView:
+    def test_list_user_activities(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=user)
+        UserActivity.objects.create(user=user)
+
+        # WHEN
+        response = api_client.get(reverse("activity"))
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 1
+
+
+@pytest.mark.django_db
+class TestDeleteAccountView:
+    def test_delete_account(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=user)
+
+        # WHEN
+        response = api_client.delete(reverse("delete"))
+
+        # THEN
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert CustomUser.objects.count() == 0
+
+
+@pytest.mark.django_db
+class TestManagerCreationView:
+    def test_create_manager(self, api_client):
+        # GIVEN
+        admin = CustomUser.objects.create_superuser(
+            email="admin@example.com", username="admin", password="adminpass"
+        )
+        api_client.force_authenticate(user=admin)
+        manager_data = {
+            "email": "manager@example.com",
+            "username": "manager",
+            "password": "managerpass",
+        }
+
+        # WHEN
+        response = api_client.post(reverse("create_manager"), manager_data)
+
+        # THEN
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["user"]["role"] == "manager"
+
+
+@pytest.mark.django_db
+class TestChangeUserRoleView:
+    def test_change_user_role(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        admin = CustomUser.objects.create_superuser(
+            email="admin@example.com", username="admin", password="adminpass"
+        )
+        api_client.force_authenticate(user=admin)
+
+        # WHEN
+        response = api_client.patch(
+            reverse("change_role", kwargs={"user_id": user.id}), {"role": "manager"}
+        )
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["role"] == "manager"

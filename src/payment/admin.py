@@ -9,9 +9,10 @@ class PaymentAdmin(admin.ModelAdmin):
         "major_category",
         "total_amount",
         "payment_status",
-        "payment_status",
+        "refund_amount",
+        "refund_status",
     )  # Admin에서 표시할 필드
-    list_filter = ("payment_status", "payment_status")  # 필터 가능한 필드
+    list_filter = ("payment_status", "refund_status")  # 필터 가능한 필드
     search_fields = (
         "user__username",
         "major_category__name",

@@ -28,7 +28,6 @@ class CustomUserAdmin(UserAdmin):
                     "last_name",
                     "email",
                     "nickname",
-                    "contact_number",
                 )
             },
         ),

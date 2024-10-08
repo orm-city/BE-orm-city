@@ -18,7 +18,9 @@ class TestCoursesModels:
     def user(self):
         """테스트용 사용자를 생성하는 fixture입니다."""
         return CustomUser.objects.create_user(
-            username="testuser", password="testpass123"
+            username="testuser",
+            email="testuser@example.com",  # email 필드 추가
+            password="testpass123",
         )
 
     @pytest.fixture
