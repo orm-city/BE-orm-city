@@ -1,0 +1,55 @@
+name: Create envfile
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  build-docker-image:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v2.0
+      with:
+        envs: |
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          DATABASE_USER=${{ secrets.DATABASE_USER }}
+          DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_S3_REGION_NAME=${{ secrets.AWS_S3_REGION_NAME }}
+          AWS_STORAGE_BUCKET_NAME=${{ secrets.AWS_STORAGE_BUCKET_NAME }}
+
+          IMP_KEY=${{ secrets.IMP_KEY }}
+          IMP_SECRET=${{ secrets.IMP_SECRET }}
+          IMP_REST_API_KEY=${{ secrets.IMP_REST_API_KEY }}
+
+          DJANGO_SUPERUSER_USERNAME=${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+          DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+
+
+
+
+    - id: commit
+      uses: pr-mpt/actions-commit-hash@v2
+
+    - name: Build and Push to Docker Hub
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: ${{ secrets.DOCKER_HUB_USERNAME}}/orm-city
+        tags: ${{ steps.commit.outputs.short }}, latest
+        registry: docker.io
+        dockerfile: Dockerfile
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_PASSWORD }}

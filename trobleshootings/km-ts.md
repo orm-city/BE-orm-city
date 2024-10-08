@@ -65,3 +65,26 @@ npx supabase db reset --linked
     - `config.urls.py`에도 `app_name`이 있었음.
     - 이 내용을 포함해서 작성하기 위해서는 `"api:v1:videos:video-list"`가 되어야함
     - `config.urls.py`에서 `app_name`을 삭제하였음
+
+
+## 날짜(24-10-00)
+
+### 문제 상황
+
+- 어떤 것을 하려다가 문제가 발생했는가? 멀티 업로드가 되지 않음
+- 발행한 환경, 프로그램, 경로 src\videos\views.py
+- 발생한 문제(에러) 500
+
+### 원인
+
+- 추정되는 원인 - 알 수 없음
+- 실제 원인
+    - aws에서 `"ExposeHeaders": ["ETag"],` cors에 추가하여야 했음
+    -
+
+### 최종 해결
+
+- 최종 해결을 위한 시행 착오(optional)
+- 해결 방법
+
+### 참고 자료
