@@ -47,7 +47,9 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     대분류 정보는 MajorCategorySerializer를 통해 중첩되어 제공됩니다.
     """
 
-    major_category = MajorCategorySerializer(read_only=True)
+    major_category = serializers.PrimaryKeyRelatedField(
+        queryset=MajorCategory.objects.all()
+    )
 
     class Meta:
         model = Enrollment
@@ -59,3 +61,4 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             "expiry_date",
             "status",
         ]
+        read_only_fields = ["user", "enrollment_date", "expiry_date", "status"]
