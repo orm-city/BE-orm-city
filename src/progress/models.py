@@ -10,18 +10,27 @@ from videos.models import Video
 class UserProgress(models.Model):
     """
     유저 수강 진행 모델
+
+    유저가 수강 중인 강의에 대한 진행률과 관련된 데이터를 저장합니다.
     """
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="progresses",
+        related_name="progresses",  # 유저의 수강 진행 목록
+        verbose_name="사용자",
     )
     video = models.ForeignKey(
-        Video, on_delete=models.CASCADE, related_name="progresses"
+        Video,
+        on_delete=models.CASCADE,
+        related_name="progresses",  # 해당 강의에 대한 수강 진행 목록
+        verbose_name="강의",
     )
     enrollment = models.ForeignKey(
-        Enrollment, on_delete=models.CASCADE, related_name="progresses"
+        Enrollment,
+        on_delete=models.CASCADE,
+        related_name="progresses",  # 수강 등록과 관련된 진행 목록
+        verbose_name="수강 등록",
     )
     is_completed = models.BooleanField(default=False, verbose_name="수강 완료 여부")
     last_accessed = models.DateTimeField(
@@ -36,19 +45,26 @@ class UserProgress(models.Model):
         default=timezone.timedelta, verbose_name="수강 진행 시간"
     )
     last_position = models.PositiveIntegerField(
-        default=0, verbose_name="마지막 시청 위치(초단위)"
+        default=0, verbose_name="마지막 시청 위치(초 단위)"
     )
 
     def __str__(self):
         return f"수강생:{self.user.username}, 강의:{self.video.name}, 수강률:({self.progress_percent}%)"
 
     def update_progress(self, additional_time, last_position):
+        """
+        수강 진행 정보를 업데이트합니다.
+
+        :param additional_time: 추가된 시청 시간 (duration)
+        :param last_position: 마지막 시청 위치 (초 단위)
+        :raises ValidationError: 입력된 값이 유효하지 않은 경우
+        """
         # 입력값 검증
         if last_position < 0:
-            raise ValidationError("last_position must be non-negative")
+            raise ValidationError("마지막 시청 위치는 0보다 커야 합니다.")
 
         if additional_time < timezone.timedelta(0):
-            raise ValidationError("additional_time must be non-negative")
+            raise ValidationError("추가 시청 시간은 0보다 커야 합니다.")
 
         # Video 총 길이 가져오기
         video_duration = (
@@ -75,3 +91,7 @@ class UserProgress(models.Model):
         self.is_completed = self.progress_percent == 100
 
         self.save()
+
+    class Meta:
+        verbose_name = "수강 진행"
+        verbose_name_plural = "수강 진행 목록"
