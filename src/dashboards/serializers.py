@@ -60,20 +60,17 @@ class UserLearningRecordSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer()
     major_category = MajorCategorySerializer()
     date = serializers.DateField(format="%Y-%m-%d")
-    total_study_time = serializers.DurationField(read_only=True)
     progress_percent = serializers.FloatField(read_only=True)
 
     class Meta:
-        model = UserLearningRecord
+        model = UserLearningRecord  # DailyVisit에서 UserLearningRecord로 변경
         fields = [
-            "id",
+            "id",  # id 필드 추가
             "user",
             "date",
             "major_category",
-            "login_time",
-            "logout_time",
-            "total_study_time",
             "progress_percent",
+            # 필요한 경우 다른 필드들도 추가
         ]
 
 
