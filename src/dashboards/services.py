@@ -1,11 +1,16 @@
-from django.db.models import Sum, Avg
+from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
 
 from accounts.models import CustomUser
 from courses.models import MajorCategory, Enrollment
 from payment.models import Payment
-from .models import UserLearningRecord, UserVideoProgress, ExpirationNotification
+from .models import (
+    UserLearningRecord,
+    UserVideoProgress,
+    ExpirationNotification,
+    DailyVisit,
+)
 from missions.models import MissionSubmission
 
 
@@ -47,21 +52,6 @@ class DashboardService:
         active_courses = enrollments.filter(status="active").count()
         completed_courses = enrollments.filter(status="completed").count()
 
-        total_study_time = (
-            UserLearningRecord.objects.filter(user=user).aggregate(
-                total=Sum("total_study_time")
-            )["total"]
-            or timedelta()
-        )
-
-        last_30_days = timezone.now() - timedelta(days=30)
-        avg_daily_study_time = (
-            UserLearningRecord.objects.filter(
-                user=user, date__gte=last_30_days
-            ).aggregate(avg=Avg("total_study_time"))["avg"]
-            or timedelta()
-        )
-
         next_expiration = (
             ExpirationNotification.objects.filter(user=user, is_sent=False)
             .order_by("notification_date")
@@ -77,8 +67,31 @@ class DashboardService:
             "video_progress": video_progress,
             "active_courses": active_courses,
             "completed_courses": completed_courses,
-            "total_study_time": total_study_time,
-            "average_daily_study_time": avg_daily_study_time,
             "next_expiration": next_expiration,
             "recent_missions": recent_missions,
         }
+
+    @staticmethod
+    def get_daily_visits(days=7):
+        end_date = timezone.now().date()
+        start_date = end_date - timedelta(days=days - 1)
+        daily_visits = DailyVisit.objects.filter(date__range=[start_date, end_date])
+
+        # 모든 날짜에 대해 데이터 생성 (방문이 없는 날도 0으로 표시)
+        all_dates = {
+            start_date + timedelta(days=i): {
+                "date": start_date + timedelta(days=i),
+                "student_unique_visitors": 0,
+                "student_total_views": 0,
+            }
+            for i in range(days)
+        }
+
+        for visit in daily_visits:
+            all_dates[visit.date] = {
+                "date": visit.date,
+                "student_unique_visitors": visit.student_unique_visitors,
+                "student_total_views": visit.student_total_views,
+            }
+
+        return list(all_dates.values())

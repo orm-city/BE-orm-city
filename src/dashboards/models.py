@@ -4,24 +4,38 @@ from courses.models import MajorCategory, Enrollment
 from payment.models import Payment
 from django.utils import timezone
 from progress.models import UserProgress
+import json
+from datetime import timedelta
 
 
 class DailyVisit(models.Model):
-    date = models.DateField(unique=True, verbose_name="날짜")
-    student_unique_visitors = models.IntegerField(
-        default=0, verbose_name="학생 고유 방문자 수"
-    )
-    student_total_views = models.IntegerField(default=0, verbose_name="학생 총 조회수")
+    date = models.DateField(unique=True)
+    student_unique_visitors = models.IntegerField(default=0)
+    student_total_views = models.IntegerField(default=0)
+    unique_ips = models.TextField(default="[]")
+
+    def set_unique_ips(self, ips):
+        self.unique_ips = json.dumps(list(set(ips)))
+
+    def get_unique_ips(self):
+        return json.loads(self.unique_ips)
+
+    class Meta:
+        ordering = ["-date"]  # 최신 날짜가 먼저 오도록 정렬
+        verbose_name = "일일 학생 방문"
+        verbose_name_plural = "일일 학생 방문 목록"
 
     def __str__(self):
         return f"{self.date} 학생 방문: {self.student_unique_visitors}명 고유 방문, {self.student_total_views}회 조회"
 
-    class Meta:
-        verbose_name = "일일 학생 방문"
-        verbose_name_plural = "일일 학생 방문 목록"
-
 
 class DailyPayment(models.Model):
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.CASCADE,
+        related_name="daily_payments",
+        verbose_name="결제 정보",
+    )
     date = models.DateField(verbose_name="결제일")
     payment = models.ForeignKey(
         Payment, on_delete=models.CASCADE, verbose_name="결제 정보"
@@ -71,7 +85,7 @@ class UserLearningRecord(models.Model):
         unique_together = ["user", "date", "major_category"]
 
     def __str__(self):
-        return f"{self.user}의 {self.date} {self.major_category} 학습 기록"
+        return f"{self.user.username} - {self.date}"
 
     @property
     def login_time(self):
@@ -81,56 +95,21 @@ class UserLearningRecord(models.Model):
     def logout_time(self):
         return self.user_activity.logout_time if self.user_activity else None
 
-    @property
     def total_study_time(self):
-        # 이 로직은 views나 services에서 구현해야 합니다.
-        pass
-
-    @property
-    def progress_percent(self):
-        # 이 로직은 views나 services에서 구현해야 합니다.
-        pass
+        return timedelta(seconds=self.total_study_seconds)
 
 
 class UserVideoProgress(models.Model):
-    user_progress = models.ForeignKey(
-        UserProgress,
-        on_delete=models.CASCADE,
-        related_name="daily_records",
-        verbose_name="사용자 진행 상황",
-    )
-    date = models.DateField(default=timezone.now, verbose_name="날짜")
-    daily_watch_duration = models.DurationField(
-        default=timezone.timedelta, verbose_name="일일 시청 시간"
-    )
+    user_progress = models.ForeignKey(UserProgress, on_delete=models.CASCADE)
+    date = models.DateField()
+    daily_watch_duration = models.IntegerField(default=0)  # 초 단위로 저장
+    progress_percent = models.FloatField(default=0)
 
-    class Meta:
-        verbose_name = "사용자 일일 비디오 진행 상황"
-        verbose_name_plural = "사용자 일일 비디오 진행 상황 목록"
-        unique_together = ["user_progress", "date"]
+    def formatted_watch_duration(self):
+        return str(timedelta(seconds=self.daily_watch_duration))
 
     def __str__(self):
-        return f"{self.user_progress.user}의 {self.user_progress.video} 진행 상황 ({self.date})"
-
-    @property
-    def user(self):
-        return self.user_progress.user
-
-    @property
-    def video(self):
-        return self.user_progress.video
-
-    @property
-    def total_watch_duration(self):
-        return self.user_progress.time_spent
-
-    @property
-    def progress_percent(self):
-        return self.user_progress.progress_percent
-
-    def update_daily_watch_duration(self, duration):
-        self.daily_watch_duration += duration
-        self.save()
+        return f"{self.user_progress.user.username} - {self.date}"
 
 
 # 현재 미션은 완성이 아니기에 일단 미구현
