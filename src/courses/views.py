@@ -39,6 +39,8 @@ class MajorCategoryViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == "list":
             permission_classes = [AllowAnyForList]
+        elif self.action == "retrieve":
+            permission_classes = [IsAuthenticated]
         elif self.action in ["create", "update", "partial_update", "destroy"]:
             permission_classes = [IsAdminOrReadOnly]
         else:
