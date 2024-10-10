@@ -408,6 +408,9 @@ class CompleteUploadAPIView(APIView):
             )
 
 
+throttle_scope = ("progress",)
+
+
 @extend_schema(
     summary="Update User Video Progress",
     description="This endpoint updates the user's progress for a specific video, including progress percentage, time spent, and last watched position.",
@@ -452,7 +455,6 @@ class CompleteUploadAPIView(APIView):
         ),
     },
     tags=["videos"],
-    throttle_scope="progress",
 )
 class UpdateUserProgressAPIView(APIView):
     permission_classes = [IsEnrolledOrAdminOrManager]
