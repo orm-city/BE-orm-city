@@ -194,7 +194,11 @@ class UserPaymentsView(APIView):
     authentication_classes = [JWTAuthentication]
 
     def get(self, request):
-        payments = Payment.objects.filter(user=request.user).order_by("-payment_date")
+        payments = (
+            Payment.objects.filter(user=request.user)
+            .prefetch_related("major_category")
+            .order_by("-payment_date")
+        )
         current_time = timezone.now()
 
         payment_list = []
@@ -208,7 +212,8 @@ class UserPaymentsView(APIView):
                     "date": payment.payment_date,
                     "status": payment.payment_status,
                     "is_refundable": is_refundable,
-                    "days_since_payment": days_since_payment,  # 디버깅을 위해 추가
+                    "days_since_payment": days_since_payment,
+                    "major_category": payment.major_category.name,
                 }
             )
 
