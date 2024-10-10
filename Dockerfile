@@ -19,5 +19,8 @@ RUN pdm install --prod --no-lock --no-editable --no-self
 COPY ./src /app/src
 COPY .env /app/.env
 
+# Django의 collectstatic 명령어 실행 (staticfiles 폴더가 자동 생성됨)
+RUN pdm run python src/manage.py collectstatic --noinput
+
 # 컨테이너 시작 시 PDM의 가상 환경을 활성화하고 Django 서버 실행
 CMD ["pdm", "run", "python", "src/manage.py", "runserver", "0.0.0.0:8000"]
