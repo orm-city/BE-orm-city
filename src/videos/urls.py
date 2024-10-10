@@ -10,7 +10,11 @@ router.register(r"", VideoViewSet, basename="video")
 
 urlpatterns = [
     # 진행 상황 업데이트 API
-    path("progress/", UpdateUserProgressAPIView.as_view(), name="update-progress"),
+    path(
+        "progress/<int:video_id>",
+        UpdateUserProgressAPIView.as_view(),
+        name="update-progress",
+    ),
     path("complete-upload/", CompleteUploadAPIView.as_view(), name="complete-upload"),
     # VideoViewSet의 라우트 포함
     path("", include(router.urls)),

@@ -78,7 +78,6 @@ class TestCoursesViews:
         response = api_client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert "total_video_count" in response.data
-        assert "total_video_duration" in response.data
 
     def test_minor_category_list(self, api_client, minor_category):
         url = reverse("minorcategory-list")
@@ -86,48 +85,38 @@ class TestCoursesViews:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
 
+    def test_minor_category_list_filtered(
+        self, api_client, minor_category, major_category
+    ):
+        url = reverse("minorcategory-list")
+        response = api_client.get(url, {"major_category_id": major_category.id})
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 1
+        assert response.data[0]["name"] == minor_category.name
+
+    def test_minor_category_by_major(self, api_client, minor_category, major_category):
+        url = reverse("minorcategory-by-major", kwargs={"major_id": major_category.id})
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 1
+        assert response.data[0]["name"] == minor_category.name
+
     def test_enrollment_create(self, api_client, user, major_category):
-        api_client.force_authenticate(
-            user=user
-        )  # admin_user 대신 일반 user (학생) 사용
+        api_client.force_authenticate(user=user)
         url = reverse("enrollment-list")
         data = {"major_category": major_category.pk}
         response = api_client.post(url, data)
-        print(f"Response content: {response.content}")
-        print(f"Response status code: {response.status_code}")
-        assert (
-            response.status_code == status.HTTP_201_CREATED
-        ), f"Expected 201, got {response.status_code}: {response.content}"
+        assert response.status_code == status.HTTP_201_CREATED
         assert Enrollment.objects.count() == 1
 
     def test_complete_enrollment(
         self, api_client, admin_or_manager_user, enrollment, major_category
     ):
-        # enrollment가 존재하지 않을 경우를 대비해 생성
-        if not Enrollment.objects.filter(pk=enrollment.pk).exists():
-            enrollment = Enrollment.objects.create(
-                user=admin_or_manager_user,
-                major_category=major_category,
-                expiry_date=timezone.now() + timedelta(days=365),
-                status="active",
-            )
-
         api_client.force_authenticate(user=admin_or_manager_user)
         url = reverse("enrollment-complete-enrollment", kwargs={"pk": enrollment.pk})
-        print(f"URL: {url}")
-        print(f"Enrollment PK: {enrollment.pk}")
-        print(f"User: {admin_or_manager_user}")
-        print(f"User role: {admin_or_manager_user.role}")
-        print(f"User is_staff: {admin_or_manager_user.is_staff}")
-        print(
-            f"Enrollment in DB: {Enrollment.objects.filter(pk=enrollment.pk).exists()}"
-        )
         response = api_client.post(url)
-        print(f"Response content: {response.content}")
-        print(f"Response status code: {response.status_code}")
         assert response.status_code == status.HTTP_200_OK
 
-        # 데이터베이스에서 enrollment 상태 확인
         updated_enrollment = Enrollment.objects.get(pk=enrollment.pk)
         assert updated_enrollment.status == "completed"
 

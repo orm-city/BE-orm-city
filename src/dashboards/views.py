@@ -1,8 +1,5 @@
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from core.permissions import IsAdminUser
-from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 from .models import (
     DailyVisit,
     DailyPayment,
@@ -22,10 +19,13 @@ from missions.serializers import (
     MissionSerializer,
 )  # MissionSerializer를 missions 앱에서 import
 from .services import DashboardService
+from rest_framework.permissions import AllowAny  # TODO: 변경해야 함
+from django.shortcuts import render
 
 
 class DashboardSummaryView(generics.RetrieveAPIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]  # 변경
+    # permission_classes = [IsAdminUser]
     serializer_class = DashboardSummarySerializer
 
     def get_object(self):
@@ -33,39 +33,43 @@ class DashboardSummaryView(generics.RetrieveAPIView):
 
 
 class DailyVisitViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [AllowAny]  # 변경
+    #   permission_classes = [IsAdminOrReadOnly]
     queryset = DailyVisit.objects.all().order_by("-date")
     serializer_class = DailyVisitSerializer
 
 
 class DailyPaymentViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [AllowAny]  # 변경
+    # permission_classes = [IsAdminOrReadOnly]
     queryset = DailyPayment.objects.all().order_by("-date")
     serializer_class = DailyPaymentSerializer
 
 
 class UserLearningRecordViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsOwnerOrAdmin]
+    queryset = UserLearningRecord.objects.all()
     serializer_class = UserLearningRecordSerializer
+    # permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [AllowAny]  # 변경
 
     def get_queryset(self):
-        return UserLearningRecord.objects.filter(user=self.request.user).order_by(
-            "-date"
-        )
+        return UserLearningRecord.objects.all().order_by("-date")  # 모든 레코드 반환
 
 
 class UserVideoProgressViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsOwnerOrAdmin]
+    # permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [AllowAny]  # 변경
+
     serializer_class = UserVideoProgressSerializer
+    queryset = UserVideoProgress.objects.all()
 
     def get_queryset(self):
-        return UserVideoProgress.objects.filter(
-            user_progress__user=self.request.user
-        ).order_by("-date")
+        return UserVideoProgress.objects.all().order_by("-date")  # 모든 레코드 반환
 
 
 class ExpirationNotificationViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]  # 변경
+    # permission_classes = [IsAdminUser]
     queryset = ExpirationNotification.objects.filter(is_sent=False).order_by(
         "notification_date"
     )
@@ -73,7 +77,9 @@ class ExpirationNotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class StudentDashboardView(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # 변경
+
     serializer_class = UserLearningRecordSerializer
 
     def retrieve(self, request, *args, **kwargs):
@@ -88,8 +94,6 @@ class StudentDashboardView(generics.RetrieveAPIView):
             ).data,
             "active_courses": dashboard_data["active_courses"],
             "completed_courses": dashboard_data["completed_courses"],
-            "total_study_time": dashboard_data["total_study_time"],
-            "average_daily_study_time": dashboard_data["average_daily_study_time"],
             "next_expiration": (
                 ExpirationNotificationSerializer(dashboard_data["next_expiration"]).data
                 if dashboard_data["next_expiration"]
@@ -101,3 +105,7 @@ class StudentDashboardView(generics.RetrieveAPIView):
         }
 
         return Response(data)
+
+
+def dashboard_view(request):
+    return render(request, "dashboards/index.html")

@@ -200,9 +200,14 @@ class VideoViewSet(viewsets.ModelViewSet):
 
             user_progress = UserProgress.objects.filter(user=user, video=video).first()
             last_position = user_progress.last_position if user_progress else 0
+            description = video.description
 
             return Response(
-                {"video_url": presigned_url, "last_position": last_position},
+                {
+                    "video_url": presigned_url,
+                    "last_position": last_position,
+                    "description": description,
+                },
                 status=status.HTTP_200_OK,
             )
         except Video.DoesNotExist:
