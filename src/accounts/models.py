@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
@@ -114,7 +115,9 @@ class UserActivity(models.Model):
     """
 
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name="activities"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="activities",
     )
     login_time = models.DateTimeField(auto_now_add=True, verbose_name="로그인 시간")
     logout_time = models.DateTimeField(
