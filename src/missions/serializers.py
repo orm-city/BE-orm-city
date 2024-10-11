@@ -1,50 +1,73 @@
 from rest_framework import serializers
 from .models import (
-    Mission,
-    Question,
-    MultipleChoiceOption,
-    CodeQuestion,
-    MissionSubmission,
-    MultipleChoiceSubmission,
     CodeSubmission,
+    MultipleChoiceQuestion,
+    MultipleChoiceSubmission,
+    Mission,
 )
 
-class MultipleChoiceOptionSerializer(serializers.ModelSerializer):
+
+class MultipleChoiceQuestionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MultipleChoiceOption
-        fields = ['id', 'content', 'is_correct', 'order']
+        model = MultipleChoiceQuestion
+        fields = (
+            "mission",
+            "question",
+            "option_1",
+            "option_2",
+            "option_3",
+            "option_4",
+            "option_5",
+            "correct_option",
+        )
 
-class CodeQuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CodeQuestion
-        fields = ['id', 'initial_code', 'test_cases']
-
-class QuestionSerializer(serializers.ModelSerializer):
-    options = MultipleChoiceOptionSerializer(many=True, required=False)
-    code_question = CodeQuestionSerializer(required=False)
-
-    class Meta:
-        model = Question
-        fields = ['id', 'mission', 'question_type', 'content', 'order', 'points', 'options', 'code_question']
-
-class MissionSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Mission
-        fields = ['id', 'minor_category', 'title', 'description', 'mission_type', 'order', 'passing_score', 'questions']
-
-class MissionSubmissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MissionSubmission
-        fields = ['id', 'user', 'mission', 'submitted_at', 'total_score', 'is_passed']
 
 class MultipleChoiceSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = MultipleChoiceSubmission
-        fields = ['id', 'mission_submission', 'question', 'submitted_at', 'score', 'selected_option']
+        fields = ["question", "selected_option"]
+
+    def create(self, validated_data):
+        """
+        제출된 답안을 저장하고, 정답 여부를 확인하는 메서드.
+        """
+        question = validated_data["question"]
+        selected_option = validated_data["selected_option"]
+
+        is_correct = question.correct_option == selected_option
+
+        submission = MultipleChoiceSubmission.objects.create(
+            user=self.context["request"].user,  # 제출한 사용자
+            question=question,
+            selected_option=selected_option,
+            is_correct=is_correct,
+        )
+
+        return submission
+
+
+class MissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mission
+        fields = (
+            "title",
+            "description",
+            "minor_category",
+            "mission_type",
+            "is_midterm",
+            "is_final",
+        )
+
 
 class CodeSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CodeSubmission
-        fields = ['id', 'mission_submission', 'question', 'submitted_at', 'score', 'submitted_code']
+        fields = (
+            "mission",
+            "problem_statement",
+            "example_input",
+            "example_output",
+            "time_limit",
+            "memory_limit",
+            "language",
+        )
