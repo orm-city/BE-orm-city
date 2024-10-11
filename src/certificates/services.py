@@ -195,31 +195,41 @@ def get_course_model(course_type):
         raise ValueError("유효하지 않은 과정 유형입니다.")
 
 
-######################################################################
-## permissions.py
 def get_available_certificates(user):
     # MinorCategory의 모든 동영상을 완료한 경우 발급 가능 목록
-    available_minor_certificates = MinorCategory.objects.annotate(
-        total_videos=Count("videos"),
-        completed_videos=Count(
-            "videos",
-            filter=Q(
-                videos__progresses__user=user, videos__progresses__is_completed=True
+    available_minor_certificates = (
+        MinorCategory.objects.prefetch_related(
+            "videos__progresses"  # progresses 데이터를 미리 가져옴
+        )
+        .annotate(
+            total_videos=Count("videos"),
+            completed_videos=Count(
+                "videos",
+                filter=Q(
+                    videos__progresses__user=user, videos__progresses__is_completed=True
+                ),
             ),
-        ),
-    ).filter(total_videos=F("completed_videos"))
+        )
+        .filter(total_videos=F("completed_videos"))
+    )
 
     # MajorCategory의 모든 동영상을 완료한 경우 발급 가능 목록
-    available_major_certificates = MajorCategory.objects.annotate(
-        total_videos=Count("minor_categories__videos"),
-        completed_videos=Count(
-            "minor_categories__videos",
-            filter=Q(
-                minor_categories__videos__progresses__user=user,
-                minor_categories__videos__progresses__is_completed=True,
+    available_major_certificates = (
+        MajorCategory.objects.prefetch_related(
+            "minor_categories__videos__progresses"  # 관련된 progresses 데이터를 미리 가져옴
+        )
+        .annotate(
+            total_videos=Count("minor_categories__videos"),
+            completed_videos=Count(
+                "minor_categories__videos",
+                filter=Q(
+                    minor_categories__videos__progresses__user=user,
+                    minor_categories__videos__progresses__is_completed=True,
+                ),
             ),
-        ),
-    ).filter(total_videos=F("completed_videos"))
+        )
+        .filter(total_videos=F("completed_videos"))
+    )
 
     return available_minor_certificates, available_major_certificates
 
