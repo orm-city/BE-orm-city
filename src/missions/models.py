@@ -30,7 +30,7 @@ class Mission(models.Model):
         verbose_name_plural = "미션들"
 
     def __str__(self):
-        return self.title
+        return f"{self.minor_category.name}-{self.title}"
 
 
 class MultipleChoiceQuestion(models.Model):
@@ -70,6 +70,8 @@ class CodeSubmission(models.Model):
     각 미션에 대한 문제 설명과 입출력 예시를 관리.
     """
 
+    LANGUAGE_CHOICES = [("python", "Python"), ("javascript", "JavaScript")]
+
     mission = models.ForeignKey(
         Mission,
         on_delete=models.CASCADE,
@@ -81,6 +83,9 @@ class CodeSubmission(models.Model):
     example_output = models.TextField(verbose_name="출력 예시")
     time_limit = models.IntegerField(default=1, verbose_name="시간 제한(초)")
     memory_limit = models.IntegerField(default=128, verbose_name="메모리 제한(MB)")
+    language = models.CharField(
+        max_length=20, choices=LANGUAGE_CHOICES, verbose_name="프로그래밍 언어"
+    )
 
     class Meta:
         verbose_name = "코드 제출형 문제"

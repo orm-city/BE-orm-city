@@ -1,275 +1,171 @@
-from rest_framework import mixins, generics, permissions, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework import viewsets
+
 from .models import (
     Mission,
-    Question,
-    MultipleChoiceOption,
-    CodeQuestion,
-    MissionSubmission,
-    MultipleChoiceSubmission,
+    MultipleChoiceQuestion,
     CodeSubmission,
 )
 from .serializers import (
     MissionSerializer,
-    QuestionSerializer,
-    MultipleChoiceOptionSerializer,
-    CodeQuestionSerializer,
-    MissionSubmissionSerializer,
-    MultipleChoiceSubmissionSerializer,
+    MultipleChoiceQuestionSerializer,
     CodeSubmissionSerializer,
+    MultipleChoiceSubmissionSerializer,
 )
+from .services import evaluate_code_submission
 
 
-# 미션 리스트 및 생성 뷰
-class MissionListCreateView(
-    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView
-):
+class MissionViewSet(viewsets.ModelViewSet):
+    """
+    모든 미션 목록 조회 및 특정 미션의 세부 정보 조회를 제공하는 ViewSet.
+    """
+
     queryset = Mission.objects.all()
     serializer_class = MissionSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+    http_method_names = ["get", "put", "patch"]
 
 
-# 미션 상세, 수정, 삭제 뷰
-class MissionRetrieveUpdateDestroyView(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    generics.GenericAPIView,
-):
-    queryset = Mission.objects.all()
-    serializer_class = MissionSerializer
-    permission_classes = [permissions.IsAdminUser]
+class MultipleChoiceQuestionViewSet(viewsets.ModelViewSet):
+    """
+    5지선다형 문제의 CRUD를 제공하는 ViewSet.
+    ModelViewSet을 사용하여 기본적인 CRUD 기능을 제공.
+    """
 
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-
-# 문제 리스트 및 생성 뷰
-class QuestionListCreateView(
-    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView
-):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-# 문제 상세, 수정, 삭제 뷰
-class QuestionRetrieveUpdateDestroyView(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    generics.GenericAPIView,
-):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-
-# 객관식 선택지 리스트 및 생성 뷰
-class MultipleChoiceOptionListCreateView(
-    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView
-):
-    queryset = MultipleChoiceOption.objects.all()
-    serializer_class = MultipleChoiceOptionSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-# 객관식 선택지 상세, 수정, 삭제 뷰
-class MultipleChoiceOptionRetrieveUpdateDestroyView(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    generics.GenericAPIView,
-):
-    queryset = MultipleChoiceOption.objects.all()
-    serializer_class = MultipleChoiceOptionSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-
-# 코드 문제 추가 정보 리스트 및 생성 뷰
-class CodeQuestionListCreateView(
-    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView
-):
-    queryset = CodeQuestion.objects.all()
-    serializer_class = CodeQuestionSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-# 코드 문제 추가 정보 상세, 수정, 삭제 뷰
-class CodeQuestionRetrieveUpdateDestroyView(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    generics.GenericAPIView,
-):
-    queryset = CodeQuestion.objects.all()
-    serializer_class = CodeQuestionSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-
-# 미션 제출 리스트 및 생성 뷰
-class MissionSubmissionListCreateView(
-    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView
-):
-    queryset = MissionSubmission.objects.all()
-    serializer_class = MissionSubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    queryset = MultipleChoiceQuestion.objects.all()
+    serializer_class = MultipleChoiceQuestionSerializer
 
     def get_queryset(self):
-        # 로그인한 사용자의 제출만 조회하도록 쿼리셋 필터링
-        return self.queryset.filter(user=self.request.user)
+        """
+        특정 미션에 속한 5지선다형 문제 목록을 필터링하여 반환하는 메서드.
+        URL에서 mission_id를 받아 해당 미션에 속한 문제만 반환.
+        """
+        mission_id = self.request.query_params.get("mission_id", None)
+        if mission_id:
+            try:
+                mission = Mission.objects.get(pk=mission_id)
+                return MultipleChoiceQuestion.objects.filter(mission=mission)
+            except Mission.DoesNotExist:
+                return MultipleChoiceQuestion.objects.none()
+        return super().get_queryset()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def destroy(self, request, *args, **kwargs):
+        """
+        삭제 시 커스터마이징: 삭제되었는지 확인 후 성공 메시지 반환.
+        """
+        try:
+            question = self.get_object()
+            question.delete()
+            return Response(
+                {"message": "문제가 성공적으로 삭제되었습니다."},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except MultipleChoiceQuestion.DoesNotExist:
+            return Response(
+                {"error": "해당 문제가 존재하지 않습니다."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class MultipleChoiceQuestionSubmissionAPIView(APIView):
+    """
+    5지선다형 문제에 대한 답안을 제출하고 채점하는 API 뷰.
+    """
 
     def post(self, request, *args, **kwargs):
-        # 미션 제출 시 현재 사용자를 설정
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        serializer = MultipleChoiceSubmissionSerializer(
+            data=request.data, context={"request": request}
         )
 
-
-# 미션 제출 상세 뷰
-class MissionSubmissionRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIView):
-    queryset = MissionSubmission.objects.all()
-    serializer_class = MissionSubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        submission = self.get_object()
-        if submission.user != request.user:
+        if serializer.is_valid():
+            submission = serializer.save()
             return Response(
-                {"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN
+                {"message": "제출 완료", "is_correct": submission.is_correct},
+                status=status.HTTP_201_CREATED,
             )
-        return self.retrieve(request, *args, **kwargs)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# 객관식 문제 제출 리스트 및 생성 뷰
-class MultipleChoiceSubmissionListCreateView(
-    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView
-):
-    queryset = MultipleChoiceSubmission.objects.all()
-    serializer_class = MultipleChoiceSubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class CodeSubmissionViewSet(viewsets.ModelViewSet):
+    """
+    코드 제출형 문제에 대한 CRUD ViewSet.
+    특정 미션에 속한 코드 제출형 문제들을 필터링하여 조회할 수 있음.
+    """
 
-    def get_queryset(self):
-        # 로그인한 사용자의 제출만 조회하도록 쿼리셋 필터링
-        return self.queryset.filter(mission_submission__user=self.request.user)
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-# 객관식 문제 제출 상세 뷰
-class MultipleChoiceSubmissionRetrieveView(
-    mixins.RetrieveModelMixin, generics.GenericAPIView
-):
-    queryset = MultipleChoiceSubmission.objects.all()
-    serializer_class = MultipleChoiceSubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        submission = self.get_object()
-        if submission.mission_submission.user != request.user:
-            return Response(
-                {"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN
-            )
-        return self.retrieve(request, *args, **kwargs)
-
-
-# 코드 문제 제출 리스트 및 생성 뷰
-class CodeSubmissionListCreateView(
-    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView
-):
     queryset = CodeSubmission.objects.all()
     serializer_class = CodeSubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # 로그인한 사용자의 제출만 조회하도록 쿼리셋 필터링
-        return self.queryset.filter(mission_submission__user=self.request.user)
+        mission_id = self.request.query_params.get("mission_id", None)
+        if mission_id:
+            try:
+                mission = Mission.objects.get(pk=mission_id)
+                return CodeSubmission.objects.filter(mission=mission)
+            except Mission.DoesNotExist:
+                return CodeSubmission.objects.none()
+        return super().get_queryset()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-# 코드 문제 제출 상세 뷰
-class CodeSubmissionRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIView):
-    queryset = CodeSubmission.objects.all()
-    serializer_class = CodeSubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        submission = self.get_object()
-        if submission.mission_submission.user != request.user:
+    def destroy(self, request, *args, **kwargs):
+        """
+        삭제 시 커스터마이징: 삭제되었는지 확인 후 성공 메시지 반환.
+        """
+        try:
+            submission = self.get_object()
+            submission.delete()
             return Response(
-                {"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN
+                {"message": "코드 제출형 문제가 성공적으로 삭제되었습니다."},
+                status=status.HTTP_204_NO_CONTENT,
             )
-        return self.retrieve(request, *args, **kwargs)
+        except CodeSubmission.DoesNotExist:
+            return Response(
+                {"error": "해당 코드 제출형 문제가 존재하지 않습니다."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class CodeSubmissionEvaluationAPIView(APIView):
+    """
+    제출된 코드를 채점하고 결과를 반환하는 API.
+    """
+
+    def post(self, request, code_submission_id, *args, **kwargs):
+        """
+        POST 요청으로 제출된 코드를 채점하는 메서드.
+        """
+
+        try:
+            code_submission = CodeSubmission.objects.get(pk=code_submission_id)
+        except CodeSubmission.DoesNotExist:
+            return Response(
+                {"error": "해당 코드 제출형 문제가 존재하지 않습니다."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        submitted_code = request.data.get("submitted_code")
+        if not submitted_code:
+            return Response(
+                {"error": "제출된 코드가 없습니다."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = request.user
+
+        time_limit = code_submission.time_limit
+        memory_limit = code_submission.memory_limit
+        result = evaluate_code_submission(
+            code_submission=code_submission,
+            submitted_code=submitted_code,
+            user=user,
+            time_limit=time_limit,
+            memory_limit=memory_limit,
+        )
+
+        return Response(
+            {
+                "message": "채점 완료",
+                "test_results": result["results"],
+                "is_passed": result["all_passed"],
+            },
+            status=status.HTTP_200_OK,
+        )
