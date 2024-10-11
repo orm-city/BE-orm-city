@@ -62,3 +62,15 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             "status",
         ]
         read_only_fields = ["user", "enrollment_date", "expiry_date", "status"]
+
+
+class SimpleMajorCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MajorCategory
+        fields = ["id", "name"]
+
+
+class SimpleMinorCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MinorCategory
+        fields = ["id", "name"]

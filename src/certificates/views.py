@@ -16,6 +16,10 @@ from certificates.services import (
     get_available_certificates,
     get_course_model,
 )
+from courses.serializers import (
+    SimpleMajorCategorySerializer,
+    SimpleMinorCategorySerializer,
+)
 
 
 class AvailableCertificatesAPIView(APIView):
@@ -23,15 +27,15 @@ class AvailableCertificatesAPIView(APIView):
         user = request.user
         available_minor, available_major = get_available_certificates(user)
 
-        # 필요한 데이터를 반환
+        # 새로운 간단한 시리얼라이저를 사용하여 필요한 데이터만 반환
         return Response(
             {
-                "available_minor_certificates": [
-                    minor.name for minor in available_minor
-                ],
-                "available_major_certificates": [
-                    major.name for major in available_major
-                ],
+                "available_major_certificates": SimpleMajorCategorySerializer(
+                    available_major, many=True
+                ).data,
+                "available_minor_certificates": SimpleMinorCategorySerializer(
+                    available_minor, many=True
+                ).data,
             }
         )
 
