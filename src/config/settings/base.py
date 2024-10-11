@@ -129,7 +129,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_RATES": {
-        "progress": "7/min",  # 'progress' throttle 설정 (7 요청/분)
+        "progress": "10/min",  # 'progress' throttle 설정 (10 요청/분)
     },
 }
 
