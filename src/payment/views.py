@@ -312,30 +312,28 @@ class RefundAPIView(APIView):
 
     def get_iamport_token(self):
         url = "https://api.iamport.kr/users/getToken"
-        headers = {"Content-Type": "application/json"}
-        data = {
-            "imp_key": settings.IAMPORT["IMP_REST_API_KEY"],
+        headers = {
+            "Content-Type": "application/json",
+            "charset": "UTF-8",
+            "Accept": "*/*",
+        }
+        body = {
+            "imp_key": settings.IAMPORT["IMP_KEY"],
             "imp_secret": settings.IAMPORT["IMP_SECRET"],
         }
         try:
-            response = requests.post(url, data=json.dumps(data), headers=headers)
-            response.raise_for_status()
-            result = response.json()
-            logger.info(f"아임포트 API 응답: {result}")  # 전체 응답 로깅
-            if result.get("code") == 0:
-                return result.get("response", {}).get("access_token")
-            else:
-                logger.error(f"아임포트 토큰 발급 실패: {result}")
-                return None
-        except requests.RequestException as e:
-            # 기존 로깅 유지
-            logger.error(
-                f"아임포트 인증 실패. 사용된 IMP_KEY: {settings.IAMPORT['IMP_KEY']}"
+            response = requests.post(
+                url,
+                headers=headers,
+                data=json.dumps(body, ensure_ascii=False, indent="\t"),
             )
-            logger.error(
-                f"전체 응답 내용: {e.response.text if hasattr(e.response, 'text') else 'No response text'}"
-            )
-        return None
+            if response.status_code == 200:
+                json_object = json.loads(response.text)
+                return json_object["response"]["access_token"]
+            return None
+        except requests.RequestException:
+            logging.error("아임포트 토큰 획득 중 오류 발생")
+            return None
 
     def post(self, request, payment_id):
         try:
@@ -352,14 +350,14 @@ class RefundAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            access_token = self.get_iamport_token()
-            if not access_token:
-                return Response(
-                    {"error": "결제 시스템 연결에 실패했습니다."},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
+        access_token = self.get_iamport_token()
+        if not access_token:
+            return Response(
+                {"error": "결제 시스템 연결에 실패했습니다."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
+        try:
             refund_result = self.request_refund(
                 access_token, payment.imp_uid, payment.total_amount
             )
@@ -375,17 +373,15 @@ class RefundAPIView(APIView):
             else:
                 payment.refund_status = "FAILED"
                 payment.save()
-                error_message = refund_result.get(
-                    "message", "환불 처리에 실패했습니다."
-                )
-                logger.error(f"Refund failed: {error_message}")
+                logging.error("Refund failed")
                 return Response(
-                    {"error": error_message}, status=status.HTTP_400_BAD_REQUEST
+                    {"error": "환불 처리에 실패했습니다."},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-        except Exception as e:
+        except Exception:
             payment.refund_status = "FAILED"
             payment.save()
-            logger.exception(f"Exception during refund process: {str(e)}")
+            logging.exception("Exception during refund process")
             return Response(
                 {"error": "환불 처리 중 오류가 발생했습니다."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
