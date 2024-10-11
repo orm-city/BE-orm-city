@@ -1,7 +1,7 @@
+from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from accounts.models import CustomUser
 from .services import ProgressService
 
 
@@ -25,6 +25,9 @@ class MajorCategory(models.Model):
 
     @property
     def progress_percent(self):
+        """
+        대분류의 학습 진행률을 계산하여 반환합니다.
+        """
         return ProgressService.calculate_major_category_progress(self)
 
 
@@ -56,17 +59,26 @@ class MinorCategory(models.Model):
 
     @property
     def progress_percent(self):
+        """
+        소분류의 학습 진행률을 계산하여 반환합니다.
+        """
         return ProgressService.calculate_category_progress(self)
 
 
 class Enrollment(models.Model):
+    """
+    수강 신청 모델
+
+    사용자가 특정 대분류 과정을 수강할 때의 정보를 나타냅니다.
+    """
+
     STATUS_CHOICES = [
         ("active", "진행중"),
         ("completed", "완료"),
         ("expired", "만료"),
     ]
     user = models.ForeignKey(
-        CustomUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="enrollments",
         verbose_name="사용자",
@@ -87,6 +99,12 @@ class Enrollment(models.Model):
     )
 
     def clean(self):
+        """
+        수강 신청의 유효성을 검증합니다.
+        - 만료일은 현재 시점 이후여야 하며,
+        - 수강 신청일보다 만료일이 뒤에 있어야 하고,
+        - 수강 기간은 최대 2년을 넘지 않아야 합니다.
+        """
         now = timezone.now()
 
         # enrollment_date가 설정되지 않은 경우 (새로운 인스턴스 생성 시)
@@ -119,6 +137,9 @@ class Enrollment(models.Model):
             raise ValidationError("수강 기간은 2년을 초과할 수 없습니다.")
 
     def save(self, *args, **kwargs):
+        """
+        수강 신청을 저장하기 전에 데이터 유효성을 검사합니다.
+        """
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -128,4 +149,4 @@ class Enrollment(models.Model):
     class Meta:
         verbose_name = "수강 신청"
         verbose_name_plural = "수강 신청 목록"
-        unique_together = ["user", "major_category"]
+        unique_together = ["user", "major_category"]  # 사용자와 대분류는 중복될 수 없음

@@ -1,257 +1,192 @@
 from django.db import models
 from django.conf import settings
 from courses.models import MinorCategory
-from itertools import chain
 
 
 class Mission(models.Model):
     """
-    미션 모델
-
-    각 과목(소분류)에 대한 중간 및 기말 미션을 나타냅니다.
+    각 미션의 기본 정보를 저장하는 모델.
+    중간 및 기말 미션 유형과 관련된 정보를 관리.
     """
 
-    MISSION_TYPES = [
-        ("MID", "중간 미션"),
-        ("FINAL", "기말 미션"),
-    ]
-
+    title = models.CharField(max_length=255, verbose_name="제목")
+    description = models.TextField(verbose_name="설명")
     minor_category = models.ForeignKey(
         MinorCategory,
         on_delete=models.CASCADE,
         related_name="missions",
-        verbose_name="소분류",
+        verbose_name="소분류 카테고리",
     )
-    title = models.CharField(max_length=100, verbose_name="미션 제목")
-    description = models.TextField(verbose_name="미션 설명")
     mission_type = models.CharField(
-        max_length=5, choices=MISSION_TYPES, verbose_name="미션 유형"
+        max_length=50,
+        choices=[("multiple_choice", "5지선다형"), ("code_submission", "코드 제출형")],
+        verbose_name="미션 유형",
     )
-    order = models.PositiveIntegerField(verbose_name="미션 순서")
-    passing_score = models.PositiveIntegerField(default=60, verbose_name="합격 점수")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="생성일")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="수정일")
+    is_midterm = models.BooleanField(default=False, verbose_name="중간 미션 여부")
+    is_final = models.BooleanField(default=False, verbose_name="기말 미션 여부")
 
     class Meta:
-        ordering = ["order"]
         verbose_name = "미션"
-        verbose_name_plural = "미션 목록"
-        unique_together = ["minor_category", "order"]
+        verbose_name_plural = "미션들"
 
     def __str__(self):
-        return f"{self.minor_category.name} - {self.get_mission_type_display()} - {self.title}"
+        return f"{self.minor_category.name}-{self.title}"
 
 
-class Question(models.Model):
+class MultipleChoiceQuestion(models.Model):
     """
-    문제 모델
-
-    각 미션에 포함된 개별 문제를 나타냅니다.
+    5지선다형 문제를 정의하는 모델.
+    각 미션에 대한 문제와 선택지를 관리.
     """
-
-    QUESTION_TYPES = [
-        ("MCQ", "5지선다형"),
-        ("CODE", "코드 제출형"),
-    ]
 
     mission = models.ForeignKey(
         Mission,
         on_delete=models.CASCADE,
-        related_name="questions",
+        related_name="multiple_choice_questions",
         verbose_name="미션",
     )
-    question_type = models.CharField(
-        max_length=4, choices=QUESTION_TYPES, verbose_name="문제 유형"
+    question = models.TextField(verbose_name="문제")
+    option_1 = models.CharField(max_length=255, verbose_name="선택지 1")
+    option_2 = models.CharField(max_length=255, verbose_name="선택지 2")
+    option_3 = models.CharField(max_length=255, verbose_name="선택지 3")
+    option_4 = models.CharField(max_length=255, verbose_name="선택지 4")
+    option_5 = models.CharField(max_length=255, verbose_name="선택지 5")
+    correct_option = models.IntegerField(
+        choices=[(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")],
+        verbose_name="정답 선택지",
     )
-    content = models.TextField(verbose_name="문제 내용")
-    order = models.PositiveIntegerField(verbose_name="문제 순서")
-    points = models.PositiveIntegerField(default=1, verbose_name="배점")
 
     class Meta:
-        ordering = ["order"]
-        verbose_name = "문제"
-        verbose_name_plural = "문제 목록"
-        unique_together = ["mission", "order"]
+        verbose_name = "5지선다형 문제"
+        verbose_name_plural = "5지선다형 문제들"
 
     def __str__(self):
-        return f"{self.mission.title} - 문제 {self.order}"
+        return self.question
 
 
-class MultipleChoiceOption(models.Model):
+class CodeSubmission(models.Model):
     """
-    5지선다형 문제의 선택지 모델
+    코드 제출형 문제를 정의하는 모델.
+    각 미션에 대한 문제 설명과 입출력 예시를 관리.
     """
 
-    question = models.ForeignKey(
-        Question,
+    LANGUAGE_CHOICES = [("python", "Python"), ("javascript", "JavaScript")]
+
+    mission = models.ForeignKey(
+        Mission,
         on_delete=models.CASCADE,
-        related_name="options",
-        verbose_name="문제",
+        related_name="code_submissions",
+        verbose_name="미션",
     )
-    content = models.CharField(max_length=200, verbose_name="선택지 내용")
-    is_correct = models.BooleanField(default=False, verbose_name="정답 여부")
-    order = models.PositiveIntegerField(verbose_name="선택지 순서")
+    problem_statement = models.TextField(verbose_name="문제 설명")
+    example_input = models.TextField(verbose_name="입력 예시")
+    example_output = models.TextField(verbose_name="출력 예시")
+    time_limit = models.IntegerField(default=1, verbose_name="시간 제한(초)")
+    memory_limit = models.IntegerField(default=128, verbose_name="메모리 제한(MB)")
+    language = models.CharField(
+        max_length=20, choices=LANGUAGE_CHOICES, verbose_name="프로그래밍 언어"
+    )
 
     class Meta:
-        ordering = ["order"]
-        verbose_name = "선택지"
-        verbose_name_plural = "선택지 목록"
-        unique_together = ["question", "order"]
+        verbose_name = "코드 제출형 문제"
+        verbose_name_plural = "코드 제출형 문제들"
 
     def __str__(self):
-        return f"{self.question} - 선택지: {self.content[:20]}"
+        return self.problem_statement
 
 
-class CodeQuestion(models.Model):
+class TestCase(models.Model):
     """
-    코드 제출형 문제의 추가 정보 모델
+    코드 제출형 문제에 대한 테스트 케이스를 관리하는 모델.
+    입력 값과 예상 출력 값을 저장.
     """
 
-    question = models.OneToOneField(
-        Question,
+    code_submission = models.ForeignKey(
+        CodeSubmission,
         on_delete=models.CASCADE,
-        related_name="code_question",
-        verbose_name="문제",
+        related_name="test_cases",
+        verbose_name="코드 제출 문제",
     )
-    initial_code = models.TextField(blank=True, verbose_name="초기 코드")
-    test_cases = models.JSONField(verbose_name="테스트 케이스")
+    input_data = models.TextField(verbose_name="입력 데이터")
+    expected_output = models.TextField(verbose_name="예상 출력")
+    is_sample = models.BooleanField(default=False, verbose_name="샘플 테스트 여부")
 
     class Meta:
-        verbose_name = "코드 제출 문제"
-        verbose_name_plural = "코드 제출 문제 목록"
+        verbose_name = "테스트 케이스"
+        verbose_name_plural = "테스트 케이스들"
 
     def __str__(self):
-        return f"코드 문제: {self.question}"
+        return f"입력: {self.input_data} / 예상 출력: {self.expected_output}"
 
 
-class MissionSubmission(models.Model):
+class MultipleChoiceSubmission(models.Model):
     """
-    미션 제출 모델
-
-    사용자의 미션 제출 정보를 나타냅니다.
+    5지선다형 문제에 대한 학생의 제출 기록을 관리하는 모델.
+    제출된 답안과 정답 여부를 저장.
     """
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="mission_submissions",
+        related_name="multiple_choice_submissions",
         verbose_name="사용자",
     )
-    mission = models.ForeignKey(
-        Mission,
+    question = models.ForeignKey(
+        MultipleChoiceQuestion,
         on_delete=models.CASCADE,
         related_name="submissions",
-        verbose_name="미션",
+        verbose_name="5지선다형 문제",
     )
+    selected_option = models.IntegerField(
+        choices=[(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")],
+        verbose_name="선택한 답안",
+    )
+    is_correct = models.BooleanField(verbose_name="정답 여부")
     submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="제출 시간")
-    total_score = models.FloatField(default=0, verbose_name="총점")
+
+    class Meta:
+        verbose_name = "5지선다형 제출 기록"
+        verbose_name_plural = "5지선다형 제출 기록들"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.question.question}"
+
+
+class CodeSubmissionRecord(models.Model):
+    """
+    코드 제출형 문제에 대한 학생의 제출 기록을 관리하는 모델.
+    제출된 코드와 테스트 결과를 저장.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="code_submission_records",
+        verbose_name="사용자",
+    )
+    code_submission = models.ForeignKey(
+        CodeSubmission,
+        on_delete=models.CASCADE,
+        related_name="submission_records",
+        verbose_name="코드 제출 문제",
+    )
+    submitted_code = models.TextField(verbose_name="제출된 코드")
+    submission_time = models.DateTimeField(auto_now_add=True, verbose_name="제출 시간")
+    test_results = models.TextField(blank=True, verbose_name="테스트 결과")
+    result_summary = models.CharField(
+        max_length=255, blank=True, verbose_name="결과 요약"
+    )
     is_passed = models.BooleanField(default=False, verbose_name="통과 여부")
+    execution_time = models.FloatField(
+        null=True, blank=True, verbose_name="실행 시간(초)"
+    )
+    memory_usage = models.IntegerField(
+        null=True, blank=True, verbose_name="메모리 사용량(KB)"
+    )
 
     class Meta:
-        verbose_name = "미션 제출"
-        verbose_name_plural = "미션 제출 목록"
-        unique_together = ["user", "mission"]
+        verbose_name = "코드 제출 기록"
+        verbose_name_plural = "코드 제출 기록들"
 
     def __str__(self):
-        return f"{self.user.username}의 {self.mission.title} 제출"
-
-    def calculate_total_score(self):
-        """
-        미션 제출의 총점을 계산하고 통과 여부를 업데이트합니다.
-        """
-        # 모든 문제 제출의 점수를 합산
-        question_submissions = chain(
-            self.code_submissions.all(), self.multiple_choice_submissions.all()
-        )
-        total_score = sum(
-            qs.score for qs in question_submissions if qs.score is not None
-        )
-        self.total_score = total_score
-        self.is_passed = self.total_score >= self.mission.passing_score
-        self.save()
-
-
-class QuestionSubmission(models.Model):
-    """
-    개별 문제 제출 모델 (추상 모델)
-
-    사용자의 개별 문제에 대한 답변을 나타냅니다.
-    """
-
-    mission_submission = models.ForeignKey(
-        MissionSubmission,
-        on_delete=models.CASCADE,
-        verbose_name="미션 제출",
-    )
-    question = models.ForeignKey(
-        Question, on_delete=models.CASCADE, verbose_name="문제"
-    )
-    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="제출 시간")
-    score = models.FloatField(null=True, blank=True, verbose_name="점수")
-
-    class Meta:
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.mission_submission.calculate_total_score()
-
-
-class MultipleChoiceSubmission(QuestionSubmission):
-    """
-    5지선다형 문제 제출 모델
-    """
-
-    mission_submission = models.ForeignKey(
-        MissionSubmission,
-        on_delete=models.CASCADE,
-        related_name="multiple_choice_submissions",
-        verbose_name="미션 제출",
-    )
-    selected_option = models.ForeignKey(
-        MultipleChoiceOption, on_delete=models.CASCADE, verbose_name="선택한 답변"
-    )
-
-    class Meta:
-        verbose_name = "객관식 문제 제출"
-        verbose_name_plural = "객관식 문제 제출 목록"
-        unique_together = ["mission_submission", "question"]
-
-    def __str__(self):
-        return f"{self.mission_submission.user.username}의 {self.question} 답변"
-
-    def save(self, *args, **kwargs):
-        # 채점 로직: 정답 여부에 따라 점수 부여
-        if self.selected_option.is_correct:
-            self.score = self.question.points
-        else:
-            self.score = 0
-        super().save(*args, **kwargs)
-
-
-class CodeSubmission(QuestionSubmission):
-    """
-    코드 제출형 문제 제출 모델
-    """
-
-    mission_submission = models.ForeignKey(
-        MissionSubmission,
-        on_delete=models.CASCADE,
-        related_name="code_submissions",
-        verbose_name="미션 제출",
-    )
-    submitted_code = models.TextField(verbose_name="제출한 코드")
-
-    class Meta:
-        verbose_name = "코드 문제 제출"
-        verbose_name_plural = "코드 문제 제출 목록"
-        unique_together = ["mission_submission", "question"]
-
-    def __str__(self):
-        return f"{self.mission_submission.user.username}의 {self.question} 코드 제출"
-
-    def save(self, *args, **kwargs):
-        # 코드 채점 로직
-        test_cases = self.question.code_question.test_cases
-        self.score = evaluate_code(self.submitted_code, test_cases)
-        super().save(*args, **kwargs)
+        return f"{self.user.username} - {self.code_submission.problem_statement}"

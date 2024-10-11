@@ -7,6 +7,8 @@ from django.utils import timezone
 class Payment(models.Model):
     """
     결제 모델 정의
+
+    이 모델은 사용자의 결제 내역을 저장합니다. 결제 상태, 환불 정보, 관련된 수강 등록 정보 등을 포함합니다.
     """
 
     user = models.ForeignKey(
@@ -72,14 +74,23 @@ class Payment(models.Model):
     DEFAULT_REFUND_PERIOD = timezone.timedelta(days=7)
 
     def save(self, *args, **kwargs):
+        """
+        결제를 저장할 때 환불 가능 기한을 설정합니다.
+        """
         if not self.refund_deadline and self.payment_date:
             self.refund_deadline = self.payment_date + self.DEFAULT_REFUND_PERIOD
         super().save(*args, **kwargs)
 
     def is_refundable(self):
+        """
+        환불 가능 여부를 반환합니다. 현재 시간이 환불 가능 기한 내인지 확인합니다.
+        """
         return timezone.now() <= self.refund_deadline
 
     def create_enrollment(self):
+        """
+        결제가 완료되면 수강 등록을 생성합니다.
+        """
         if self.payment_status == "paid" and not self.enrollment:
             try:
                 enrollment, created = Enrollment.objects.get_or_create(
