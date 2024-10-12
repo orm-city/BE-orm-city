@@ -29,7 +29,7 @@ class Payment(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="payment",
+        related_name="payments",
         verbose_name="등록 정보",
     )
     total_amount = models.PositiveIntegerField(verbose_name="결제 금액")

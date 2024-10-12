@@ -1,67 +1,64 @@
-# missions/admin.py
-
 from django.contrib import admin
 from .models import (
     Mission,
-    Question,
-    MultipleChoiceOption,
-    CodeQuestion,
-    MissionSubmission,
-    MultipleChoiceSubmission,
+    MultipleChoiceQuestion,
     CodeSubmission,
+    TestCase,
+    MultipleChoiceSubmission,
+    CodeSubmissionRecord,
 )
 
-# 인라인 모델 설정
-class MultipleChoiceOptionInline(admin.TabularInline):
-    model = MultipleChoiceOption
-    extra = 1
 
-class CodeQuestionInline(admin.StackedInline):
-    model = CodeQuestion
-    extra = 0
-
-# 문제 관리자 설정
-@admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('content', 'mission', 'question_type', 'order', 'points')
-    list_filter = ('mission', 'question_type')
-    search_fields = ('content',)
-    inlines = []
-
-    def get_inlines(self, request, obj=None):
-        if obj:
-            if obj.question_type == 'MCQ':
-                return [MultipleChoiceOptionInline]
-            elif obj.question_type == 'CODE':
-                return [CodeQuestionInline]
-        return []
-
-# 미션 관리자 설정
 @admin.register(Mission)
 class MissionAdmin(admin.ModelAdmin):
-    list_display = ('title', 'minor_category', 'mission_type', 'order', 'passing_score')
-    list_filter = ('minor_category', 'mission_type')
-    search_fields = ('title', 'description')
+    list_display = ("title", "minor_category", "mission_type", "is_midterm", "is_final")
+    search_fields = ("title", "description", "minor_category__name")
+    list_filter = ("mission_type", "is_midterm", "is_final", "minor_category")
 
-# 미션 제출 관리자 설정
-@admin.register(MissionSubmission)
-class MissionSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'mission', 'submitted_at', 'total_score', 'is_passed')
-    list_filter = ('is_passed', 'submitted_at')
-    search_fields = ('user__username', 'mission__title')
 
-# 객관식 문제 제출 관리자 설정
-@admin.register(MultipleChoiceSubmission)
-class MultipleChoiceSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('mission_submission', 'question', 'selected_option', 'score', 'submitted_at')
-    search_fields = ('mission_submission__user__username', 'question__content')
+@admin.register(MultipleChoiceQuestion)
+class MultipleChoiceQuestionAdmin(admin.ModelAdmin):
+    list_display = ("mission", "question", "correct_option")
+    search_fields = ("question",)
+    list_filter = ("mission__title",)
 
-# 코드 문제 제출 관리자 설정
+
 @admin.register(CodeSubmission)
 class CodeSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('mission_submission', 'question', 'score', 'submitted_at')
-    search_fields = ('mission_submission__user__username', 'question__content')
+    list_display = (
+        "mission",
+        "problem_statement",
+        "time_limit",
+        "memory_limit",
+        "language",
+    )
+    search_fields = ("problem_statement",)
+    list_filter = ("mission__title", "language")
 
-# 모델 등록
-admin.site.register(MultipleChoiceOption)
-admin.site.register(CodeQuestion)
+
+@admin.register(TestCase)
+class TestCaseAdmin(admin.ModelAdmin):
+    list_display = ("code_submission", "input_data", "expected_output", "is_sample")
+    search_fields = ("input_data", "expected_output")
+    list_filter = ("code_submission__problem_statement", "is_sample")
+
+
+@admin.register(MultipleChoiceSubmission)
+class MultipleChoiceSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("user", "question", "selected_option", "is_correct", "submitted_at")
+    search_fields = ("user__username", "question__question")
+    list_filter = ("is_correct", "submitted_at")
+
+
+@admin.register(CodeSubmissionRecord)
+class CodeSubmissionRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "code_submission",
+        "is_passed",
+        "submission_time",
+        "execution_time",
+        "memory_usage",
+    )
+    search_fields = ("user__username", "code_submission__problem_statement")
+    list_filter = ("is_passed", "submission_time")
