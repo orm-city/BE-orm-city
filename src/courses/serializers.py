@@ -31,6 +31,7 @@ class MinorCategorySerializer(serializers.ModelSerializer):
             "content",
             "order",
             "videos",
+            "major_category",
         )
 
     def get_videos(self, obj):
