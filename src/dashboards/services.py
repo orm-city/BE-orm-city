@@ -1,6 +1,7 @@
+from datetime import timedelta
+
 from django.db.models import Sum
 from django.utils import timezone
-from datetime import timedelta
 
 from accounts.models import CustomUser
 from courses.models import MajorCategory, Enrollment
@@ -12,6 +13,7 @@ from .models import (
     DailyVisit,
 )
 from missions.models import MissionSubmission
+
 
 
 class DashboardService:

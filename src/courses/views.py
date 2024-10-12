@@ -1,16 +1,16 @@
+from django.db.models import Sum, Count
+from django.utils import timezone
+
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Sum, Count
-from django.utils import timezone
+
 from dateutil.relativedelta import relativedelta
+from drf_spectacular.utils import extend_schema_view, extend_schema
+
 from .models import MajorCategory, MinorCategory, Enrollment
-from .serializers import (
-    MajorCategorySerializer,
-    MinorCategorySerializer,
-    EnrollmentSerializer,
-)
+from .serializers import MajorCategorySerializer, MinorCategorySerializer, EnrollmentSerializer
 from videos.models import Video
 from .permissions import (
     IsAdminOrReadOnly,
@@ -19,7 +19,7 @@ from .permissions import (
     IsOwnerOrAdmin,
     IsAdminOrManagerOnly,
 )
-from drf_spectacular.utils import extend_schema_view, extend_schema
+
 
 
 # MajorCategoryViewSet with @extend_schema_view

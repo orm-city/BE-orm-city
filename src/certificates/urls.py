@@ -1,10 +1,12 @@
 from django.urls import path
+
 from .views import (
     CertificatePreviewAPIView,
     CertificateDownloadAPIView,
     AvailableCertificatesAPIView,
     VerifyCertificateAPIView,
 )
+
 
 urlpatterns = [
     path(

@@ -1,4 +1,5 @@
 import pytest
+
 from certificates.services import encrypt_certificate_data, decrypt_certificate_data
 
 

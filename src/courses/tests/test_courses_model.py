@@ -1,7 +1,8 @@
 import pytest
-from django.utils import timezone
 from datetime import timedelta
+
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from accounts.models import CustomUser
 from courses.models import MajorCategory, MinorCategory, Enrollment

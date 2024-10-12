@@ -1,5 +1,7 @@
-from .base import *  # noqa
 import os
+
+from .base import *  # noqa
+
 
 DEBUG = True
 
