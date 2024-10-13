@@ -3,11 +3,15 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    AllCodeSubmissionListAPIView,
+    AllSubmissionListAPIView,
     MissionViewSet,
     MultipleChoiceQuestionViewSet,
     MultipleChoiceQuestionSubmissionAPIView,
     CodeSubmissionViewSet,
     CodeSubmissionEvaluationAPIView,
+    UserCodeSubmissionListAPIView,
+    UserSubmissionListAPIView,
 )
 
 
@@ -52,4 +56,24 @@ urlpatterns = [
         name="code-submission-evaluate",
     ),
     path("", include(router.urls)),
+    path(
+        "submissions/user/mcqs/",
+        UserSubmissionListAPIView.as_view(),
+        name="user-submissions",
+    ),
+    path(
+        "submissions/all/mcqs/",
+        AllSubmissionListAPIView.as_view(),
+        name="all-submissions",
+    ),
+    path(
+        "submissions/user/cs/",
+        UserCodeSubmissionListAPIView.as_view(),
+        name="user-code-submissions",
+    ),
+    path(
+        "submissions/all/cs/",
+        AllCodeSubmissionListAPIView.as_view(),
+        name="all-code-submissions",
+    ),
 ]
