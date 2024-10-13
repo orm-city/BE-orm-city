@@ -1,6 +1,8 @@
 from django.urls import path, include
+
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
+
 from .views import (
     UserManagementViewSet,
     RegisterView,
@@ -11,6 +13,7 @@ from .views import (
     DeleteAccountView,
     ManagerCreationView,
     ChangeUserRoleView,
+    RoleCheckView,
 )
 
 
@@ -30,4 +33,5 @@ urlpatterns = [
         "change-role/<int:user_id>/", ChangeUserRoleView.as_view(), name="change_role"
     ),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("check-role/", RoleCheckView.as_view(), name="check-role"),
 ]

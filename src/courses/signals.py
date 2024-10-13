@@ -1,8 +1,8 @@
-# courses/signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from missions.models import Mission  # Mission 모델은 mission 앱에 속해 있음
-from .models import MinorCategory  # MinorCategory는 courses 앱에 속해 있음
+
+from missions.models import Mission  
+from .models import MinorCategory  
 
 
 @receiver(post_save, sender=MinorCategory)

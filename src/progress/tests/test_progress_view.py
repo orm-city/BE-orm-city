@@ -1,12 +1,15 @@
 import pytest
+
+from datetime import timedelta
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+
 from progress.models import UserProgress
 from courses.models import Enrollment, MinorCategory, MajorCategory
 from videos.models import Video
 
-from datetime import timedelta
 
 
 @pytest.mark.django_db

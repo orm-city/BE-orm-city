@@ -1,6 +1,9 @@
 from django.urls import path, include
+
 from rest_framework.routers import DefaultRouter
+
 from .views import MajorCategoryViewSet, MinorCategoryViewSet, EnrollmentViewSet
+
 
 router = DefaultRouter()
 router.register(r"major-categories", MajorCategoryViewSet, basename="majorcategory")

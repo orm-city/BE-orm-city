@@ -1,5 +1,6 @@
 from rest_framework import permissions
-from .models import Enrollment
+
+from courses.models import Enrollment
 
 
 class IsActiveOrCompletedEnrollmentOrManagerAdmin(permissions.BasePermission):
@@ -54,5 +55,4 @@ class IsManagerOrAdmin(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        # 사용자의 role이 'manager' 또는 'admin'일 경우 허가
         return request.user.role in ["manager", "admin"]

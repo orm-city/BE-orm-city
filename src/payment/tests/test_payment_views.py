@@ -1,16 +1,20 @@
 import pytest
+from datetime import timedelta
+
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from datetime import timedelta
-from rest_framework.test import APIClient
+
 from rest_framework import status
+from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from payment.models import Payment
-from courses.models import MajorCategory
+
 from accounts.models import CustomUser
+from courses.models import MajorCategory
+from payment.models import Payment
 from payment.serializers import PaymentDetailSerializer
+
 from unittest.mock import patch
 
 

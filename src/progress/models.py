@@ -36,7 +36,7 @@ class UserProgress(models.Model):
     last_accessed = models.DateTimeField(
         default=timezone.now, verbose_name="마지막 접속 시간"
     )
-    progress_percent = models.IntegerField(
+    progress_percent = models.FloatField(
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         verbose_name="수강 진행률(%)",

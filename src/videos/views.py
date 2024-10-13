@@ -2,6 +2,7 @@ from datetime import timedelta
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 
 from rest_framework import status, viewsets
@@ -144,6 +145,7 @@ class VideoViewSet(viewsets.ModelViewSet):
             return [IsEnrolledOrAdminOrManager()]
         return super().get_permissions()
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         try:
             upload_id, filename = initiate_multipart_upload()
@@ -170,6 +172,7 @@ class VideoViewSet(viewsets.ModelViewSet):
                 description=request.data.get(
                     "description", "Auto-generated description"
                 ),
+                order=request.data.get("order", 0),
                 duration=duration_timedelta,
                 video_url=f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{filename}",
                 minor_category=minor_category,
@@ -220,9 +223,18 @@ class VideoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         video = self.get_object()
         s3_client = get_s3_client()
+
+        # 비디오 필드 업데이트 처리
+
+        serializer = self.get_serializer(video, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()  # 이름, 설명 등 기본 필드 업데이트
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         # 기존 S3 객체 삭제
         try:
@@ -411,9 +423,6 @@ class CompleteUploadAPIView(APIView):
                 {"detail": f"Upload completion failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-throttle_scope = "progress"
 
 
 @extend_schema(

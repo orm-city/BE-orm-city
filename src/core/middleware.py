@@ -1,7 +1,9 @@
+import json
+
 from django.utils import timezone
 from django.db.models import F
+
 from dashboards.models import DailyVisit
-import json
 
 
 class VisitTrackerMiddleware:

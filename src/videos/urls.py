@@ -1,6 +1,9 @@
 from django.urls import path, include
+
 from rest_framework.routers import DefaultRouter
+
 from .views import VideoViewSet, UpdateUserProgressAPIView, CompleteUploadAPIView
+
 
 app_name = "videos"
 

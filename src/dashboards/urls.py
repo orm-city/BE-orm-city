@@ -1,5 +1,7 @@
 from django.urls import path, include
+
 from rest_framework.routers import DefaultRouter
+
 from .views import (
     DashboardSummaryView,
     DailyVisitViewSet,
@@ -10,6 +12,7 @@ from .views import (
     StudentDashboardView,
     dashboard_view,
 )
+
 
 router = DefaultRouter()
 router.register(r"daily-visits", DailyVisitViewSet)
