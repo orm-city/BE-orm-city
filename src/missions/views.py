@@ -26,6 +26,7 @@ from .services import evaluate_code_submission
 
 class MissionViewSet(viewsets.ModelViewSet):
     """
+
     Mission 관련 모든 목록 조회 및 특정 Mission의 세부 정보 조회를 제공하는 ViewSet.
 
     이 ViewSet은 Mission 객체에 대한 list, retrieve, update, partial_update 등의 작업을 처리합니다.
@@ -273,15 +274,6 @@ class MultipleChoiceQuestionSubmissionAPIView(APIView):
 
 
 class CodeSubmissionViewSet(viewsets.ModelViewSet):
-    """
-    코드 제출형 문제에 대한 CRUD 기능을 제공하는 ViewSet.
-
-    모든 미션 목록 조회 및 특정 미션의 세부 정보 조회를 제공하는 ViewSet.
-    """
-
-    queryset = Mission.objects.all()
-    serializer_class = MissionSerializer
-
     """
     사용자는 특정 미션에 속한 코드 제출형 문제들을 필터링하여 조회할 수 있으며,
     문제의 생성, 수정, 삭제를 지원합니다.
