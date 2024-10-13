@@ -448,3 +448,25 @@ class ChangeUserRoleView(APIView):
             return Response(
                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+class RoleCheckView(APIView):
+    """
+    현재 로그인한 사용자의 역할을 확인하는 뷰입니다.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: {"type": "object", "properties": {"role": {"type": "string"}}}},
+        description="현재 로그인한 사용자의 역할을 반환합니다.",
+    )
+    def get(self, request):
+        """
+        현재 로그인한 사용자의 역할을 반환합니다.
+
+        Returns:
+            Response: 사용자의 역할 정보.
+        """
+        user = request.user
+        return Response({"role": user.role})

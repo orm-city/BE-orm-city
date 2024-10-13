@@ -248,3 +248,62 @@ class TestChangeUserRoleView:
         # THEN
         assert response.status_code == status.HTTP_200_OK
         assert response.data["role"] == "manager"
+
+
+@pytest.mark.django_db
+class TestRoleCheckView:
+    def test_check_role_as_student(self, api_client, create_user):
+        # GIVEN
+        user = create_user
+        api_client.force_authenticate(user=user)
+
+        # WHEN
+        response = api_client.get(reverse("check-role"))
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["role"] == "student"
+
+    def test_check_role_as_manager(self, api_client):
+        # GIVEN
+        manager = CustomUser.objects.create_user(
+            email="manager@example.com",
+            username="manager",
+            password="managerpass",
+            role="manager",
+        )
+        api_client.force_authenticate(user=manager)
+
+        # WHEN
+        response = api_client.get(reverse("check-role"))
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["role"] == "manager"
+
+    def test_check_role_as_admin(self, api_client):
+        # GIVEN
+        admin = CustomUser.objects.create_superuser(
+            email="admin@example.com",
+            username="admin",
+            password="adminpass",
+            role="admin",
+        )
+        api_client.force_authenticate(user=admin)
+
+        # WHEN
+        response = api_client.get(reverse("check-role"))
+
+        # THEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["role"] == "admin"
+
+    def test_check_role_unauthenticated(self, api_client):
+        # GIVEN
+        # No authentication
+
+        # WHEN
+        response = api_client.get(reverse("check-role"))
+
+        # THEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

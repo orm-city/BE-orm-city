@@ -1,8 +1,9 @@
-import environ
+from environ import Env
 from pathlib import Path
 from datetime import timedelta
 
-env = environ.Env()
+env = Env()
+env.read_env()  # .env 파일을 읽어옵니다.
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
