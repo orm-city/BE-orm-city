@@ -1,10 +1,13 @@
 import os
 from base64 import b64encode, b64decode
-import qrcode
 from io import BytesIO
+
+import qrcode
 
 from django.conf import settings
 from django.db.models import Count, Q, F
+from django.contrib.contenttypes.models import ContentType
+
 from PIL import Image, ImageDraw, ImageFont
 from Crypto.Cipher import AES
 

@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.db import models
-from courses.models import MajorCategory, Enrollment
 from django.utils import timezone
+
+from courses.models import MajorCategory, Enrollment
 
 
 class Payment(models.Model):
@@ -29,7 +30,7 @@ class Payment(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="payment",
+        related_name="payments",
         verbose_name="등록 정보",
     )
     total_amount = models.PositiveIntegerField(verbose_name="결제 금액")

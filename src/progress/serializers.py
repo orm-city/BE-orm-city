@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import UserProgress
 from courses.models import MajorCategory
 

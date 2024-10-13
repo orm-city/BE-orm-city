@@ -1,11 +1,14 @@
 import pytest
+from datetime import timedelta
+
+from django.utils import timezone
 from django.urls import reverse
+
 from rest_framework import status
 from rest_framework.test import APIClient
-from django.utils import timezone
-from datetime import timedelta
-from courses.models import MajorCategory, MinorCategory, Enrollment
+
 from accounts.models import CustomUser
+from courses.models import MajorCategory, MinorCategory, Enrollment
 
 
 @pytest.mark.django_db
