@@ -22,5 +22,7 @@ COPY .env /app/.env
 # Django의 collectstatic 명령어 실행 (staticfiles 폴더가 자동 생성됨)
 RUN pdm run python src/manage.py collectstatic --noinput
 
-# Gunicorn을 사용해 Django 서버 실행
-CMD ["pdm", "run", "gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "src.config.wsgi:application"]
+# # Gunicorn을 사용해 Django 서버 실행
+# CMD ["pdm", "run", "gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "src.config.wsgi:application"]
+# 컨테이너 시작 시 PDM의 가상 환경을 활성화하고 Django 서버 실행
+CMD ["pdm", "run", "python", "src/manage.py", "runserver", "0.0.0.0:8000"]
