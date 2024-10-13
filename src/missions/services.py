@@ -4,6 +4,7 @@ import subprocess
 from .models import CodeSubmission, CodeSubmissionRecord
 
 
+# 채점 인터페이스
 class CodeJudgeInterface:
     """
     코드 채점 인터페이스.
@@ -57,8 +58,8 @@ class PythonCodeJudge(CodeJudgeInterface):
         try:
             if os.name == "nt":
                 result = subprocess.run(
-                    ["python3", "-c", code],
-                    input=input_data.encode(),
+                    ["python", "-c", code],  # Windows 환경일 경우 'python'으로 변경
+                    input=input_data,
                     capture_output=True,
                     text=True,
                     timeout=time_limit,
@@ -74,18 +75,28 @@ class PythonCodeJudge(CodeJudgeInterface):
 
                 result = subprocess.run(
                     ["python3", "-c", code],
-                    input=input_data.encode(),
+                    input=input_data,
                     capture_output=True,
                     text=True,
                     timeout=time_limit,
                     preexec_fn=set_memory_limit,
                 )
 
-            return result.stdout.strip()
+            # 디버깅을 위해 실행 결과를 로그에 출력
+            stdout = result.stdout.strip()
+            stderr = result.stderr.strip() if result.stderr else "No errors"
+            print(f"STDOUT: {stdout}")
+            print(f"STDERR: {stderr}")
+
+            if result.stderr:
+                return f"실행 에러: {stderr}"
+
+            return stdout
 
         except subprocess.TimeoutExpired:
             return "시간 초과"
         except Exception as e:
+            print(f"실행 에러: {e}")
             return f"실행 에러: {e}"
 
 
