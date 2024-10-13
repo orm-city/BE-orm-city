@@ -23,6 +23,6 @@ COPY .env /app/.env
 RUN pdm run python src/manage.py collectstatic --noinput
 
 # Gunicorn을 사용해 Django 서버 실행
-CMD ["pdm", "run", "gunicorn", "--bind", "0.0.0.0:8000", "src.config.wsgi:application"]
+CMD ["pdm", "run", "gunicorn", "--chdir", "/app/src", "--bind", "0.0.0.0:8000", "--workers", "3", "config.wsgi:application"]
 # 컨테이너 시작 시 PDM의 가상 환경을 활성화하고 Django 서버 실행
 # CMD ["pdm", "run", "python", "src/manage.py", "runserver", "0.0.0.0:8000"]
