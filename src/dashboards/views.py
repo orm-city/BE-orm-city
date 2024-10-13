@@ -1,7 +1,7 @@
 from django.shortcuts import render
-
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 
 from .models import (
     DailyVisit,
@@ -21,56 +21,104 @@ from .serializers import (
 from .services import DashboardService
 from missions.serializers import MissionSerializer  
 
-from rest_framework.permissions import AllowAny  
-
 
 class DashboardSummaryView(generics.RetrieveAPIView):
+    """
+    대시보드 요약 정보를 제공하는 APIView 클래스.
+    대시보드의 총 학생 수, 코스 수, 총 수익 및 평균 완료율을 반환합니다.
+
+    Args:
+        None
+    
+    Returns:
+        Response: 대시보드 요약 정보
+    """
     permission_classes = [AllowAny]  # 변경
-    # permission_classes = [IsAdminUser]
     serializer_class = DashboardSummarySerializer
 
     def get_object(self):
+        """
+        대시보드 요약 데이터를 반환합니다.
+        """
         return DashboardService.get_dashboard_summary()
 
 
 class DailyVisitViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    일일 방문 기록을 제공하는 ViewSet 클래스.
+    각 날짜별로 학생의 고유 방문자 수 및 총 조회수를 반환합니다.
+    
+    Args:
+        None
+    
+    Returns:
+        Response: 일일 방문 기록 데이터
+    """
     permission_classes = [AllowAny]  # 변경
-    #   permission_classes = [IsAdminOrReadOnly]
     queryset = DailyVisit.objects.all().order_by("-date")
     serializer_class = DailyVisitSerializer
 
 
 class DailyPaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    일일 결제 기록을 제공하는 ViewSet 클래스.
+    각 날짜별로 결제 정보 및 관련 데이터를 반환합니다.
+    
+    Args:
+        None
+    
+    Returns:
+        Response: 일일 결제 기록 데이터
+    """
     permission_classes = [AllowAny]  # 변경
-    # permission_classes = [IsAdminOrReadOnly]
     queryset = DailyPayment.objects.all().order_by("-date")
     serializer_class = DailyPaymentSerializer
 
 
 class UserLearningRecordViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = UserLearningRecord.objects.all()
-    serializer_class = UserLearningRecordSerializer
-    # permission_classes = [IsOwnerOrAdmin]
+    """
+    사용자 학습 기록을 제공하는 ViewSet 클래스.
+    사용자가 특정 날짜에 학습한 기록을 반환합니다.
+    
+    Args:
+        None
+    
+    Returns:
+        Response: 사용자 학습 기록 데이터
+    """
     permission_classes = [AllowAny]  # 변경
-
-    def get_queryset(self):
-        return UserLearningRecord.objects.all().order_by("-date")  # 모든 레코드 반환
+    queryset = UserLearningRecord.objects.all().order_by("-date")
+    serializer_class = UserLearningRecordSerializer
 
 
 class UserVideoProgressViewSet(viewsets.ReadOnlyModelViewSet):
-    # permission_classes = [IsOwnerOrAdmin]
+    """
+    사용자의 비디오 학습 진행 기록을 제공하는 ViewSet 클래스.
+    사용자별로 비디오 시청 시간과 진행률을 반환합니다.
+    
+    Args:
+        None
+    
+    Returns:
+        Response: 사용자 비디오 학습 진행 데이터
+    """
     permission_classes = [AllowAny]  # 변경
-
+    queryset = UserVideoProgress.objects.all().order_by("-date")
     serializer_class = UserVideoProgressSerializer
-    queryset = UserVideoProgress.objects.all()
-
-    def get_queryset(self):
-        return UserVideoProgress.objects.all().order_by("-date")  # 모든 레코드 반환
 
 
 class ExpirationNotificationViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    수강 만료 알림 정보를 제공하는 ViewSet 클래스.
+    아직 발송되지 않은 만료 알림 목록을 반환합니다.
+    
+    Args:
+        None
+    
+    Returns:
+        Response: 수강 만료 알림 데이터
+    """
     permission_classes = [AllowAny]  # 변경
-    # permission_classes = [IsAdminUser]
     queryset = ExpirationNotification.objects.filter(is_sent=False).order_by(
         "notification_date"
     )
@@ -78,12 +126,23 @@ class ExpirationNotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class StudentDashboardView(generics.RetrieveAPIView):
-    # permission_classes = [IsAuthenticated]
+    """
+    학생의 대시보드를 제공하는 APIView 클래스.
+    학생의 학습 기록, 비디오 진행률, 등록된 코스 정보를 반환합니다.
+    
+    Args:
+        None
+    
+    Returns:
+        Response: 학생 대시보드 데이터
+    """
     permission_classes = [AllowAny]  # 변경
-
     serializer_class = UserLearningRecordSerializer
 
     def retrieve(self, request, *args, **kwargs):
+        """
+        학생의 대시보드 데이터를 가져옵니다.
+        """
         dashboard_data = DashboardService.get_student_dashboard(request.user)
 
         data = {
@@ -109,4 +168,13 @@ class StudentDashboardView(generics.RetrieveAPIView):
 
 
 def dashboard_view(request):
+    """
+    대시보드 HTML 페이지를 렌더링합니다.
+
+    Args:
+        request (HttpRequest): HTTP 요청 객체.
+
+    Returns:
+        HttpResponse: 렌더링된 대시보드 HTML 페이지.
+    """
     return render(request, "dashboards/index.html")

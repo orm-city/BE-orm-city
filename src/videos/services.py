@@ -7,41 +7,55 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-# service.py
-# S3 클라이언트 생성 함수
 def get_s3_client():
+    """
+    S3 클라이언트를 생성하여 반환하는 함수.
+
+    Returns:
+        client (boto3.client): S3 클라이언트 객체.
+    """
     client = boto3.client(
         "s3",
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         region_name=settings.AWS_S3_REGION_NAME,
     )
-    print(f"S3 client created with region: {settings.AWS_S3_REGION_NAME}")
     return client
 
 
 def initiate_multipart_upload():
+    """
+    멀티파트 업로드를 시작하는 함수. 새로운 파일명을 생성하고, S3에 멀티파트 업로드 요청을 보냅니다.
+
+    Returns:
+        upload_id (str): 업로드 식별자.
+        filename (str): 업로드할 파일 이름.
+    """
     s3_client = get_s3_client()
     filename = str(uuid4()) + ".mp4"
-    print(f"Initiating multipart upload for file: {filename}")
     try:
-        print(f"Initiating multipart upload for file: {filename}")
         response = s3_client.create_multipart_upload(
             Bucket=settings.AWS_STORAGE_BUCKET_NAME,
             Key=filename,
             ContentType="video/mp4",
         )
         upload_id = response["UploadId"]
-        print(f"Upload started with Upload ID: {upload_id}")
         return upload_id, filename
     except ClientError as e:
-        print(f"Error initiating multipart upload: {str(e)}")
         raise e
 
 
 def generate_presigned_urls_for_parts(upload_id, filename, total_parts):
     """
-    각 파트에 대해 presigned URL을 생성합니다.
+    각 파트에 대해 presigned URL을 생성하는 함수.
+
+    Args:
+        upload_id (str): 멀티파트 업로드 식별자.
+        filename (str): 파일 이름.
+        total_parts (int): 총 파트 수.
+
+    Returns:
+        presigned_urls (list): 각 파트의 presigned URL 리스트.
     """
     s3_client = get_s3_client()
 
@@ -67,27 +81,43 @@ def generate_presigned_urls_for_parts(upload_id, filename, total_parts):
 
 
 def check_multipart_upload_status(upload_id, filename):
+    """
+    멀티파트 업로드 상태를 확인하는 함수.
+
+    Args:
+        upload_id (str): 멀티파트 업로드 식별자.
+        filename (str): 파일 이름.
+
+    Returns:
+        response (dict): 업로드된 파트에 대한 정보.
+    """
     s3_client = get_s3_client()
     try:
-        print(f"Checking status for upload ID: {upload_id}, filename: {filename}")
         response = s3_client.list_parts(
             Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=filename, UploadId=upload_id
         )
-        print(f"Successfully retrieved parts for upload ID: {upload_id}")
         return response["Parts"]
     except ClientError as e:
         if e.response["Error"]["Code"] == "NoSuchUpload":
-            print(f"Upload {upload_id} not found or expired. Error details: {str(e)}")
+            return None
         else:
-            print(f"Error checking multipart upload status: {str(e)}")
-        return None
+            raise e
 
 
 def complete_multipart_upload(upload_id, filename, parts):
+    """
+    멀티파트 업로드를 완료하는 함수.
+
+    Args:
+        upload_id (str): 멀티파트 업로드 식별자.
+        filename (str): 파일 이름.
+        parts (list): 각 파트에 대한 정보.
+
+    Returns:
+        response (dict): 업로드 완료 응답.
+    """
     s3_client = get_s3_client()
     try:
-        print(f"Completing upload for Upload ID: {upload_id}, Filename: {filename}")
-        print(f"Parts: {parts}")
         response = s3_client.complete_multipart_upload(
             Bucket=settings.AWS_STORAGE_BUCKET_NAME,
             Key=filename,
@@ -96,13 +126,20 @@ def complete_multipart_upload(upload_id, filename, parts):
         )
         return response
     except ClientError as e:
-        print(f"Error during complete multipart upload: {e}")
-        print(f"Upload ID: {upload_id}, Filename: {filename}, Parts: {parts}")
         raise e
 
 
 def get_presigned_url(s3_url):
-    s3_client = get_s3_client()  # 클라이언트 호출
+    """
+    S3 객체에 대한 presigned URL을 생성하는 함수.
+
+    Args:
+        s3_url (str): S3 객체 URL.
+
+    Returns:
+        presigned_url (str): presigned URL.
+    """
+    s3_client = get_s3_client()
 
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     parsed_url = urlparse(s3_url)

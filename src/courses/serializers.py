@@ -7,7 +7,9 @@ from videos.serializers import VideoSerializer
 
 class MajorCategorySerializer(serializers.ModelSerializer):
     """
-    대분류 강의 목록 가져오기
+    MajorCategory(대분류) 모델을 위한 시리얼라이저.
+    
+    대분류 강의의 모든 필드를 직렬화/역직렬화합니다.
     """
 
     class Meta:
@@ -17,8 +19,9 @@ class MajorCategorySerializer(serializers.ModelSerializer):
 
 class MinorCategorySerializer(serializers.ModelSerializer):
     """
-    소분류(MinorCategory) 모델을 위한 시리얼라이저
-    이 시리얼라이저는 소분류의 id, 이름, 관련 대분류, 내용, 순서 정보를 직렬화/역직렬화합니다.
+    MinorCategory(소분류) 모델을 위한 시리얼라이저.
+    
+    소분류의 id, 이름, 관련 대분류, 내용, 순서, 그리고 해당 소분류에 포함된 비디오 정보를 직렬화합니다.
     """
 
     videos = VideoSerializer(many=True, read_only=True)
@@ -35,17 +38,25 @@ class MinorCategorySerializer(serializers.ModelSerializer):
         )
 
     def get_videos(self, obj):
-        # 마이너 카테고리에 포함된 비디오만 필터링
+        """
+        해당 소분류에 속한 비디오들을 필터링하여 직렬화된 데이터를 반환합니다.
+        
+        Args:
+            obj (MinorCategory): 현재 직렬화하는 MinorCategory 객체.
+
+        Returns:
+            list: 직렬화된 비디오 데이터.
+        """
         videos = Video.objects.filter(minor_category=obj)
         return VideoSerializer(videos, many=True).data
 
 
 class EnrollmentSerializer(serializers.ModelSerializer):
     """
-    수강신청(Enrollment) 모델을 위한 시리얼라이저
-
-    이 시리얼라이저는 수강신청의 id, 사용자, 대분류(과목), 등록일, 만료일, 상태 정보를 직렬화/역직렬화합니다.
-    대분류 정보는 MajorCategorySerializer를 통해 중첩되어 제공됩니다.
+    Enrollment(수강 신청) 모델을 위한 시리얼라이저.
+    
+    수강 신청의 id, 사용자, 대분류, 등록일, 만료일, 상태 정보를 직렬화/역직렬화하며,
+    대분류 정보는 MajorCategorySerializer를 통해 중첩하여 제공합니다.
     """
 
     major_category = serializers.PrimaryKeyRelatedField(

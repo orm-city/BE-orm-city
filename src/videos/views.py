@@ -33,7 +33,6 @@ from .services import (
 )
 
 
-
 @extend_schema_view(
     list=extend_schema(
         summary="Retrieve a list of videos",
@@ -133,10 +132,19 @@ from .services import (
     ),
 )
 class VideoViewSet(viewsets.ModelViewSet):
+    """
+    Video 리소스에 대한 CRUD API를 제공하는 뷰셋.
+    
+    동영상 목록을 조회하고, 개별 동영상에 대한 정보를 가져오거나,
+    새로운 동영상을 업로드하며, 동영상을 업데이트하거나 삭제하는 기능을 제공합니다.
+    """
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
 
     def get_permissions(self):
+        """
+        각 액션에 따라 다른 권한을 설정합니다.
+        """
         if self.action == "list":
             return [AllowAny()]
         if self.action in ["update", "destroy", "create"]:
@@ -146,31 +154,24 @@ class VideoViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
+        """
+        새로운 동영상을 업로드하기 위한 멀티파트 업로드를 시작하고 presigned URL을 생성합니다.
+        """
         try:
             upload_id, filename = initiate_multipart_upload()
-            print(f"Initiated upload with ID: {upload_id}")
 
             total_parts = int(request.data.get("total_parts"))
+            presigned_urls = generate_presigned_urls_for_parts(upload_id, filename, total_parts)
 
-            # 3. 각 파트에 대해 presigned URL 생성
-            presigned_urls = generate_presigned_urls_for_parts(
-                upload_id, filename, total_parts
-            )
-
-            # 프론트엔드에서 받은 duration 값 (초 단위)
             duration_in_seconds = request.data.get("duration", 0)
             duration_timedelta = timedelta(seconds=duration_in_seconds)
 
-            # minor_category_id로 minor_category 찾기
             minor_category_id = request.data.get("minor_category_id")
             minor_category = MinorCategory.objects.get(id=minor_category_id)
 
-            # Video 객체 생성
             video = Video.objects.create(
                 name=request.data.get("name", "Auto-generated name"),
-                description=request.data.get(
-                    "description", "Auto-generated description"
-                ),
+                description=request.data.get("description", "Auto-generated description"),
                 duration=duration_timedelta,
                 video_url=f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{filename}",
                 minor_category=minor_category,
@@ -187,27 +188,27 @@ class VideoViewSet(viewsets.ModelViewSet):
             )
 
         except ClientError as e:
-            # S3 오류 처리
             return Response(
                 {"detail": f"S3 URL 생성 중 오류 발생: {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def retrieve(self, request, *args, **kwargs):
+        """
+        특정 동영상에 대한 정보를 가져오고 presigned URL을 반환합니다.
+        """
         video = self.get_object()
         try:
             presigned_url = get_presigned_url(video.video_url)
             user = request.user
-
             user_progress = UserProgress.objects.filter(user=user, video=video).first()
             last_position = user_progress.last_position if user_progress else 0
-            description = video.description
 
             return Response(
                 {
                     "video_url": presigned_url,
                     "last_position": last_position,
-                    "description": description,
+                    "description": video.description,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -222,10 +223,12 @@ class VideoViewSet(viewsets.ModelViewSet):
             )
 
     def update(self, request, *args, **kwargs):
+        """
+        기존 동영상을 삭제하고 새 동영상을 업로드합니다.
+        """
         video = self.get_object()
         s3_client = get_s3_client()
 
-        # 기존 S3 객체 삭제
         try:
             parsed_url = urlparse(video.video_url)
             bucket_name = parsed_url.netloc.split(".")[0]
@@ -236,33 +239,17 @@ class VideoViewSet(viewsets.ModelViewSet):
                 {"detail": f"기존 비디오 삭제 중 오류 발생: {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        except Exception as e:
-            return Response(
-                {"detail": f"비디오 삭제 중 알 수 없는 오류 발생: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
 
-        # 새 비디오에 대한 멀티파트 업로드 생성
         try:
-            # 1. 멀티파트 업로드 시작
             upload_id, filename = initiate_multipart_upload()
-
-            # 2. 클라이언트가 요청한 총 파트 수를 가져옴
             total_parts = int(request.data.get("total_parts"))
+            presigned_urls = generate_presigned_urls_for_parts(upload_id, filename, total_parts)
 
-            # 3. 각 파트에 대해 presigned URL 생성
-            presigned_urls = generate_presigned_urls_for_parts(
-                upload_id, filename, total_parts
-            )
-
-            # 비디오 URL 업데이트
             video.video_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{filename}"
             video.save()
 
-            # 비디오 프로그레스 초기화
             UserProgress.objects.filter(video=video).update(last_position=0)
 
-            # 4. 클라이언트에게 presigned URL 및 업로드 ID 반환
             return Response(
                 {
                     "upload_id": upload_id,
@@ -278,17 +265,13 @@ class VideoViewSet(viewsets.ModelViewSet):
                 {"detail": f"새 비디오 업로드 중 오류 발생: {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        except Exception as e:
-            return Response(
-                {"detail": f"S3 Presigned URL 생성 중 알 수 없는 오류 발생: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
 
     def destroy(self, request, *args, **kwargs):
+        """
+        S3에서 파일을 삭제하고 비디오 객체를 삭제합니다.
+        """
         video = self.get_object()
         s3_client = get_s3_client()
-
-        # S3에서 파일 삭제
 
         try:
             parsed_url = urlparse(video.video_url)
@@ -301,17 +284,11 @@ class VideoViewSet(viewsets.ModelViewSet):
                 {"detail": f"S3 파일 삭제 중 오류 발생: {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        except Exception as e:
-            return Response(
-                {"detail": f"파일 삭제 중 알 수 없는 오류 발생: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
 
         video.delete()
         return Response(
             {"detail": "Video deleted successfully"}, status=status.HTTP_204_NO_CONTENT
         )
-
 
 @extend_schema(
     summary="Complete multipart upload",
@@ -356,14 +333,29 @@ class VideoViewSet(viewsets.ModelViewSet):
     tags=["videos"],
 )
 class CompleteUploadAPIView(APIView):
+    """
+    API 뷰: 멀티파트 업로드 완료 처리
+
+    사용자가 업로드한 비디오의 각 파트를 확인하고, 멀티파트 업로드를 완료하는 엔드포인트입니다.
+
+    Attributes:
+        permission_classes (list): 이 API에 접근할 수 있는 권한 목록.
+    """
     permission_classes = [IsManagerOrAdmin]
 
     def post(self, request, *args, **kwargs):
+        """
+        멀티파트 업로드를 완료하는 메서드.
+
+        Args:
+            request (Request): 클라이언트 요청으로, `upload_id`, `filename`, `parts` 필드를 포함합니다.
+
+        Returns:
+            Response: 업로드 완료 성공 또는 실패에 대한 HTTP 응답.
+        """
         upload_id = request.data.get("upload_id")
         filename = request.data.get("filename")
         parts = request.data.get("parts")
-
-        print(f"Received completion request for upload ID: {upload_id}")
 
         if not upload_id or not filename or not parts:
             return Response(
@@ -390,16 +382,6 @@ class CompleteUploadAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # ETag 비교 (선택적)
-            for client_part, uploaded_part in zip(parts, uploaded_parts):
-                if client_part["ETag"].strip('"') != uploaded_part["ETag"].strip('"'):
-                    return Response(
-                        {
-                            "detail": f"파트 {client_part['PartNumber']}의 ETag가 일치하지 않습니다."
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
             # 멀티파트 업로드 완료 처리
             response = complete_multipart_upload(upload_id, filename, parts)
             return Response(
@@ -407,14 +389,10 @@ class CompleteUploadAPIView(APIView):
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
-            print(f"Error during upload completion: {str(e)}")
             return Response(
                 {"detail": f"Upload completion failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-throttle_scope = "progress"
 
 
 @extend_schema(
@@ -463,23 +441,36 @@ throttle_scope = "progress"
     tags=["videos"],
 )
 class UpdateUserProgressAPIView(APIView):
+    """
+    API 뷰: 사용자 비디오 진행률 업데이트
+
+    사용자가 특정 비디오의 학습 진행 상황을 업데이트하는 엔드포인트입니다.
+    진행률(percentage), 시청 시간, 마지막 시청 위치를 기록합니다.
+
+    Attributes:
+        permission_classes (list): 이 API에 접근할 수 있는 권한 목록.
+        throttle_scope (str): 요청 제한을 위한 스코프.
+    """
     permission_classes = [IsEnrolledOrAdminOrManager]
     throttle_scope = "progress"
 
     def post(self, request, *args, **kwargs):
-        user = request.user
+        """
+        비디오 진행률 업데이트 메서드.
 
+        Args:
+            request (Request): 클라이언트 요청으로, `video_id`, `progress_percent`, `time_spent`, `last_position` 필드를 포함합니다.
+
+        Returns:
+            Response: 업데이트 성공 또는 실패에 대한 HTTP 응답.
+        """
+        user = request.user
         video_id = request.data.get("video_id")
         progress_percent = request.data.get("progress_percent")
         time_spent = request.data.get("time_spent")
         last_position = request.data.get("last_position")
 
-        if (
-            not video_id
-            or progress_percent is None
-            or time_spent is None
-            or last_position is None
-        ):
+        if not video_id or progress_percent is None or time_spent is None or last_position is None:
             return Response(
                 {"detail": "요청 데이터가 누락되었습니다."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -501,9 +492,7 @@ class UpdateUserProgressAPIView(APIView):
         try:
             video = Video.objects.get(id=video_id)
             major_category = video.minor_category.major_category
-            enrollment = Enrollment.objects.get(
-                user=user, major_category=major_category
-            )
+            enrollment = Enrollment.objects.get(user=user, major_category=major_category)
 
             user_progress, created = UserProgress.objects.get_or_create(
                 user=user, video=video, enrollment=enrollment
@@ -531,3 +520,4 @@ class UpdateUserProgressAPIView(APIView):
                 {"detail": "Enrollment not found for this user and course."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+

@@ -21,6 +21,275 @@ from .serializers import (
 from .permissions import IsManagerOrAdminUser, IsAdminUser
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    """
+    페이지네이션 설정 클래스.
+    
+    기본적으로 페이지당 10개의 결과를 반환하며, 요청에 따라 페이지 크기를 조정할 수 있습니다.
+    """
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
+class UserManagementViewSet(viewsets.ModelViewSet):
+    """
+    사용자 관리를 위한 ViewSet입니다.
+    
+    관리자는 모든 사용자에 접근할 수 있으며, 매니저는 학생만 볼 수 있습니다.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        요청자의 역할에 따라 사용자 목록을 필터링합니다.
+        
+        Returns:
+            QuerySet: 필터링된 사용자 목록.
+        """
+        user = self.request.user
+        if user.role == "admin":
+            return CustomUser.objects.all()
+        elif user.role == "manager":
+            return CustomUser.objects.filter(role="student")
+        else:
+            return CustomUser.objects.filter(id=user.id)
+
+    def get_permissions(self):
+        """
+        요청하는 액션에 따라 권한을 설정합니다.
+        
+        Returns:
+            list: 해당 요청에 대한 권한 클래스 목록.
+        """
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            self.permission_classes = [IsAdminUser]
+        elif self.action == "list":
+            self.permission_classes = [IsManagerOrAdminUser]
+        elif self.action == "retrieve":
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+
+
+class RegisterView(generics.CreateAPIView):
+    """
+    새로운 사용자를 등록하는 뷰입니다.
+    
+    등록 성공 시 사용자 정보와 함께 액세스 토큰과 리프레시 토큰을 반환합니다.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        """
+        사용자를 등록하고, 사용자 정보와 토큰을 반환합니다.
+        
+        Args:
+            request (Request): 사용자 등록 요청 데이터.
+
+        Returns:
+            Response: 사용자 정보 및 액세스, 리프레시 토큰.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class LoginView(APIView):
+    """
+    사용자 로그인을 처리하는 뷰입니다.
+    
+    로그인 성공 시 사용자 정보와 함께 액세스 토큰과 리프레시 토큰을 반환합니다.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """
+        사용자의 로그인 요청을 처리합니다.
+        
+        Args:
+            request (Request): 로그인 요청 데이터.
+
+        Returns:
+            Response: 사용자 정보 및 액세스, 리프레시 토큰.
+        """
+        serializer = UserLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class LogoutView(APIView):
+    """
+    사용자 로그아웃을 처리하는 뷰입니다.
+    
+    로그아웃 성공 시 리프레시 토큰을 블랙리스트에 추가합니다.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        사용자의 로그아웃 요청을 처리하고, 리프레시 토큰을 블랙리스트에 추가합니다.
+        
+        Args:
+            request (Request): 로그아웃 요청 데이터.
+
+        Returns:
+            Response: 로그아웃 성공 메시지.
+        """
+        try:
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(
+                {"detail": "Successfully logged out."}, status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    """
+    현재 로그인한 사용자의 프로필 정보를 조회하거나 수정하는 뷰입니다.
+    """
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        """
+        현재 로그인한 사용자 객체를 반환합니다.
+        
+        Returns:
+            User: 현재 요청의 사용자 객체.
+        """
+        return self.request.user
+
+
+class UserActivityListView(generics.ListAPIView):
+    """
+    현재 로그인한 사용자의 활동 기록을 조회하는 뷰입니다.
+    """
+    serializer_class = UserActivitySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        현재 로그인한 사용자의 활동 기록을 반환합니다.
+        
+        Returns:
+            QuerySet: 현재 사용자의 활동 기록 리스트.
+        """
+        return UserActivity.objects.filter(user=self.request.user)
+
+
+class DeleteAccountView(APIView):
+    """
+    현재 로그인한 사용자의 계정을 삭제하는 뷰입니다.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        """
+        현재 로그인한 사용자의 계정을 삭제합니다.
+        
+        Args:
+            request (Request): 계정 삭제 요청.
+
+        Returns:
+            Response: 계정 삭제 성공 메시지.
+        """
+        user = request.user
+        user.delete()
+        return Response(
+            {"detail": "Account successfully deleted."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+class ManagerCreationView(APIView):
+    """
+    새로운 매니저 계정을 생성하는 뷰입니다. 관리자만 접근 가능합니다.
+    """
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        """
+        새로운 매니저 계정을 생성합니다.
+        
+        Args:
+            request (Request): 매니저 계정 생성 요청 데이터.
+
+        Returns:
+            Response: 생성된 매니저 정보와 함께 성공 메시지 또는 오류 메시지.
+        """
+        serializer = ManagerCreationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()  # 매니저 계정 생성
+            refresh = RefreshToken.for_user(user)  # 사용자 리프레시 토큰 생성
+            return Response(
+                {
+                    "message": "Manager user created successfully",
+                    "user": UserSerializer(user).data,  # 생성된 사용자 정보
+                    "refresh": str(refresh),  # 리프레시 토큰
+                    "access": str(refresh.access_token),  # 액세스 토큰
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangeUserRoleView(APIView):
+    """
+    특정 사용자의 역할을 변경하는 뷰입니다. 관리자만 접근 가능합니다.
+    """
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, user_id):
+        """
+        특정 사용자의 역할을 변경합니다.
+        
+        Args:
+            request (Request): 역할 변경 요청 데이터.
+            user_id (int): 역할을 변경할 사용자 ID.
+
+        Returns:
+            Response: 변경된 사용자 정보와 함께 성공 메시지 또는 오류 메시지.
+        """
+        try:
+            user = CustomUser.objects.get(id=user_id)  # 사용자 조회
+            new_role = request.data.get("role")  # 새로운 역할
+            if new_role not in ["student", "manager"]:
+                return Response(
+                    {"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            user.role = new_role  # 역할 변경
+            user.save()
+            return Response(UserSerializer(user).data)  # 변경된 사용자 정보 반환
+        except CustomUser.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
