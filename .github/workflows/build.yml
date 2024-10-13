@@ -46,9 +46,12 @@ jobs:
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
     - name: CD
-      uses: garygrossgarten/github-action-ssh@release
+      uses: appleboy/ssh-action@master
       with:
-        command: |
+        host: ${{ secrets.SERVER_HOST }}
+        username: ubuntu
+        key: ${{ secrets.KEY }}
+        script: |
           set -e
           cd /home/ubuntu/
           sudo docker login
@@ -57,6 +60,3 @@ jobs:
           sudo docker rm orm-city || true
           sudo docker network create orm-network || true
           sudo docker run -d -p 8000:8000 --name orm-city --network orm-network ${{ secrets.DOCKER_HUB_USERNAME }}/orm-city:latest
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USER }}
-        privateKey: ${{ secrets.KEY }}
