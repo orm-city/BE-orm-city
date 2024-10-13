@@ -22,5 +22,8 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements.txt
 
+      - name: Set environment variables
+        run: echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
+
       - name: Run Pytest
         run: pytest
