@@ -1,12 +1,14 @@
+import json
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
+
 from accounts.models import UserActivity
 from courses.models import MajorCategory, Enrollment
 from payment.models import Payment
-from django.utils import timezone
 from progress.models import UserProgress
-import json
-from datetime import timedelta
 
 
 class DailyVisit(models.Model):

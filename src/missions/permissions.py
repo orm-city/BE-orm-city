@@ -1,5 +1,6 @@
 from rest_framework import permissions
-from .models import Enrollment
+
+from courses.models import Enrollment
 
 
 class IsActiveOrCompletedEnrollmentOrManagerAdmin(permissions.BasePermission):

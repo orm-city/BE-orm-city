@@ -1,5 +1,8 @@
+from django.shortcuts import render
+
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
+
 from .models import (
     DailyVisit,
     DailyPayment,
@@ -15,12 +18,10 @@ from .serializers import (
     UserVideoProgressSerializer,
     ExpirationNotificationSerializer,
 )
-from missions.serializers import (
-    MissionSerializer,
-)  # MissionSerializer를 missions 앱에서 import
 from .services import DashboardService
-from rest_framework.permissions import AllowAny  # TODO: 변경해야 함
-from django.shortcuts import render
+from missions.serializers import MissionSerializer  
+
+from rest_framework.permissions import AllowAny  
 
 
 class DashboardSummaryView(generics.RetrieveAPIView):

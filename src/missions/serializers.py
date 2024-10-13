@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import (
     CodeSubmission,
     MultipleChoiceQuestion,
@@ -11,6 +12,7 @@ class MultipleChoiceQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = MultipleChoiceQuestion
         fields = (
+            "id",
             "mission",
             "question",
             "option_1",
@@ -50,6 +52,7 @@ class MissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mission
         fields = (
+            "id",
             "title",
             "description",
             "minor_category",
@@ -63,6 +66,7 @@ class CodeSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CodeSubmission
         fields = (
+            "id",
             "mission",
             "problem_statement",
             "example_input",

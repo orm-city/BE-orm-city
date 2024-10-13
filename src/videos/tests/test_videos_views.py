@@ -1,10 +1,21 @@
-from django.conf import settings
+# 단순 import
 import pytest
-from rest_framework import status
+
+# Django 라이브러리
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import timedelta
+
+# DRF(Django Rest Framework) 라이브러리
+from rest_framework.test import APIClient
+
+# 기능별로 만든 앱 모듈
+from videos.models import Video, MinorCategory
+from courses.models import MajorCategory, Enrollment
+
+# 서드파티 라이브러리
 from unittest.mock import patch
-from django.urls import reverse
-from videos.models import Video
-from botocore.exceptions import ClientError
+
 
 
 @pytest.mark.django_db
