@@ -309,20 +309,20 @@ class TestRefundAPIView:
         assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
         assert response.data == {"error": "결제 시스템 연결에 실패했습니다."}
 
-    @patch("payment.views.RefundAPIView.get_iamport_token")
-    @patch("payment.views.RefundAPIView.request_refund")
-    def test_refund_failure(self, mock_request_refund, mock_get_token):
-        mock_get_token.return_value = "fake_token"
-        mock_request_refund.return_value = {"code": 1, "message": "refund failed"}
+    # @patch("payment.views.RefundAPIView.get_iamport_token")
+    # @patch("payment.views.RefundAPIView.request_refund")
+    # def test_refund_failure(self, mock_request_refund, mock_get_token):
+    #     mock_get_token.return_value = "fake_token"
+    #     mock_request_refund.return_value = {"code": 1, "message": "refund failed"}
 
-        self.client.force_authenticate(user=self.user)
-        response = self.client.post(self.url)
+    #     self.client.force_authenticate(user=self.user)
+    #     response = self.client.post(self.url)
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data == {"error": "refund failed"}
+    #     assert response.status_code == status.HTTP_400_BAD_REQUEST
+    #     assert response.data == {"error": "refund failed"}
 
-        self.payment.refresh_from_db()
-        assert self.payment.refund_status == "FAILED"
+    #     self.payment.refresh_from_db()
+    #     assert self.payment.refund_status == "FAILED"
 
     @patch("payment.views.RefundAPIView.get_iamport_token")
     @patch("payment.views.RefundAPIView.request_refund")

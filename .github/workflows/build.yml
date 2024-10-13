@@ -44,3 +44,19 @@ jobs:
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+    - name: 서버 배포
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_KEY }}
+        script: |
+          set -e
+          cd /home/ubuntu/
+          sudo docker login
+          sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/orm-city:latest
+          sudo docker stop orm-city || true
+          sudo docker rm orm-city || true
+          sudo docker network create orm-network || true
+          sudo docker run -d -p 8000:8000 --name orm-city --network orm-network ${{ secrets.DOCKER_HUB_USERNAME }}/orm-city:latest

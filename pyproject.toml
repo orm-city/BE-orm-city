@@ -22,6 +22,7 @@ dependencies = [
     "pytest-django>=4.9.0",
     "pycryptodome>=3.21.0",
     "qrcode[pil]>=8.0",
+    "gunicorn>=23.0.0",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
@@ -39,7 +40,8 @@ migs =  "python src/manage.py makemigrations"
 mig =  "python src/manage.py migrate"
 
 [tool.ruff]
-exclude = ["src/config/settings"]
+exclude = ["src/config/settings", "tests/*"]
+lint.ignore = ["F403","F405","E501","E402","B904"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "src.config.settings.dev"

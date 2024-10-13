@@ -1,4 +1,4 @@
-name: Lint Python Code with Ruff
+name: Run Pytest
 
 on:
   pull_request:
@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  lint:
-    name: Lint
+  test:
+    name: Test
     runs-on: ubuntu-latest
 
     steps:
@@ -19,8 +19,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Run Ruff on changed files in src directory
-        uses: chartboost/ruff-action@v1
-        with:
-          changed-files: 'true'
-          src: './src'
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Pytest
+        run: pytest

@@ -11,7 +11,6 @@ from courses.models import Enrollment, MinorCategory, MajorCategory
 from videos.models import Video
 
 
-
 @pytest.mark.django_db
 class TestUserProgressUpdateView:
     @pytest.fixture
