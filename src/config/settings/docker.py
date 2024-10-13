@@ -4,7 +4,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["*"]  # noqa
 
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+CORS_ALLOWED_ORIGINS = [
+    "http://3.36.122.224",  # 브라우저에서 요청을 보낸 도메인
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
