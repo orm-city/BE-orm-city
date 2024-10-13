@@ -88,7 +88,3 @@ npx supabase db reset --linked
 - 해결 방법
 
 ### 참고 자료
--
--
--
--
