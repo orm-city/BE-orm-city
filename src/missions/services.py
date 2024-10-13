@@ -26,21 +26,18 @@ class PythonCodeJudge(CodeJudgeInterface):
         리눅스에서는 메모리 제한을 적용하고, Windows에서는 메모리 제한을 생략.
         """
         try:
-            # Windows에서는 메모리 제한 없이 실행
             if os.name == "nt":
                 result = subprocess.run(
-                    ["python3", "-c", code],
-                    input=input_data.encode(),
+                    ["python", "-c", code],  # Windows 환경일 경우 'python'으로 변경
+                    input=input_data,
                     capture_output=True,
                     text=True,
                     timeout=time_limit,
                 )
             else:
-                # 리눅스 환경에서 메모리 제한 적용
                 import resource
 
                 def set_memory_limit():
-                    # 메모리 제한을 byte 단위로 설정 (1MB = 1024 * 1024 bytes)
                     resource.setrlimit(
                         resource.RLIMIT_AS,
                         (memory_limit * 1024 * 1024, memory_limit * 1024 * 1024),
@@ -48,18 +45,28 @@ class PythonCodeJudge(CodeJudgeInterface):
 
                 result = subprocess.run(
                     ["python3", "-c", code],
-                    input=input_data.encode(),
+                    input=input_data,
                     capture_output=True,
                     text=True,
                     timeout=time_limit,
-                    preexec_fn=set_memory_limit,  # 리눅스에서만 메모리 제한 적용
+                    preexec_fn=set_memory_limit,
                 )
 
-            return result.stdout.strip()
+            # 디버깅을 위해 실행 결과를 로그에 출력
+            stdout = result.stdout.strip()
+            stderr = result.stderr.strip() if result.stderr else "No errors"
+            print(f"STDOUT: {stdout}")
+            print(f"STDERR: {stderr}")
+
+            if result.stderr:
+                return f"실행 에러: {stderr}"
+
+            return stdout
 
         except subprocess.TimeoutExpired:
             return "시간 초과"
         except Exception as e:
+            print(f"실행 에러: {e}")
             return f"실행 에러: {e}"
 
 
