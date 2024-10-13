@@ -1,8 +1,12 @@
 import pytest
+
+from django.utils import timezone
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+
 from accounts.models import UserActivity
-from django.utils import timezone
+
 
 User = get_user_model()
 

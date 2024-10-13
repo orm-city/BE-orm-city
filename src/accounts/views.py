@@ -4,6 +4,10 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+
 from .models import CustomUser, UserActivity
 from .serializers import (
     UserSerializer,
@@ -13,8 +17,6 @@ from .serializers import (
     ManagerCreationSerializer,
 )
 from .permissions import IsManagerOrAdminUser, IsAdminUser
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-from drf_spectacular.types import OpenApiTypes
 
 
 class StandardResultsSetPagination(PageNumberPagination):

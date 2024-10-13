@@ -1,10 +1,10 @@
 from rest_framework.permissions import IsAuthenticated
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 
 from .permissions import IsActiveOrCompletedEnrollmentOrManagerAdmin, IsManagerOrAdmin
 
@@ -13,12 +13,14 @@ from .models import (
     MultipleChoiceQuestion,
     CodeSubmission,
 )
+
 from .serializers import (
     MissionSerializer,
     MultipleChoiceQuestionSerializer,
     CodeSubmissionSerializer,
     MultipleChoiceSubmissionSerializer,
 )
+
 from .services import evaluate_code_submission
 
 
@@ -63,6 +65,17 @@ class MissionViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="minor_category_id",
+                description="필터링할 MinorCategory ID. 이 값을 제공하면 해당 minor_category에 속한 Mission만 반환됩니다.",
+                required=False,
+                type=int,
+            ),
+        ],
+        responses={200: OpenApiResponse(MissionSerializer(many=True))},
+    )
     def list(self, request, *args, **kwargs):
         """
         특정 MinorCategory에 속한 Mission만 반환하는 커스텀 list 메서드.
@@ -132,37 +145,58 @@ class MultipleChoiceQuestionViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="mission_id",
+                description="필터링할 mission ID. 이 값을 제공하면 해당 mission 속한 multiplechoicequestions만 반환됩니다.",
+                required=False,
+                type=int,
+            ),
+        ],
+        responses={200: OpenApiResponse(MissionSerializer(many=True))},
+    )
     def list(self, request, *args, **kwargs):
         """
         특정 미션에 속한 5지선다형 문제 목록을 필터링하여 반환합니다.
 
         URL 쿼리 파라미터로 `mission_id`를 받아, 해당 미션에 속한 문제들을 필터링하여 반환합니다.
-        파라미터가 제공되지 않으면 모든 문제 목록을 반환합니다.
+        또는, URL 경로 파라미터로 `minor_id`, `mid_or_final`을 받아 필터링할 수 있습니다.
 
         Args:
             request (Request): HTTP 요청 객체.
+            minor_id (int): 소분류 카테고리 ID.
+            mid_or_final (str): "mid" 또는 "final"로 미션 유형을 나타냅니다.
 
         Returns:
             Response: 직렬화된 MultipleChoiceQuestion 데이터를 포함하는 응답 객체.
 
         Example:
             GET /multiplechoicequestions/?mission_id=5  # mission_id=5인 문제만 반환.
-            GET /multiplechoicequestions/              # 모든 문제 반환.
+            GET /major/1/2/mid/                        # minor_id=2인 중간 미션의 문제만 반환.
 
         Raises:
             Mission.DoesNotExist: 요청된 mission_id에 해당하는 미션이 존재하지 않으면 빈 결과를 반환합니다.
         """
-        queryset = MultipleChoiceQuestion.objects.all()
+        queryset = self.get_queryset()
 
-        # 쿼리 파라미터로 mission_id를 받음
+        # URL 경로 파라미터로 minor_id와 mid_or_final을 받음
+        minor_id = kwargs.get("minor_id")
+        mid_or_final = kwargs.get("mid_or_final")
+
+        # mission_id 쿼리 파라미터로 필터링
         mission_id = self.request.query_params.get("mission_id", None)
-
         if mission_id:
-            try:
-                mission = Mission.objects.get(pk=mission_id)
-                queryset = queryset.filter(mission=mission)
-            except Mission.DoesNotExist:
-                queryset = MultipleChoiceQuestion.objects.none()
+            queryset = queryset.filter(mission_id=mission_id)
+        # minor_id와 mid_or_final 파라미터로 필터링
+        elif minor_id and mid_or_final:
+            mission_filter = {
+                "minor_category_id": minor_id,
+                "is_midterm": (mid_or_final == "mid"),
+                "is_final": (mid_or_final == "final"),
+            }
+            missions = Mission.objects.filter(**mission_filter)
+            queryset = queryset.filter(mission__in=missions)
 
         # 시리얼라이저를 사용해 데이터 반환
         serializer = self.get_serializer(queryset, many=True)
@@ -241,15 +275,6 @@ class MultipleChoiceQuestionSubmissionAPIView(APIView):
 
 class CodeSubmissionViewSet(viewsets.ModelViewSet):
     """
-    코드 제출형 문제에 대한 CRUD 기능을 제공하는 ViewSet.
-
-    모든 미션 목록 조회 및 특정 미션의 세부 정보 조회를 제공하는 ViewSet.
-    """
-
-    queryset = Mission.objects.all()
-    serializer_class = MissionSerializer
-    http_method_names = ["get", "put", "patch"]
-    """
     사용자는 특정 미션에 속한 코드 제출형 문제들을 필터링하여 조회할 수 있으며,
     문제의 생성, 수정, 삭제를 지원합니다.
     """
@@ -284,37 +309,58 @@ class CodeSubmissionViewSet(viewsets.ModelViewSet):
             permission_classes = [IsManagerOrAdmin]
         return [permission() for permission in permission_classes]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="mission_id",
+                description="필터링할 mission ID. 이 값을 제공하면 해당 mission 속한 multiplechoicequestions만 반환됩니다.",
+                required=False,
+                type=int,
+            ),
+        ],
+        responses={200: OpenApiResponse(MissionSerializer(many=True))},
+    )
     def list(self, request, *args, **kwargs):
         """
-        특정 미션에 속한 코드 제출형 문제 목록을 필터링하여 반환합니다.
+        특정 미션에 속한 5지선다형 문제 목록을 필터링하여 반환합니다.
 
         URL 쿼리 파라미터로 `mission_id`를 받아, 해당 미션에 속한 문제들을 필터링하여 반환합니다.
-        파라미터가 제공되지 않으면 모든 코드 제출형 문제 목록을 반환합니다.
+        또는, URL 경로 파라미터로 `minor_id`, `mid_or_final`을 받아 필터링할 수 있습니다.
 
         Args:
             request (Request): HTTP 요청 객체.
+            minor_id (int): 소분류 카테고리 ID.
+            mid_or_final (str): "mid" 또는 "final"로 미션 유형을 나타냅니다.
 
         Returns:
-            Response: 직렬화된 CodeSubmission 데이터를 포함한 응답 객체.
+            Response: 직렬화된 MultipleChoiceQuestion 데이터를 포함하는 응답 객체.
 
         Example:
-            GET /codesubmissions/?mission_id=5  # mission_id=5인 문제만 반환.
-            GET /codesubmissions/              # 모든 문제 반환.
+            GET /multiplechoicequestions/?mission_id=5  # mission_id=5인 문제만 반환.
+            GET /major/1/2/mid/                        # minor_id=2인 중간 미션의 문제만 반환.
 
         Raises:
-            Mission.DoesNotExist: 요청된 mission_id에 해당하는 미션이 존재하지 않을 경우 빈 결과를 반환합니다.
+            Mission.DoesNotExist: 요청된 mission_id에 해당하는 미션이 존재하지 않으면 빈 결과를 반환합니다.
         """
-        queryset = CodeSubmission.objects.all()
+        queryset = self.get_queryset()
 
-        # 쿼리 파라미터로 mission_id를 받음
+        # URL 경로 파라미터로 minor_id와 mid_or_final을 받음
+        minor_id = kwargs.get("minor_id")
+        mid_or_final = kwargs.get("mid_or_final")
+
+        # mission_id 쿼리 파라미터로 필터링
         mission_id = self.request.query_params.get("mission_id", None)
-
         if mission_id:
-            try:
-                mission = Mission.objects.get(pk=mission_id)
-                queryset = queryset.filter(mission=mission)
-            except Mission.DoesNotExist:
-                queryset = CodeSubmission.objects.none()
+            queryset = queryset.filter(mission_id=mission_id)
+        # minor_id와 mid_or_final 파라미터로 필터링
+        elif minor_id and mid_or_final:
+            mission_filter = {
+                "minor_category_id": minor_id,
+                "is_midterm": (mid_or_final == "mid"),
+                "is_final": (mid_or_final == "final"),
+            }
+            missions = Mission.objects.filter(**mission_filter)
+            queryset = queryset.filter(mission__in=missions)
 
         # 시리얼라이저를 사용해 데이터 반환
         serializer = self.get_serializer(queryset, many=True)

@@ -1,20 +1,26 @@
+import logging
+
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+
 from .models import UserProgress
 from courses.models import Enrollment, MajorCategory
 from videos.models import Video
+
 from .serializers import (
     UserProgressSerializer,
     UserProgressUpdateSerializer,
     OverallProgressSerializer,
     VideoProgressSerializer,
 )
+
 from .services import UserProgressService
 from .permissions import CanViewUserProgress
-import logging
+
 
 
 logger = logging.getLogger(__name__)

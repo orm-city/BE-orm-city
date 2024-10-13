@@ -33,6 +33,7 @@ from .services import (
 )
 
 
+
 @extend_schema_view(
     list=extend_schema(
         summary="Retrieve a list of videos",

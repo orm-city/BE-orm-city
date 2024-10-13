@@ -1,10 +1,10 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse
+
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 from certificates.models import Certificate
 from certificates.permissions import IsCertificateOwner

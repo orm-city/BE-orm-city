@@ -1,7 +1,11 @@
-from rest_framework import serializers
 from django.utils import timezone
-from .models import Payment
+
+from rest_framework import serializers
+
 from courses.models import MajorCategory
+
+from .models import Payment
+
 
 
 class PaymentCreateSerializer(serializers.Serializer):

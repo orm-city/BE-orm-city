@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from accounts.models import CustomUser
 from courses.models import MajorCategory, MinorCategory
 from payment.models import Payment

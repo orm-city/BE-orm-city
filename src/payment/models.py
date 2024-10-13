@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.db import models
-from courses.models import MajorCategory, Enrollment
 from django.utils import timezone
+
+from courses.models import MajorCategory, Enrollment
 
 
 class Payment(models.Model):
