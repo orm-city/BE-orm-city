@@ -1,6 +1,7 @@
+from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 
@@ -9,16 +10,20 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiRespon
 from .permissions import IsActiveOrCompletedEnrollmentOrManagerAdmin, IsManagerOrAdmin
 
 from .models import (
+    CodeSubmissionRecord,
     Mission,
     MultipleChoiceQuestion,
+    MultipleChoiceSubmission,
     CodeSubmission,
 )
 
 from .serializers import (
+    DetailMultipleChoiceSubmissionSerializer,
     MissionSerializer,
     MultipleChoiceQuestionSerializer,
     CodeSubmissionSerializer,
     MultipleChoiceSubmissionSerializer,
+    SimpleSubmissionSerializer,
 )
 
 from .services import evaluate_code_submission
@@ -273,6 +278,28 @@ class MultipleChoiceQuestionSubmissionAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserSubmissionListAPIView(ListAPIView):
+    """
+    현재 로그인한 사용자의 제출 내역을 반환하는 API 뷰.
+    """
+
+    serializer_class = DetailMultipleChoiceSubmissionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return MultipleChoiceSubmission.objects.filter(user=self.request.user)
+
+
+class AllSubmissionListAPIView(ListAPIView):
+    """
+    모든 사용자의 제출 내역을 반환하는 API 뷰.
+    """
+
+    serializer_class = DetailMultipleChoiceSubmissionSerializer
+    permission_classes = [IsManagerOrAdmin]
+    queryset = MultipleChoiceSubmission.objects.all()
+
+
 class CodeSubmissionViewSet(viewsets.ModelViewSet):
     """
     사용자는 특정 미션에 속한 코드 제출형 문제들을 필터링하여 조회할 수 있으며,
@@ -462,3 +489,26 @@ class CodeSubmissionEvaluationAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class UserCodeSubmissionListAPIView(ListAPIView):
+    """
+    로그인된 사용자의 코드 제출 내역을 반환하는 API 뷰.
+    """
+
+    serializer_class = SimpleSubmissionSerializer
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 가능
+
+    def get_queryset(self):
+        # 로그인된 사용자에 해당하는 제출 내역만 필터링
+        return CodeSubmissionRecord.objects.filter(user=self.request.user)
+
+
+class AllCodeSubmissionListAPIView(ListAPIView):
+    """
+    모든 사용자의 코드 제출 내역을 반환하는 API 뷰.
+    """
+
+    serializer_class = SimpleSubmissionSerializer
+    permission_classes = [IsManagerOrAdmin]
+    queryset = CodeSubmissionRecord.objects.all()
