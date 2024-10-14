@@ -31,7 +31,7 @@
 | 고경민 | 남민우 | 장지우 | 백승현 |
 |:------:|:------:|:------:|:------:|
 | <img src="https://github.com/user-attachments/assets/89308f54-9351-43ff-907c-53a0e2b2c7a1" alt="고경민" width="150"> | <img src="https://github.com/user-attachments/assets/f4cbe0d6-bf34-4e6f-8f88-5f4f200faea0" alt="남민우" width="150"> | <img src="https://github.com/user-attachments/assets/51695336-3dd3-4ea1-8939-37fe790652b3" alt="장지우" width="150"> | <img src="https://github.com/user-attachments/assets/599b7564-d265-4a42-9389-1043f4be6710" alt="백승현" width="150"> |
-| PL<br/>(BE/FE) | BE | FE/BE | BE |
+| PL<br/>(BE/FE) | BE | BE/FE | BE |
 | [GitHub](https://github.com/cumulus308) | [GitHub](https://github.com/NamMinWoo91) | [GitHub](https://github.com/cheeou) | [GitHub](https://github.com/baccine) |
 
 <br/>
