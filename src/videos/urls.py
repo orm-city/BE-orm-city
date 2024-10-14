@@ -5,8 +5,6 @@ from rest_framework.routers import DefaultRouter
 from .views import VideoViewSet, UpdateUserProgressAPIView, CompleteUploadAPIView
 
 
-app_name = "videos"
-
 # DefaultRouter 설정
 router = DefaultRouter()
 router.register(r"", VideoViewSet, basename="video")

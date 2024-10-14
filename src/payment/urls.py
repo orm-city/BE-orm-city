@@ -9,8 +9,6 @@ from .views import (
 )
 
 
-app_name = "payment"
-
 urlpatterns = [
     path(
         "info/<int:major_category_id>/",
