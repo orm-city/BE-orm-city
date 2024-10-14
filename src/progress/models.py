@@ -9,7 +9,7 @@ from videos.models import Video
 
 class UserProgress(models.Model):
     """
-    유저 수강 진행 모델
+    유저 수강 진행 모델.
 
     유저가 수강 중인 강의에 대한 진행률과 관련된 데이터를 저장합니다.
     """
@@ -49,15 +49,24 @@ class UserProgress(models.Model):
     )
 
     def __str__(self):
+        """
+        객체의 문자열 표현을 반환합니다.
+
+        Returns:
+            str: 유저와 강의의 정보를 포함한 수강 진행률 문자열.
+        """
         return f"수강생:{self.user.username}, 강의:{self.video.name}, 수강률:({self.progress_percent}%)"
 
     def update_progress(self, additional_time, last_position):
         """
         수강 진행 정보를 업데이트합니다.
 
-        :param additional_time: 추가된 시청 시간 (duration)
-        :param last_position: 마지막 시청 위치 (초 단위)
-        :raises ValidationError: 입력된 값이 유효하지 않은 경우
+        Args:
+            additional_time (timedelta): 추가된 시청 시간.
+            last_position (int): 마지막 시청 위치 (초 단위).
+
+        Raises:
+            ValidationError: 입력된 값이 유효하지 않은 경우 발생.
         """
         # 입력값 검증
         if last_position < 0:
@@ -67,9 +76,7 @@ class UserProgress(models.Model):
             raise ValidationError("추가 시청 시간은 0보다 커야 합니다.")
 
         # Video 총 길이 가져오기
-        video_duration = (
-            self.video.duration.total_seconds()
-        )  # total_seconds(): float 타입 반환
+        video_duration = self.video.duration.total_seconds()
 
         # last_position 제한
         self.last_position = min(float(last_position), video_duration)

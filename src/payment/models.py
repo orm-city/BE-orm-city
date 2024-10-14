@@ -7,9 +7,21 @@ from courses.models import MajorCategory, Enrollment
 
 class Payment(models.Model):
     """
-    결제 모델 정의
+    결제 정보를 저장하는 모델입니다. 결제 상태, 환불 정보 및 관련된 수강 등록 정보를 포함합니다.
 
-    이 모델은 사용자의 결제 내역을 저장합니다. 결제 상태, 환불 정보, 관련된 수강 등록 정보 등을 포함합니다.
+    속성:
+        user (ForeignKey): 결제를 한 사용자.
+        major_category (ForeignKey): 결제와 관련된 수강 대분류.
+        enrollment (OneToOneField): 해당 결제와 관련된 수강 등록 정보.
+        total_amount (PositiveIntegerField): 결제 금액.
+        payment_date (DateTimeField): 결제 날짜 및 시간.
+        receipt_url (URLField): 영수증 URL.
+        merchant_uid (CharField): 상점에서 발급한 주문 번호.
+        imp_uid (CharField): 아임포트에서 발급한 거래 고유 번호.
+        refund_amount (PositiveIntegerField): 환불된 총 금액.
+        payment_status (CharField): 결제 상태.
+        refund_status (CharField): 환불 상태.
+        refund_deadline (DateTimeField): 환불 가능한 기한.
     """
 
     user = models.ForeignKey(
@@ -85,12 +97,18 @@ class Payment(models.Model):
     def is_refundable(self):
         """
         환불 가능 여부를 반환합니다. 현재 시간이 환불 가능 기한 내인지 확인합니다.
+
+        Returns:
+            bool: 환불 가능 기한 내일 경우 True, 그렇지 않으면 False.
         """
         return timezone.now() <= self.refund_deadline
 
     def create_enrollment(self):
         """
         결제가 완료되면 수강 등록을 생성합니다.
+
+        Returns:
+            Enrollment: 생성된 수강 등록 객체를 반환합니다. 등록 실패 시 None 반환.
         """
         if self.payment_status == "paid" and not self.enrollment:
             try:
@@ -106,8 +124,8 @@ class Payment(models.Model):
                 self.enrollment = enrollment
                 return enrollment
             except Exception as e:
-                # 로그 기록 또는 에러 처리
-                print(f"Enrollment creation failed: {str(e)}")
+                # 로그 처리 또는 에러 처리 로직 추가 가능
+                pass
         return None
 
     class Meta:

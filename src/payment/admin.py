@@ -5,6 +5,12 @@ from .models import Payment
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
+    """
+    결제 정보(Payment) 관리를 위한 Admin 클래스.
+
+    Admin 페이지에서 결제 정보에 대한 목록을 표시하고, 필터 및 검색 기능을 제공합니다.
+    """
+
     list_display = (
         "user",
         "major_category",

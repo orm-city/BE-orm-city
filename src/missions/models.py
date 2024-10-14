@@ -6,8 +6,17 @@ from courses.models import MinorCategory
 
 class Mission(models.Model):
     """
-    각 미션의 기본 정보를 저장하는 모델.
-    중간 및 기말 미션 유형과 관련된 정보를 관리.
+    미션 모델
+
+    각 미션의 기본 정보를 저장하는 모델로, 중간 및 기말 미션에 대한 정보를 관리합니다.
+
+    Attributes:
+        title (str): 미션 제목.
+        description (str): 미션 설명.
+        minor_category (ForeignKey): 소분류 카테고리와의 관계.
+        mission_type (str): 미션의 유형, 5지선다형 또는 코드 제출형.
+        is_midterm (bool): 중간 미션 여부.
+        is_final (bool): 기말 미션 여부.
     """
 
     title = models.CharField(max_length=255, verbose_name="제목")
@@ -36,8 +45,19 @@ class Mission(models.Model):
 
 class MultipleChoiceQuestion(models.Model):
     """
-    5지선다형 문제를 정의하는 모델.
-    각 미션에 대한 문제와 선택지를 관리.
+    5지선다형 문제 모델
+
+    미션과 연관된 5지선다형 문제를 정의합니다.
+
+    Attributes:
+        mission (ForeignKey): 미션과의 관계.
+        question (str): 문제 텍스트.
+        option_1 (str): 첫 번째 선택지.
+        option_2 (str): 두 번째 선택지.
+        option_3 (str): 세 번째 선택지.
+        option_4 (str): 네 번째 선택지.
+        option_5 (str): 다섯 번째 선택지.
+        correct_option (int): 정답 선택지 (1~5).
     """
 
     mission = models.ForeignKey(
@@ -67,8 +87,18 @@ class MultipleChoiceQuestion(models.Model):
 
 class CodeSubmission(models.Model):
     """
-    코드 제출형 문제를 정의하는 모델.
-    각 미션에 대한 문제 설명과 입출력 예시를 관리.
+    코드 제출형 문제 모델
+
+    코드 제출형 미션에 대한 문제 설명과 입출력 예시를 저장하는 모델입니다.
+
+    Attributes:
+        mission (ForeignKey): 미션과의 관계.
+        problem_statement (str): 문제 설명.
+        example_input (str): 입력 예시.
+        example_output (str): 출력 예시.
+        time_limit (int): 시간 제한(초).
+        memory_limit (int): 메모리 제한(MB).
+        language (str): 프로그래밍 언어.
     """
 
     LANGUAGE_CHOICES = [("python", "Python"), ("javascript", "JavaScript")]
@@ -98,8 +128,15 @@ class CodeSubmission(models.Model):
 
 class TestCase(models.Model):
     """
-    코드 제출형 문제에 대한 테스트 케이스를 관리하는 모델.
-    입력 값과 예상 출력 값을 저장.
+    테스트 케이스 모델
+
+    코드 제출형 문제에 대한 테스트 케이스를 저장합니다.
+
+    Attributes:
+        code_submission (ForeignKey): 코드 제출 문제와의 관계.
+        input_data (str): 입력 데이터.
+        expected_output (str): 예상 출력 데이터.
+        is_sample (bool): 샘플 테스트 여부.
     """
 
     code_submission = models.ForeignKey(
@@ -122,8 +159,16 @@ class TestCase(models.Model):
 
 class MultipleChoiceSubmission(models.Model):
     """
-    5지선다형 문제에 대한 학생의 제출 기록을 관리하는 모델.
-    제출된 답안과 정답 여부를 저장.
+    5지선다형 문제 제출 기록 모델
+
+    학생의 5지선다형 문제에 대한 제출 기록과 정답 여부를 저장합니다.
+
+    Attributes:
+        user (ForeignKey): 제출한 사용자.
+        question (ForeignKey): 5지선다형 문제와의 관계.
+        selected_option (int): 선택한 답안.
+        is_correct (bool): 정답 여부.
+        submitted_at (datetime): 제출 시간.
     """
 
     user = models.ForeignKey(
@@ -155,8 +200,20 @@ class MultipleChoiceSubmission(models.Model):
 
 class CodeSubmissionRecord(models.Model):
     """
-    코드 제출형 문제에 대한 학생의 제출 기록을 관리하는 모델.
-    제출된 코드와 테스트 결과를 저장.
+    코드 제출형 문제 제출 기록 모델
+
+    학생의 코드 제출형 문제에 대한 제출 기록을 저장합니다.
+
+    Attributes:
+        user (ForeignKey): 제출한 사용자.
+        code_submission (ForeignKey): 코드 제출 문제와의 관계.
+        submitted_code (str): 제출된 코드.
+        submission_time (datetime): 제출 시간.
+        test_results (str): 테스트 결과.
+        result_summary (str): 결과 요약.
+        is_passed (bool): 통과 여부.
+        execution_time (float): 실행 시간(초).
+        memory_usage (int): 메모리 사용량(KB).
     """
 
     user = models.ForeignKey(

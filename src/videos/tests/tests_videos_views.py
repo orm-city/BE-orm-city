@@ -4,15 +4,11 @@ from django.conf import settings
 from django.urls import reverse
 import pytest
 
-# Django 라이브러리
 
-# DRF(Django Rest Framework) 라이브러리
 from rest_framework import status
 
-# 기능별로 만든 앱 모듈
 from videos.models import Video
 
-# 서드파티 라이브러리
 from unittest.mock import patch
 
 

@@ -5,13 +5,24 @@ from .models import Enrollment
 
 class CanViewUserProgress(permissions.BasePermission):
     """
-    사용자의 학습 진행률 조회 권한을 확인하는 커스텀 권한 클래스
+    사용자의 학습 진행률 조회 권한을 확인하는 커스텀 권한 클래스.
 
-    - 관리자와 매니저는 모든 진행률을 볼 수 있습니다.
-    - 학생은 자신이 구매한 강의(enrollment가 active 또는 complete 상태)의 진행률만 볼 수 있습니다.
+    권한 부여 조건:
+    - 관리자와 매니저는 모든 사용자의 진행률을 볼 수 있습니다.
+    - 학생은 자신이 등록한 강의(enrollment 상태가 active 또는 complete인 경우)의 진행률만 볼 수 있습니다.
     """
 
     def has_permission(self, request, view):
+        """
+        주어진 요청에 대해 권한이 있는지 확인하는 메서드.
+
+        Args:
+            request (Request): 현재 HTTP 요청 객체.
+            view (View): 현재 요청된 view 객체.
+
+        Returns:
+            bool: 권한이 있으면 True, 없으면 False를 반환합니다.
+        """
         # 인증되지 않은 사용자는 권한이 없음
         if not request.user.is_authenticated:
             return False
@@ -53,6 +64,17 @@ class CanViewUserProgress(permissions.BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj):
+        """
+        객체 수준에서의 권한을 확인하는 메서드.
+
+        Args:
+            request (Request): 현재 HTTP 요청 객체.
+            view (View): 현재 요청된 view 객체.
+            obj (Model): 권한을 확인할 객체.
+
+        Returns:
+            bool: 객체에 대한 권한이 있으면 True, 없으면 False를 반환합니다.
+        """
         # 관리자와 매니저는 모든 객체에 대해 권한이 있음
         if request.user.role in ["admin", "manager"]:
             return True

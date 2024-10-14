@@ -159,6 +159,7 @@ def generate_certificate_pdf(user_name, course_name, certificate_id):
     Args:
         user_name (str): 인증서에 표시할 사용자 이름.
         course_name (str): 인증서에 표시할 코스 이름.
+        certificate_id (str): 인증서 ID.
 
     Returns:
         BytesIO: 생성된 인증서 이미지의 PDF 버퍼.
@@ -173,7 +174,15 @@ def generate_certificate_pdf(user_name, course_name, certificate_id):
 
 
 def generate_certificate_qr(certificate_id):
-    # QR 코드에 포함할 URL (수료증 진위 확인 API 경로)
+    """
+    주어진 인증서 ID를 포함한 QR 코드를 생성하여 반환합니다.
+
+    Args:
+        certificate_id (str): 인증서 ID.
+
+    Returns:
+        BytesIO: 생성된 QR 코드 이미지의 PNG 버퍼.
+    """
     frontend_host = getattr(settings, "FRONTEND_HOST", "http://localhost:5500")
     qr_data = (
         f"{frontend_host}/certificate_verification.html?certificate_id={certificate_id}"
@@ -185,10 +194,22 @@ def generate_certificate_qr(certificate_id):
     qr.save(buffer, format="PNG")
     buffer.seek(0)
 
-    return buffer  # QR 코드가 저장된 buffer를 반환
+    return buffer
 
 
 def get_course_model(course_type):
+    """
+    주어진 코스 유형에 따라 해당 코스 모델을 반환합니다.
+
+    Args:
+        course_type (str): 코스 유형 ('minor' 또는 'major').
+
+    Returns:
+        Model: 해당 코스 모델.
+
+    Raises:
+        ValueError: 유효하지 않은 코스 유형이 제공된 경우 발생합니다.
+    """
     if course_type == "minor":
         return MinorCategory
     elif course_type == "major":
@@ -200,6 +221,16 @@ def get_course_model(course_type):
 ######################################################################
 ## permissions.py
 def get_available_certificates(user):
+    """
+    사용자가 MinorCategory 또는 MajorCategory의 모든 동영상을 완료했는지 확인하여
+    발급 가능한 수료증 목록을 반환합니다.
+
+    Args:
+        user (User): 인증서를 요청한 사용자.
+
+    Returns:
+        tuple: 발급 가능한 MinorCategory와 MajorCategory 수료증 목록을 포함한 튜플.
+    """
     # MinorCategory의 모든 동영상을 완료한 경우 발급 가능 목록
     available_minor_certificates = MinorCategory.objects.annotate(
         total_videos=Count("videos"),
@@ -229,19 +260,40 @@ def get_available_certificates(user):
 ######################################################################
 ## 암호화, 복호화
 def encrypt_certificate_data(data):
-    # settings에서 암호화 키 가져오기
+    """
+    주어진 데이터를 AES 암호화하여 반환합니다.
+
+    Args:
+        data (str): 암호화할 데이터.
+
+    Returns:
+        str: 암호화된 데이터 (Base64로 인코딩).
+
+    Raises:
+        ValueError: 암호화 중 오류가 발생한 경우.
+    """
     key = settings.CERTIFICATE_SECRET_KEY.encode("utf-8")
     cipher = AES.new(key, AES.MODE_EAX)
     ciphertext, tag = cipher.encrypt_and_digest(data.encode("utf-8"))
 
     # Nonce, tag, ciphertext를 결합하여 저장
     encrypted_data = b64encode(cipher.nonce + tag + ciphertext).decode("utf-8")
-    print(f"Encrypted Data: {encrypted_data}")
     return encrypted_data
 
 
 def decrypt_certificate_data(encrypted_data):
-    # settings에서 암호화 키 가져오기
+    """
+    주어진 암호화된 데이터를 복호화하여 원본 데이터를 반환합니다.
+
+    Args:
+        encrypted_data (str): 복호화할 암호화된 데이터 (Base64로 인코딩된 문자열).
+
+    Returns:
+        str: 복호화된 원본 데이터.
+
+    Raises:
+        ValueError: 복호화 중 오류가 발생한 경우.
+    """
     key = settings.CERTIFICATE_SECRET_KEY.encode("utf-8")
     encrypted_data = b64decode(encrypted_data)
 
@@ -249,8 +301,6 @@ def decrypt_certificate_data(encrypted_data):
     nonce = encrypted_data[:16]
     tag = encrypted_data[16:32]
     ciphertext = encrypted_data[32:]
-
-    print(f"Nonce: {nonce}, Tag: {tag}, Ciphertext: {ciphertext}")
 
     # 복호화 시 Nonce 전달
     cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)

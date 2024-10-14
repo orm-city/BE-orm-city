@@ -1,5 +1,6 @@
 import pytest
 
+
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
@@ -10,7 +11,6 @@ from unittest.mock import patch
 
 from django.utils import timezone
 from datetime import timedelta
-
 
 
 @pytest.fixture

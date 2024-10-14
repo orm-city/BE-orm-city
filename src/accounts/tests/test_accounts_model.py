@@ -13,7 +13,15 @@ User = get_user_model()
 
 @pytest.mark.django_db
 class TestCustomUser:
+    """
+    CustomUser 모델을 테스트하는 클래스입니다.
+    사용자 생성, 슈퍼유저 생성, 문자열 표현 등을 테스트합니다.
+    """
+
     def test_create_user(self):
+        """
+        일반 사용자를 생성하고, 올바르게 생성되었는지 검증합니다.
+        """
         # GIVEN
         email = "test@example.com"
         username = "testuser"
@@ -33,6 +41,9 @@ class TestCustomUser:
         assert not user.is_superuser
 
     def test_create_superuser(self):
+        """
+        슈퍼유저를 생성하고, 올바르게 생성되었는지 검증합니다.
+        """
         # GIVEN
         email = "admin@example.com"
         username = "admin"
@@ -52,6 +63,9 @@ class TestCustomUser:
         assert admin.is_superuser
 
     def test_user_str_representation(self):
+        """
+        사용자 객체의 문자열 표현이 올바른지 테스트합니다.
+        """
         # GIVEN
         user = User.objects.create_user(
             email="test@example.com", username="testuser", password="testpass123"
@@ -64,6 +78,9 @@ class TestCustomUser:
         assert user_str == "testuser (학생)"
 
     def test_create_user_without_email(self):
+        """
+        이메일 없이 사용자를 생성할 때 발생하는 예외를 테스트합니다.
+        """
         # GIVEN
         email = ""
         username = "testuser"
@@ -75,6 +92,9 @@ class TestCustomUser:
 
     @pytest.mark.parametrize("role", ["student", "manager", "admin"])
     def test_valid_roles(self, role):
+        """
+        유효한 역할로 사용자를 생성하고, 역할이 올바르게 설정되었는지 테스트합니다.
+        """
         # GIVEN
         email = f"{role}@example.com"
         username = f"{role}user"
@@ -89,6 +109,9 @@ class TestCustomUser:
         assert user.role == role
 
     def test_invalid_role(self):
+        """
+        잘못된 역할을 지정한 사용자를 생성할 때 발생하는 예외를 테스트합니다.
+        """
         # GIVEN
         email = "invalid@example.com"
         username = "invaliduser"
@@ -105,6 +128,9 @@ class TestCustomUser:
             user.full_clean()
 
     def test_email_as_username_field(self):
+        """
+        이메일이 사용자 이름 필드로 사용되는지 테스트합니다.
+        """
         # GIVEN
         user = User.objects.create_user(
             email="test@example.com", username="testuser", password="testpass123"
@@ -115,6 +141,9 @@ class TestCustomUser:
         assert user.get_username() == "test@example.com"
 
     def test_required_fields(self):
+        """
+        필수 필드들이 올바르게 설정되었는지 테스트합니다.
+        """
         # GIVEN/WHEN/THEN
         assert "username" in User.REQUIRED_FIELDS
         assert (
@@ -124,13 +153,24 @@ class TestCustomUser:
 
 @pytest.mark.django_db
 class TestUserActivity:
+    """
+    UserActivity 모델을 테스트하는 클래스입니다.
+    사용자 활동 생성, 문자열 표현, 로그아웃 기록 등을 테스트합니다.
+    """
+
     @pytest.fixture
     def user(self):
+        """
+        테스트용 사용자 객체를 생성하는 픽스처입니다.
+        """
         return User.objects.create_user(
             email="test@example.com", username="testuser", password="testpass123"
         )
 
     def test_create_user_activity(self, user):
+        """
+        사용자의 활동 기록을 생성하고, 올바르게 생성되었는지 테스트합니다.
+        """
         # GIVEN
         # User fixture
 
@@ -143,6 +183,9 @@ class TestUserActivity:
         assert activity.logout_time is None
 
     def test_user_activity_str_representation(self, user):
+        """
+        활동 객체의 문자열 표현이 올바른지 테스트합니다.
+        """
         # GIVEN
         activity = UserActivity.objects.create(user=user)
 
@@ -154,6 +197,9 @@ class TestUserActivity:
         assert activity_str == expected_str
 
     def test_user_activity_with_logout(self, user):
+        """
+        로그아웃 시간을 기록하고, 올바르게 저장되었는지 테스트합니다.
+        """
         # GIVEN
         activity = UserActivity.objects.create(user=user)
         logout_time = timezone.now()
@@ -166,6 +212,9 @@ class TestUserActivity:
         assert activity.logout_time == logout_time
 
     def test_multiple_activities_for_user(self, user):
+        """
+        동일한 사용자에 대해 여러 활동 기록을 생성하고, 올바르게 저장되었는지 테스트합니다.
+        """
         # GIVEN
         # User fixture
 
@@ -178,6 +227,9 @@ class TestUserActivity:
         assert activities.count() == 2
 
     def test_activity_ordering(self, user):
+        """
+        활동 기록이 로그인 시간 순으로 올바르게 정렬되는지 테스트합니다.
+        """
         # GIVEN
         activity1 = UserActivity.objects.create(user=user)  # noqa
         activity2 = UserActivity.objects.create(user=user)  # noqa

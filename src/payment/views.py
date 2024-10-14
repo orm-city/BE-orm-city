@@ -20,7 +20,6 @@ from .permissions import IsAuthenticatedAndAllowed
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -50,9 +49,28 @@ logger = logging.getLogger(__name__)
     },
 )
 class PaymentInfoAPIView(APIView):
+    """
+    아임포트 결제 정보를 제공하는 APIView.
+
+    사용자와 선택한 수강 카테고리 정보를 바탕으로 아임포트 결제창에 필요한 데이터를 반환합니다.
+
+    Attributes:
+        permission_classes (list): 접근 권한을 정의하는 클래스 리스트.
+    """
+
     permission_classes = [IsAuthenticatedAndAllowed]
 
     def get(self, request, major_category_id):
+        """
+        GET 요청을 처리하여 아임포트 결제창에 필요한 정보를 반환합니다.
+
+        Args:
+            request (Request): Django의 HTTP 요청 객체.
+            major_category_id (int): 수강 카테고리 ID.
+
+        Returns:
+            Response: 결제창에 필요한 정보가 담긴 응답 객체.
+        """
         try:
             major_category = MajorCategory.objects.get(id=major_category_id)
             user = request.user
@@ -60,7 +78,7 @@ class PaymentInfoAPIView(APIView):
                 "major_category_id": major_category.id,
                 "major_category_name": major_category.name,
                 "major_category_price": major_category.price,
-                "user_id": user.id,  # 사용자 ID 사용
+                "user_id": user.id,
                 "imp_key": settings.IAMPORT["IMP_KEY"],
             }
             return Response(data, status=status.HTTP_200_OK)
@@ -73,7 +91,7 @@ class PaymentInfoAPIView(APIView):
 
 @extend_schema(
     summary="결제 생성(수강정보,수강신청 저장)",
-    description="수강 결제가 생성되면 해당 수강상품에 대한 enrollment 데이터가 등록됩니다. ",
+    description="수강 결제가 생성되면 해당 수강상품에 대한 enrollment 데이터가 등록됩니다.",
     request={
         "type": "object",
         "properties": {
@@ -107,10 +125,26 @@ class PaymentInfoAPIView(APIView):
     },
 )
 class PaymentCompleteAPIView(APIView):
+    """
+    결제 완료 처리 APIView.
+
+    사용자로부터 결제 정보를 받아 처리하고, 수강 등록(enrollment)을 생성합니다.
+
+    Attributes:
+        permission_classes (list): 접근 권한을 정의하는 클래스 리스트.
+        http_method_names (list): 허용되는 HTTP 메서드 목록.
+    """
+
     permission_classes = [IsAuthenticatedAndAllowed]
     http_method_names = ["post"]
 
     def get_iamport_token(self):
+        """
+        아임포트 API로부터 인증 토큰을 획득합니다.
+
+        Returns:
+            str: 인증 토큰.
+        """
         url = "https://api.iamport.kr/users/getToken"
         headers = {
             "Content-Type": "application/json",
@@ -127,21 +161,29 @@ class PaymentCompleteAPIView(APIView):
                 headers=headers,
                 data=json.dumps(body, ensure_ascii=False, indent="\t"),
             )
-            # 응답 상태 코드 확인
             if response.status_code == 200:
                 json_object = json.loads(response.text)
-                Token = json_object["response"]["access_token"]
-                return Token
-            else:
-                logger.error(
-                    f"Failed to get Iamport token: {response.status_code}, {response.text}"
-                )
-                return None
+                return json_object["response"]["access_token"]
+            logger.error(
+                f"Failed to get Iamport token: {response.status_code}, {response.text}"
+            )
+            return None
         except requests.RequestException as ex:
             logger.error(f"Request to Iamport failed: {ex}")
             return None
 
     def verify_iamport_payment(self, imp_uid, amount, token):
+        """
+        아임포트 결제 정보를 검증합니다.
+
+        Args:
+            imp_uid (str): 아임포트 거래 고유 번호.
+            amount (int): 결제 금액.
+            token (str): 아임포트 API 인증 토큰.
+
+        Returns:
+            bool: 결제 정보가 유효한 경우 True, 그렇지 않으면 False.
+        """
         url = f"https://api.iamport.kr/payments/{imp_uid}"
         headers = {
             "Content-Type": "application/json",
@@ -175,6 +217,15 @@ class PaymentCompleteAPIView(APIView):
 
     @transaction.atomic
     def post(self, request):
+        """
+        결제 완료 후 수강 등록을 처리합니다.
+
+        Args:
+            request (Request): HTTP 요청 객체.
+
+        Returns:
+            Response: 결제 및 수강 등록 완료 메시지를 포함한 응답 객체.
+        """
         user_id = request.data.get("user_id")
         imp_uid = request.data.get("imp_uid")
         merchant_uid = request.data.get("merchant_uid")
@@ -254,10 +305,26 @@ class PaymentCompleteAPIView(APIView):
 
 
 class UserPaymentsView(APIView):
+    """
+    사용자의 결제 내역을 조회하는 APIView.
+
+    사용자와 관련된 모든 결제 내역을 조회하여 반환합니다.
+    결제일 기준으로 내림차순으로 정렬되며, 각 결제의 환불 가능 여부를 포함합니다.
+    """
+
     permission_classes = [IsAuthenticatedAndAllowed]
     authentication_classes = [JWTAuthentication]
 
     def get(self, request):
+        """
+        사용자의 결제 내역을 조회하고 반환합니다.
+
+        Args:
+            request: HTTP 요청 객체.
+
+        Returns:
+            Response: 사용자의 결제 내역 목록을 포함한 JSON 응답.
+        """
         payments = (
             Payment.objects.filter(user=request.user)
             .prefetch_related("major_category")
@@ -286,13 +353,23 @@ class UserPaymentsView(APIView):
 
 class PaymentDetailView(APIView):
     """
-    해당 결제 정보 불러오기
+    특정 결제 정보를 불러오는 APIView.
     """
 
     permission_classes = [IsAuthenticatedAndAllowed]
     authentication_classes = [JWTAuthentication]
 
     def get(self, request, payment_id):
+        """
+        특정 결제의 세부 정보를 조회합니다.
+
+        Args:
+            request: HTTP 요청 객체.
+            payment_id: 조회할 결제의 ID.
+
+        Returns:
+            Response: 결제 세부 정보를 포함한 JSON 응답.
+        """
         try:
             payment = Payment.objects.get(id=payment_id, user=request.user)
             serializer = PaymentDetailSerializer(payment)
@@ -306,13 +383,19 @@ class PaymentDetailView(APIView):
 
 class RefundAPIView(APIView):
     """
-    환불 처리
+    결제 환불을 처리하는 APIView.
     """
 
     permission_classes = [IsAuthenticatedAndAllowed]
     authentication_classes = [JWTAuthentication]
 
     def get_iamport_token(self):
+        """
+        아임포트 API로부터 인증 토큰을 요청합니다.
+
+        Returns:
+            str: 아임포트 인증 토큰.
+        """
         url = "https://api.iamport.kr/users/getToken"
         headers = {
             "Content-Type": "application/json",
@@ -320,7 +403,7 @@ class RefundAPIView(APIView):
             "Accept": "*/*",
         }
         body = {
-            "imp_key": settings.IAMPORT["IMP_KEY"],
+            "imp_key": settings.IAMPORT["IMP_REST_API_KEY"],
             "imp_secret": settings.IAMPORT["IMP_SECRET"],
         }
         try:
@@ -338,6 +421,16 @@ class RefundAPIView(APIView):
             return None
 
     def post(self, request, payment_id):
+        """
+        환불을 요청하고 처리 결과를 반환합니다.
+
+        Args:
+            request: HTTP 요청 객체.
+            payment_id: 환불할 결제의 ID.
+
+        Returns:
+            Response: 환불 처리 결과.
+        """
         try:
             payment = Payment.objects.get(id=payment_id, user=request.user)
         except Payment.DoesNotExist:
@@ -390,6 +483,17 @@ class RefundAPIView(APIView):
             )
 
     def request_refund(self, access_token, imp_uid, amount):
+        """
+        아임포트 API로 환불 요청을 전송합니다.
+
+        Args:
+            access_token (str): 아임포트 인증 토큰.
+            imp_uid (str): 환불할 결제의 아임포트 고유 ID.
+            amount (int): 환불할 금액.
+
+        Returns:
+            dict: 환불 요청에 대한 응답 데이터.
+        """
         url = "https://api.iamport.kr/payments/cancel"
         headers = {"Authorization": access_token, "Content-Type": "application/json"}
         data = {"imp_uid": imp_uid, "amount": amount, "reason": "고객 환불 요청"}

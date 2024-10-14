@@ -8,6 +8,10 @@ from rest_framework.response import Response
 
 from certificates.models import Certificate
 from certificates.permissions import IsCertificateOwner
+from certificates.serializers import (
+    SimpleMajorCategorySerializer,
+    SimpleMinorCategorySerializer,
+)
 from certificates.services import (
     decrypt_certificate_data,
     generate_certificate_image,
@@ -19,19 +23,32 @@ from certificates.services import (
 
 
 class AvailableCertificatesAPIView(APIView):
+    """
+    사용자가 완료한 MinorCategory와 MajorCategory의 인증서를 조회하는 API 뷰입니다.
+    """
+
     def get(self, request):
+        """
+        사용자가 발급받을 수 있는 Minor 및 Major 카테고리의 인증서를 조회합니다.
+
+        Args:
+            request (HttpRequest): 사용자 요청 객체.
+
+        Returns:
+            Response: 사용자가 완료한 인증서 목록.
+        """
         user = request.user
         available_minor, available_major = get_available_certificates(user)
 
-        # 필요한 데이터를 반환
+        # 새로운 간단한 시리얼라이저를 사용하여 필요한 데이터만 반환
         return Response(
             {
-                "available_minor_certificates": [
-                    minor.name for minor in available_minor
-                ],
-                "available_major_certificates": [
-                    major.name for major in available_major
-                ],
+                "available_minor_certificates": SimpleMinorCategorySerializer(
+                    available_minor, many=True
+                ).data,
+                "available_major_certificates": SimpleMajorCategorySerializer(
+                    available_major, many=True
+                ).data,
             }
         )
 
@@ -72,9 +89,24 @@ class CertificatePreviewAPIView(APIView):
 
 
 class CertificateDownloadAPIView(APIView):
+    """
+    사용자의 인증서를 PDF 형식으로 다운로드할 수 있는 API 뷰입니다.
+    """
+
     permission_classes = [IsAuthenticated, IsCertificateOwner]
 
     def get(self, request, course_type=None, course_id=None):
+        """
+        GET 요청을 처리하여 인증서를 PDF 형식으로 다운로드합니다.
+
+        Args:
+            request (HttpRequest): 요청 객체.
+            course_type (str): 코스의 유형을 나타내는 문자열.
+            course_id (int): 코스의 ID.
+
+        Returns:
+            HttpResponse: 생성된 인증서의 PDF를 반환합니다.
+        """
         user = request.user
 
         try:
@@ -82,7 +114,6 @@ class CertificateDownloadAPIView(APIView):
         except ValueError as e:
             return Response({"detail": str(e)}, status=404)
 
-        # 수료증 발급 또는 기존 수료증 가져오기
         certificate, created = Certificate.objects.get_or_create(
             user=user,
             content_type=ContentType.objects.get_for_model(
@@ -91,9 +122,8 @@ class CertificateDownloadAPIView(APIView):
             object_id=course_id,
         )
 
-        # 인증서가 새로 생성되었을 때 암호화된 데이터를 저장
         if created:
-            certificate.generate_certificate()  # 수료증 데이터 암호화 및 저장
+            certificate.generate_certificate()
 
         try:
             pdf_buffer = generate_certificate_pdf(
@@ -110,17 +140,28 @@ class CertificateDownloadAPIView(APIView):
 
 
 class VerifyCertificateAPIView(APIView):
+    """
+    주어진 인증서 ID를 통해 수료증의 유효성을 확인하는 API 뷰입니다.
+    """
+
     permission_classes = [AllowAny]
 
     def get(self, request, certificate_id):
-        # 수료증을 DB에서 조회
+        """
+        GET 요청을 통해 인증서 ID에 해당하는 인증서의 유효성을 확인합니다.
+
+        Args:
+            request (HttpRequest): 요청 객체.
+            certificate_id (uuid.UUID): 인증서의 고유 ID.
+
+        Returns:
+            Response: 인증서의 유효성 및 복호화된 데이터를 반환합니다.
+        """
         certificate = get_object_or_404(Certificate, certificate_id=certificate_id)
 
         try:
-            # 암호화된 수료증 데이터를 복호화
             decrypted_data = decrypt_certificate_data(certificate.encrypted_data)
 
-            # 복호화된 데이터를 반환
             return Response(
                 {
                     "certificate_id": certificate.certificate_id,

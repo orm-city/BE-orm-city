@@ -10,6 +10,12 @@ from .models import (
 
 
 class MultipleChoiceQuestionSerializer(serializers.ModelSerializer):
+    """
+    MultipleChoiceQuestion 모델을 직렬화하는 클래스.
+
+    이 클래스는 MultipleChoiceQuestion 모델의 필드를 직렬화 및 역직렬화합니다.
+    """
+
     class Meta:
         model = MultipleChoiceQuestion
         fields = (
@@ -26,17 +32,31 @@ class MultipleChoiceQuestionSerializer(serializers.ModelSerializer):
 
 
 class MultipleChoiceSubmissionSerializer(serializers.ModelSerializer):
+    """
+    MultipleChoiceSubmission 모델을 직렬화하는 클래스.
+
+    이 클래스는 MultipleChoiceSubmission 모델의 필드를 직렬화 및 역직렬화하며,
+    정답 여부를 확인하고 저장하는 로직을 포함합니다.
+    """
+
     class Meta:
         model = MultipleChoiceSubmission
         fields = ["question", "selected_option"]
 
     def create(self, validated_data):
         """
-        제출된 답안을 저장하고, 정답 여부를 확인하는 메서드.
+        MultipleChoiceSubmission 객체를 생성하고, 정답 여부를 확인하여 저장합니다.
+
+        Args:
+            validated_data (dict): 검증된 데이터.
+
+        Returns:
+            MultipleChoiceSubmission: 생성된 제출 기록.
         """
         question = validated_data["question"]
         selected_option = validated_data["selected_option"]
 
+        # 정답 여부를 확인
         is_correct = question.correct_option == selected_option
 
         submission = MultipleChoiceSubmission.objects.create(
@@ -72,6 +92,12 @@ class DetailMultipleChoiceSubmissionSerializer(serializers.ModelSerializer):
 
 
 class MissionSerializer(serializers.ModelSerializer):
+    """
+    Mission 모델을 직렬화하는 클래스.
+
+    Mission 모델의 필드들을 직렬화/역직렬화하여 API 응답에서 사용됩니다.
+    """
+
     class Meta:
         model = Mission
         fields = (
@@ -86,6 +112,12 @@ class MissionSerializer(serializers.ModelSerializer):
 
 
 class CodeSubmissionSerializer(serializers.ModelSerializer):
+    """
+    CodeSubmission 모델을 직렬화하는 클래스.
+
+    CodeSubmission 모델의 필드들을 직렬화/역직렬화하여 API 응답에서 사용됩니다.
+    """
+
     class Meta:
         model = CodeSubmission
         fields = (

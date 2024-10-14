@@ -9,9 +9,8 @@ from .services import ProgressService
 class MajorCategory(models.Model):
     """
     대분류 모델
-
-    이 모델은 교육 과정의 대분류를 나타냅니다.
-    예: 웹 개발, 데이터 분석 등
+    
+    교육 과정의 대분류를 나타냅니다. 예를 들어 웹 개발, 데이터 분석 등 다양한 과정을 포함할 수 있습니다.
     """
 
     name = models.CharField(max_length=100, verbose_name="대분류명")
@@ -28,6 +27,9 @@ class MajorCategory(models.Model):
     def progress_percent(self):
         """
         대분류의 학습 진행률을 계산하여 반환합니다.
+
+        Returns:
+            float: 대분류의 학습 진행률 (0 ~ 100).
         """
         return ProgressService.calculate_major_category_progress(self)
 
@@ -35,9 +37,8 @@ class MajorCategory(models.Model):
 class MinorCategory(models.Model):
     """
     소분류 모델
-
-    이 모델은 대분류에 속한 세부 과목을 나타냅니다.
-    예: HTML/CSS, JavaScript, Python 등
+    
+    대분류에 속하는 세부 과목을 나타냅니다. 예를 들어 HTML/CSS, JavaScript, Python 등의 과목이 포함될 수 있습니다.
     """
 
     name = models.CharField(max_length=100, verbose_name="소분류명")
@@ -62,6 +63,9 @@ class MinorCategory(models.Model):
     def progress_percent(self):
         """
         소분류의 학습 진행률을 계산하여 반환합니다.
+
+        Returns:
+            float: 소분류의 학습 진행률 (0 ~ 100).
         """
         return ProgressService.calculate_category_progress(self)
 
@@ -69,8 +73,8 @@ class MinorCategory(models.Model):
 class Enrollment(models.Model):
     """
     수강 신청 모델
-
-    사용자가 특정 대분류 과정을 수강할 때의 정보를 나타냅니다.
+    
+    사용자가 특정 대분류 과정을 수강하는 정보를 저장합니다.
     """
 
     STATUS_CHOICES = [
@@ -102,39 +106,29 @@ class Enrollment(models.Model):
     def clean(self):
         """
         수강 신청의 유효성을 검증합니다.
-        - 만료일은 현재 시점 이후여야 하며,
-        - 수강 신청일보다 만료일이 뒤에 있어야 하고,
-        - 수강 기간은 최대 2년을 넘지 않아야 합니다.
+
+        만료일은 현재 시점 이후여야 하며, 수강 신청일보다 만료일이 늦어야 하고,
+        수강 기간은 최대 2년을 넘지 않아야 합니다.
+
+        Raises:
+            ValidationError: 유효성 검증 실패 시 예외를 발생시킵니다.
         """
         now = timezone.now()
 
-        # enrollment_date가 설정되지 않은 경우 (새로운 인스턴스 생성 시)
         if not self.enrollment_date:
             self.enrollment_date = now
 
-        # expiry_date가 naive datetime인 경우 aware로 변환
         if self.expiry_date and self.expiry_date.tzinfo is None:
             self.expiry_date = timezone.make_aware(self.expiry_date)
 
-        # 만료일이 현재보다 과거인 경우
         if self.expiry_date and self.expiry_date < now:
             raise ValidationError("수강 만료일은 현재 시간 이후여야 합니다.")
 
-        # 만료일이 수강 신청일보다 이전인 경우
-        if (
-            self.expiry_date
-            and self.enrollment_date
-            and self.expiry_date < self.enrollment_date
-        ):
+        if self.expiry_date and self.enrollment_date and self.expiry_date < self.enrollment_date:
             raise ValidationError("수강 만료일은 수강 신청일 이후여야 합니다.")
 
-        # 수강 기간이 2년을 초과하는 경우
         max_duration = timezone.timedelta(days=365 * 2)
-        if (
-            self.expiry_date
-            and self.enrollment_date
-            and (self.expiry_date - self.enrollment_date) > max_duration
-        ):
+        if self.expiry_date and self.enrollment_date and (self.expiry_date - self.enrollment_date) > max_duration:
             raise ValidationError("수강 기간은 2년을 초과할 수 없습니다.")
 
     def save(self, *args, **kwargs):
