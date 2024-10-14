@@ -8,6 +8,10 @@ from rest_framework.response import Response
 
 from certificates.models import Certificate
 from certificates.permissions import IsCertificateOwner
+from certificates.serializers import (
+    SimpleMajorCategorySerializer,
+    SimpleMinorCategorySerializer,
+)
 from certificates.services import (
     decrypt_certificate_data,
     generate_certificate_image,
@@ -36,14 +40,15 @@ class AvailableCertificatesAPIView(APIView):
         user = request.user
         available_minor, available_major = get_available_certificates(user)
 
+        # 새로운 간단한 시리얼라이저를 사용하여 필요한 데이터만 반환
         return Response(
             {
-                "available_minor_certificates": [
-                    minor.name for minor in available_minor
-                ],
-                "available_major_certificates": [
-                    major.name for major in available_major
-                ],
+                "available_minor_certificates": SimpleMinorCategorySerializer(
+                    available_minor, many=True
+                ).data,
+                "available_major_certificates": SimpleMajorCategorySerializer(
+                    available_major, many=True
+                ).data,
             }
         )
 
