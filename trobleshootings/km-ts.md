@@ -88,3 +88,34 @@ npx supabase db reset --linked
 - 해결 방법
 
 ### 참고 자료
+
+
+## 날짜(24-10-00)
+
+### 문제 상황
+
+- 어떤 것을 하려다가 문제가 발생했는가?
+    - 구니콘 없이 배포했을 경우 문제가 없었지만, 구니콘을 붙이니 실행이 되지 않았음
+    - 아래는 그 코드들임
+    - CMD ["pdm", "run", "gunicorn", "--bind", "0.0.0.0:8000", "src.config.wsgi:application"]
+    - CMD ["pdm", "run", "python", "src/manage.py", "runserver", "0.0.0.0:8000"]
+- 발행한 환경, 프로그램, 경로
+    - Dockerfile
+
+- 발생한 문제(에러)
+    - docker 로그를 살펴보니 'accounts'모듈을 찾을 수 없다고 나옴
+
+### 원인
+
+- 추정되는 원인
+    - 알 수 없음
+- 실제 원인
+    - 구니콘이 `config.wsgi`위치를 찾지 못해서 발생
+
+### 최종 해결
+
+- 최종 해결을 위한 시행 착오(optional)
+    - 마이그레이션 새롭게 진행
+- 해결 방법
+    - CMD ["pdm", "run", "gunicorn", "--chdir", "/app/src", "--bind", "0.0.0.0:8000", "--workers", "3", "config.wsgi:application"]
+### 참고 자료
