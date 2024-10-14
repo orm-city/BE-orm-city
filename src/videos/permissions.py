@@ -42,7 +42,8 @@ class IsEnrolledOrAdminOrManager(BasePermission):
         Returns:
             bool: 사용자가 video에 대한 유효한 수강 상태 또는 관리자 역할일 경우 True, 그렇지 않으면 False.
         """
-        enrollment = getattr(request.user, "enrollment", None)
+        enrollment = getattr(request.user, "enrollments", None)
+        enrollment = enrollment.get(user=request.user.id)
         return (
             enrollment and enrollment.status in ["completed", "active"]
         ) or request.user.role in ["manager", "admin"]
