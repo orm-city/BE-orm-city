@@ -35,6 +35,8 @@ PROJECTS_APPS = [
     "payment",
     "progress",
     "videos",
+    "core",
+    "dashboards",
 ]
 
 THIRD_PARTY_APPS = [
