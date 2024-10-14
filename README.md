@@ -158,7 +158,7 @@ pdm run python manage.py runserver
 - 어뷰징 방지를 위해 ⏱️ Throttle Rate를 적용
 
 ### 🔮 브랜치 전략 (Branch Strategy)
-우리의 브랜치 전략은 Git Flow를 기반으로 하며, 다음과 같은 브랜치를 사용합니다.
+브랜치 전략은 Git Flow를 기반으로 하며, 아래 구조와 같이 개발 작업을 진행하였습니다.
 
 - Main Branch
   - 배포 가능한 상태의 코드를 유지합니다.
@@ -801,8 +801,6 @@ erDiagram
 <br/>
 
 
-
-
 <br/>
 <br/>
 
@@ -810,28 +808,23 @@ erDiagram
 <details>
 <summary>어드민</summary>
 
-| ![로그인 하는 화면](path_to_gif) | ![강의 목록 조회](path_to_gif) |
-| 로그인 하는 화면 | 강의 목록 조회 |
-| ![메이저 강의 등록](path_to_gif) | ![마이너 강의 등록](path_to_gif) |
-| 메이저 강의 등록 | 마이너 강의 등록 |
-| ![비디오 자료 등록](path_to_gif) | ![객관식 등록 화면](path_to_gif) |
-| 비디오 자료 등록 | 객관식 등록 화면( 관리자) |
-| ![주관식 등록 화면](path_to_gif) | ![미션 제출 내역 확인 화면](path_to_gif) |
-| 주관식 등록 화면( 관리자) | 미션 제출 내역 확인 화면( 관리자) |
+<img src="https://github.com/user-attachments/assets/2252334c-aa53-49c4-86fa-106f7a0d0789" alt="로그인 화면" width="450" height="300"><br/><br/>
+<img src="https://github.com/user-attachments/assets/7c1f94fb-2ae8-451e-a8dc-805346702856" alt="메이저 강의 등록및 강의 목록" width="450" height="300"><br/><br/>
+<img src="https://github.com/user-attachments/assets/9b29d0b3-c5ef-47ef-9c23-3354c5a6bb4b" alt="강의영상 등록" width="450" height="300"><br/><br/>
+<img src="https://github.com/user-attachments/assets/5a95f74e-5a4f-451f-8b94-ecdf6d31caa1" alt="미션 객관식 문제 등록" width="450" height="300"><br/><br/>
+<img src="https://github.com/user-attachments/assets/32936a5d-e3f2-4b50-a5ff-757602ff01cc" alt="미션 주관식 문제 등록" width="450" height="300"><br/><br/>
 
 </details>
 
 <details>
 <summary>수강생</summary>
-
-| ![비디오 시청](path_to_gif) | ![수료증 미리보기](path_to_gif) |
-| 비디오 시청 | 수료증 미리보기 |
-| ![수료증 다운로드](path_to_gif) | ![객관식 미션 제출](path_to_gif) |
-| 수료증 다운로드 | 객관식 미션 제출 |
-| ![주관식 미션 제출](path_to_gif) | ![결제하기](path_to_gif) |
-| 주관식 미션 제출 | 결제하기 |
-| ![환불하기](path_to_gif) | ![프로필편집](path_to_gif) |
-| 환불하기 | 프로필 편집 |
+<img src="https://github.com/user-attachments/assets/313e75e2-0457-4b16-beb2-c27e547e29d8" alt="비디오시청" width="450" height="300"><br/><br/> 
+<img src="https://github.com/user-attachments/assets/7bb6ca0d-bd84-439e-82f9-9a20a2022394" alt="수료증미리보기" width="450" height="300"><br/><br/>
+<img src="https://github.com/user-attachments/assets/c8fba04a-2368-4d3f-af28-0e8ce7265cc1" alt="수료증다운로드" width="450" height="300"><br/><br/> 
+<img src="https://github.com/user-attachments/assets/b376bbf5-c17e-40fd-a368-838dadccd1ee" alt="퀴즈응시및채점결과조회" width="450" height="300"><br/><br/> 
+<img src="https://github.com/user-attachments/assets/d28d85aa-5dd4-483a-afd1-1e98c7455c70" alt="강의결제" width="450" height="300"><br/><br/> 
+<img src="https://github.com/user-attachments/assets/1f36601c-e3b1-4129-9816-4ba9a381cc2a" alt="강의환불" width="450" height="300"><br/><br/> 
+<img src="https://github.com/user-attachments/assets/987d1fb8-cab7-47d7-ac7c-eea75395a2f7" alt="프로필편집" width="450" height="300"><br/><br/>
 
 </details>
 
