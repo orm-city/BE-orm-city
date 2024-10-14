@@ -11,6 +11,7 @@ from .models import UserProgress
 from courses.models import Enrollment, MajorCategory
 from videos.models import Video
 
+from .schema import user_progress_list_schema, user_progress_update_schema, user_overall_progress_schema, user_progress_detail_schema 
 from .serializers import (
     UserProgressSerializer,
     UserProgressUpdateSerializer,
@@ -25,6 +26,7 @@ from .permissions import CanViewUserProgress
 logger = logging.getLogger(__name__)
 
 
+@user_progress_list_schema
 class UserProgressListView(generics.ListAPIView):
     """
     현재 로그인한 사용자의 모든 비디오에 대한 학습 진행 상황을 제공하는 API.
@@ -45,6 +47,7 @@ class UserProgressListView(generics.ListAPIView):
         return UserProgress.objects.filter(user=self.request.user)
 
 
+@user_progress_update_schema
 class UserProgressUpdateView(generics.UpdateAPIView):
     """
     사용자의 특정 비디오에 대한 학습 진행 상황을 업데이트하는 API.
@@ -110,7 +113,7 @@ class UserProgressUpdateView(generics.UpdateAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-
+@user_overall_progress_schema
 class UserOverallProgressView(APIView):
     """
     사용자의 전체 학습 진행 상황을 제공하는 API.
@@ -162,6 +165,8 @@ class UserOverallProgressView(APIView):
         return Response(serializer.data)
 
 
+
+@user_progress_detail_schema
 class UserProgressDetailView(generics.RetrieveAPIView):
     """
     사용자의 특정 비디오에 대한 학습 진행 상황을 조회하는 API.

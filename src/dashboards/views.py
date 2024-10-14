@@ -3,12 +3,23 @@ from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
+from drf_spectacular.utils import extend_schema, extend_schema_view
+
 from .models import (
     DailyVisit,
     DailyPayment,
     UserLearningRecord,
     UserVideoProgress,
     ExpirationNotification,
+)
+from .schema import (
+    dashboard_summary_schema,
+    daily_visit_schemas,
+    daily_payment_schemas,
+    user_learning_record_schemas,
+    user_video_progress_schemas,
+    expiration_notification_schemas,
+    student_dashboard_schema
 )
 from .serializers import (
     DashboardSummarySerializer,
@@ -19,9 +30,11 @@ from .serializers import (
     ExpirationNotificationSerializer,
 )
 from .services import DashboardService
+
 from missions.serializers import MissionSerializer  
 
 
+@extend_schema_view(**dashboard_summary_schema)
 class DashboardSummaryView(generics.RetrieveAPIView):
     """
     대시보드 요약 정보를 제공하는 APIView 클래스.
@@ -33,7 +46,7 @@ class DashboardSummaryView(generics.RetrieveAPIView):
     Returns:
         Response: 대시보드 요약 정보
     """
-    permission_classes = [AllowAny]  # 변경
+    permission_classes = [AllowAny]  
     serializer_class = DashboardSummarySerializer
 
     def get_object(self):
@@ -42,7 +55,7 @@ class DashboardSummaryView(generics.RetrieveAPIView):
         """
         return DashboardService.get_dashboard_summary()
 
-
+@extend_schema_view(**daily_visit_schemas)  # 스키마 적용
 class DailyVisitViewSet(viewsets.ReadOnlyModelViewSet):
     """
     일일 방문 기록을 제공하는 ViewSet 클래스.
@@ -59,6 +72,7 @@ class DailyVisitViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DailyVisitSerializer
 
 
+@extend_schema_view(**daily_payment_schemas) 
 class DailyPaymentViewSet(viewsets.ReadOnlyModelViewSet):
     """
     일일 결제 기록을 제공하는 ViewSet 클래스.
@@ -70,11 +84,11 @@ class DailyPaymentViewSet(viewsets.ReadOnlyModelViewSet):
     Returns:
         Response: 일일 결제 기록 데이터
     """
-    permission_classes = [AllowAny]  # 변경
+    permission_classes = [AllowAny] 
     queryset = DailyPayment.objects.all().order_by("-date")
     serializer_class = DailyPaymentSerializer
 
-
+@extend_schema_view(**user_learning_record_schemas)  
 class UserLearningRecordViewSet(viewsets.ReadOnlyModelViewSet):
     """
     사용자 학습 기록을 제공하는 ViewSet 클래스.
@@ -86,11 +100,11 @@ class UserLearningRecordViewSet(viewsets.ReadOnlyModelViewSet):
     Returns:
         Response: 사용자 학습 기록 데이터
     """
-    permission_classes = [AllowAny]  # 변경
+    permission_classes = [AllowAny]  
     queryset = UserLearningRecord.objects.all().order_by("-date")
     serializer_class = UserLearningRecordSerializer
 
-
+@extend_schema_view(**user_video_progress_schemas)  
 class UserVideoProgressViewSet(viewsets.ReadOnlyModelViewSet):
     """
     사용자의 비디오 학습 진행 기록을 제공하는 ViewSet 클래스.
@@ -107,6 +121,7 @@ class UserVideoProgressViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserVideoProgressSerializer
 
 
+@extend_schema_view(**expiration_notification_schemas) 
 class ExpirationNotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """
     수강 만료 알림 정보를 제공하는 ViewSet 클래스.
@@ -125,6 +140,7 @@ class ExpirationNotificationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ExpirationNotificationSerializer
 
 
+@extend_schema(**student_dashboard_schema)  # 스키마 적용
 class StudentDashboardView(generics.RetrieveAPIView):
     """
     학생의 대시보드를 제공하는 APIView 클래스.
