@@ -14,6 +14,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from accounts.models import CustomUser
 from .models import MajorCategory, Payment, Enrollment
+from .schema import payment_info_schema, payment_complete_schema, user_payments_schema, payment_detail_schema, refund_api_view_schema
 from .serializers import PaymentDetailSerializer
 from .permissions import IsAuthenticatedAndAllowed
 
@@ -23,31 +24,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 logger = logging.getLogger(__name__)
 
 
-@extend_schema(
-    summary="아임포트 결제정보",
-    description="대분류명(대카테고리 수강명), 수강금액 정보를 아임포트 결제창에 전달합니다.",
-    parameters=[
-        OpenApiParameter(
-            name="major_category_id",
-            description="ID of the major category",
-            required=True,
-            type=int,
-        ),
-    ],
-    responses={
-        200: {
-            "type": "object",
-            "properties": {
-                "major_category_id": {"type": "integer"},
-                "major_category_name": {"type": "string"},
-                "major_category_price": {"type": "number"},
-                "user_id": {"type": "integer"},
-                "imp_key": {"type": "string"},
-            },
-        },
-        404: {"description": "Major category not found"},
-    },
-)
+@payment_info_schema
 class PaymentInfoAPIView(APIView):
     """
     아임포트 결제 정보를 제공하는 APIView.
@@ -89,41 +66,7 @@ class PaymentInfoAPIView(APIView):
             )
 
 
-@extend_schema(
-    summary="결제 생성(수강정보,수강신청 저장)",
-    description="수강 결제가 생성되면 해당 수강상품에 대한 enrollment 데이터가 등록됩니다.",
-    request={
-        "type": "object",
-        "properties": {
-            "user_id": {"type": "integer"},
-            "imp_uid": {"type": "string"},
-            "merchant_uid": {"type": "string"},
-            "major_category_id": {"type": "integer"},
-            "total_amount": {"type": "number"},
-        },
-        "required": [
-            "user_id",
-            "imp_uid",
-            "merchant_uid",
-            "major_category_id",
-            "total_amount",
-        ],
-    },
-    responses={
-        201: {
-            "type": "object",
-            "properties": {
-                "message": {"type": "string"},
-                "payment_id": {"type": "integer"},
-                "enrollment_id": {"type": "integer"},
-                "status": {"type": "string"},
-                "refund_deadline": {"type": "string", "format": "date-time"},
-            },
-        },
-        400: {"description": "올바르지 않은 결제정보이거나 중복 결제입니다."},
-        404: {"description": "사용자 혹은 major category 정보가 확인되지 않습니다."},
-    },
-)
+@payment_complete_schema
 class PaymentCompleteAPIView(APIView):
     """
     결제 완료 처리 APIView.
@@ -302,6 +245,8 @@ class PaymentCompleteAPIView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+    
+@user_payments_schema
 class UserPaymentsView(APIView):
     """
     사용자의 결제 내역을 조회하는 APIView.
@@ -349,6 +294,7 @@ class UserPaymentsView(APIView):
         return Response(payment_list)
 
 
+@payment_detail_schema
 class PaymentDetailView(APIView):
     """
     특정 결제 정보를 불러오는 APIView.
@@ -379,6 +325,7 @@ class PaymentDetailView(APIView):
             )
 
 
+@refund_api_view_schema
 class RefundAPIView(APIView):
     """
     결제 환불을 처리하는 APIView.

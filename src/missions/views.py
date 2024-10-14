@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework import viewsets
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse
 
 from .permissions import IsActiveOrCompletedEnrollmentOrManagerAdmin, IsManagerOrAdmin
 
@@ -16,7 +16,27 @@ from .models import (
     MultipleChoiceSubmission,
     CodeSubmission,
 )
-
+from .schema import (
+    mission_list_schema,
+    mission_retrieve_schema,
+    mission_update_schema,
+    mission_partial_update_schema,
+    multiple_choice_question_list_schema,
+    multiple_choice_question_retrieve_schema,
+    multiple_choice_question_update_schema,
+    multiple_choice_question_partial_update_schema,
+    multiple_choice_question_destroy_schema,
+    multiple_choice_submission_schema,
+    code_submission_retrieve_schema,
+    code_submission_list_schema,
+    code_submission_update_schema,
+    code_submission_destroy_schema,
+    code_submission_evaluation_schema,
+    user_code_submission_list_schema,
+    all_code_submission_list_schema,
+    user_submission_list_schema,
+    all_submission_list_schema
+)
 from .serializers import (
     DetailMultipleChoiceSubmissionSerializer,
     MissionSerializer,
@@ -28,7 +48,12 @@ from .serializers import (
 
 from .services import evaluate_code_submission
 
-
+@extend_schema_view(
+    list=mission_list_schema,
+    retrieve=mission_retrieve_schema,
+    update=mission_update_schema,
+    partial_update=mission_partial_update_schema,
+)
 class MissionViewSet(viewsets.ModelViewSet):
     """
 
@@ -70,17 +95,6 @@ class MissionViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="minor_category_id",
-                description="필터링할 MinorCategory ID. 이 값을 제공하면 해당 minor_category에 속한 Mission만 반환됩니다.",
-                required=False,
-                type=int,
-            ),
-        ],
-        responses={200: OpenApiResponse(MissionSerializer(many=True))},
-    )
     def list(self, request, *args, **kwargs):
         """
         특정 MinorCategory에 속한 Mission만 반환하는 커스텀 list 메서드.
@@ -111,6 +125,13 @@ class MissionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@extend_schema_view(
+    list=multiple_choice_question_list_schema,
+    retrieve=multiple_choice_question_retrieve_schema,
+    update=multiple_choice_question_update_schema,
+    partial_update=multiple_choice_question_partial_update_schema,
+    destroy=multiple_choice_question_destroy_schema,
+)
 class MultipleChoiceQuestionViewSet(viewsets.ModelViewSet):
     """
     5지선다형 문제에 대한 CRUD 기능을 제공하는 ViewSet.
@@ -150,17 +171,7 @@ class MultipleChoiceQuestionViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="mission_id",
-                description="필터링할 mission ID. 이 값을 제공하면 해당 mission 속한 multiplechoicequestions만 반환됩니다.",
-                required=False,
-                type=int,
-            ),
-        ],
-        responses={200: OpenApiResponse(MissionSerializer(many=True))},
-    )
+
     def list(self, request, *args, **kwargs):
         """
         특정 미션에 속한 5지선다형 문제 목록을 필터링하여 반환합니다.
@@ -236,7 +247,7 @@ class MultipleChoiceQuestionViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-
+@extend_schema(**multiple_choice_submission_schema)
 class MultipleChoiceQuestionSubmissionAPIView(APIView):
     """
     5지선다형 문제에 대한 답안을 제출하고 채점하는 API 뷰.
@@ -278,6 +289,7 @@ class MultipleChoiceQuestionSubmissionAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(**user_submission_list_schema)
 class UserSubmissionListAPIView(ListAPIView):
     """
     현재 로그인한 사용자의 제출 내역을 반환하는 API 뷰.
@@ -290,6 +302,7 @@ class UserSubmissionListAPIView(ListAPIView):
         return MultipleChoiceSubmission.objects.filter(user=self.request.user)
 
 
+@extend_schema(**all_submission_list_schema)
 class AllSubmissionListAPIView(ListAPIView):
     """
     모든 사용자의 제출 내역을 반환하는 API 뷰.
@@ -300,6 +313,13 @@ class AllSubmissionListAPIView(ListAPIView):
     queryset = MultipleChoiceSubmission.objects.all()
 
 
+@extend_schema_view(
+    list=code_submission_list_schema,
+    retrieve=code_submission_retrieve_schema,
+    update=code_submission_update_schema,
+    partial_update=code_submission_update_schema,
+    destroy=code_submission_destroy_schema,
+)
 class CodeSubmissionViewSet(viewsets.ModelViewSet):
     """
     사용자는 특정 미션에 속한 코드 제출형 문제들을 필터링하여 조회할 수 있으며,
@@ -336,17 +356,6 @@ class CodeSubmissionViewSet(viewsets.ModelViewSet):
             permission_classes = [IsManagerOrAdmin]
         return [permission() for permission in permission_classes]
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="mission_id",
-                description="필터링할 mission ID. 이 값을 제공하면 해당 mission 속한 multiplechoicequestions만 반환됩니다.",
-                required=False,
-                type=int,
-            ),
-        ],
-        responses={200: OpenApiResponse(MissionSerializer(many=True))},
-    )
     def list(self, request, *args, **kwargs):
         """
         특정 미션에 속한 5지선다형 문제 목록을 필터링하여 반환합니다.
@@ -423,6 +432,7 @@ class CodeSubmissionViewSet(viewsets.ModelViewSet):
             )
 
 
+@extend_schema(**code_submission_evaluation_schema)
 class CodeSubmissionEvaluationAPIView(APIView):
     """
     제출된 코드를 채점하고 결과를 반환하는 API.
@@ -491,6 +501,7 @@ class CodeSubmissionEvaluationAPIView(APIView):
         )
 
 
+@extend_schema(**user_code_submission_list_schema)
 class UserCodeSubmissionListAPIView(ListAPIView):
     """
     로그인된 사용자의 코드 제출 내역을 반환하는 API 뷰.
@@ -504,6 +515,7 @@ class UserCodeSubmissionListAPIView(ListAPIView):
         return CodeSubmissionRecord.objects.filter(user=self.request.user)
 
 
+@extend_schema(**all_code_submission_list_schema)
 class AllCodeSubmissionListAPIView(ListAPIView):
     """
     모든 사용자의 코드 제출 내역을 반환하는 API 뷰.

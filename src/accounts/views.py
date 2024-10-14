@@ -9,6 +9,25 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 
 from .models import CustomUser, UserActivity
+from .schema import (
+    paginated_response_schema, 
+    user_list_schema, 
+    user_retrieve_schema, 
+    user_create_schema, 
+    user_update_schema, 
+    user_partial_update_schema, 
+    user_destroy_schema, 
+    register_view_schema, 
+    login_view_schema, 
+    logout_view_schema, 
+    user_profile_retrieve_schema, 
+    user_profile_update_schema, 
+    user_activity_list_schema, 
+    delete_account_schema, 
+    manager_creation_schema, 
+    change_user_role_schema, 
+    role_check_schema
+    )
 from .serializers import (
     UserSerializer,
     UserRegistrationSerializer,
@@ -17,6 +36,7 @@ from .serializers import (
     ManagerCreationSerializer,
 )
 from .permissions import IsManagerOrAdminUser, IsAdminUser
+
 
 class StandardResultsSetPagination(PageNumberPagination):
     """
@@ -28,6 +48,11 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size_query_param = "page_size"
     max_page_size = 100
 
+@paginated_response_schema
+def some_view(request):
+    # API 로직 처리
+    pass
+
 
 class UserManagementViewSet(viewsets.ModelViewSet):
     """
@@ -38,6 +63,31 @@ class UserManagementViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    @user_list_schema
+    def list(self, request):
+        return super().list(request)
+
+    @user_retrieve_schema
+    def retrieve(self, request, pk=None):
+        return super().retrieve(request, pk)
+
+    @user_create_schema
+    def create(self, request):
+        return super().create(request)
+
+    @user_update_schema
+    def update(self, request, pk=None):
+        return super().update(request, pk)
+
+    @user_partial_update_schema
+    def partial_update(self, request, pk=None):
+        return super().partial_update(request, pk)
+
+    @user_destroy_schema
+    def destroy(self, request, pk=None):
+        return super().destroy(request, pk)
+    
 
     def get_queryset(self):
         """
@@ -80,6 +130,7 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
+    @register_view_schema  # 스키마 적용
     def create(self, request, *args, **kwargs):
         """
         사용자를 등록하고, 사용자 정보와 토큰을 반환합니다.
@@ -112,6 +163,7 @@ class LoginView(APIView):
     """
     permission_classes = [AllowAny]
 
+    @login_view_schema 
     def post(self, request):
         """
         사용자의 로그인 요청을 처리합니다.
@@ -144,6 +196,7 @@ class LogoutView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @logout_view_schema
     def post(self, request):
         """
         사용자의 로그아웃 요청을 처리하고, 리프레시 토큰을 블랙리스트에 추가합니다.
@@ -172,6 +225,20 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
+    @user_profile_retrieve_schema  
+    def retrieve(self, request, *args, **kwargs):
+        """
+        현재 사용자의 프로필 정보를 조회합니다.
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    @user_profile_update_schema  
+    def update(self, request, *args, **kwargs):
+        """
+        현재 사용자의 프로필 정보를 수정합니다.
+        """
+        return super().update(request, *args, **kwargs)
+    
     def get_object(self):
         """
         현재 로그인한 사용자 객체를 반환합니다.
@@ -189,6 +256,13 @@ class UserActivityListView(generics.ListAPIView):
     serializer_class = UserActivitySerializer
     permission_classes = [IsAuthenticated]
 
+    @user_activity_list_schema  # 스키마 분리 적용
+    def get(self, request, *args, **kwargs):
+        """
+        현재 사용자의 활동 기록을 조회합니다.
+        """
+        return super().get(request, *args, **kwargs)
+
     def get_queryset(self):
         """
         현재 로그인한 사용자의 활동 기록을 반환합니다.
@@ -205,6 +279,7 @@ class DeleteAccountView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @delete_account_schema
     def delete(self, request):
         """
         현재 로그인한 사용자의 계정을 삭제합니다.
@@ -229,6 +304,7 @@ class ManagerCreationView(APIView):
     """
     permission_classes = [IsAdminUser]
 
+    @manager_creation_schema
     def post(self, request):
         """
         새로운 매니저 계정을 생성합니다.
@@ -694,6 +770,7 @@ class ChangeUserRoleView(APIView):
 
     permission_classes = [IsAdminUser]
 
+    @change_user_role_schema
     def patch(self, request, user_id):
         """
         특정 사용자의 역할을 변경합니다.
@@ -728,10 +805,7 @@ class RoleCheckView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(
-        responses={200: {"type": "object", "properties": {"role": {"type": "string"}}}},
-        description="현재 로그인한 사용자의 역할을 반환합니다.",
-    )
+    @role_check_schema 
     def get(self, request):
         """
         현재 로그인한 사용자의 역할을 반환합니다.

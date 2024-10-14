@@ -10,6 +10,7 @@ from dateutil.relativedelta import relativedelta
 from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from .models import MajorCategory, MinorCategory, Enrollment
+from .schema import major_category_schemas, minor_category_schemas, enrollment_schemas  
 from .serializers import MajorCategorySerializer, MinorCategorySerializer, EnrollmentSerializer
 from videos.models import Video
 from .permissions import (
@@ -21,15 +22,7 @@ from .permissions import (
 )
 
 
-@extend_schema_view(
-    list=extend_schema(tags=["courses"]),
-    retrieve=extend_schema(tags=["courses"]),
-    create=extend_schema(tags=["courses"]),
-    update=extend_schema(tags=["courses"]),
-    partial_update=extend_schema(tags=["courses"]),
-    destroy=extend_schema(tags=["courses"]),
-    details=extend_schema(tags=["courses"]),
-)
+@extend_schema_view(**major_category_schemas)  
 class MajorCategoryViewSet(viewsets.ModelViewSet):
     """
     MajorCategory 모델을 위한 ViewSet 클래스.
@@ -88,14 +81,7 @@ class MajorCategoryViewSet(viewsets.ModelViewSet):
         return Response(data)
 
 
-@extend_schema_view(
-    list=extend_schema(tags=["courses"]),
-    retrieve=extend_schema(tags=["courses"]),
-    create=extend_schema(tags=["courses"]),
-    update=extend_schema(tags=["courses"]),
-    partial_update=extend_schema(tags=["courses"]),
-    destroy=extend_schema(tags=["courses"]),
-)
+@extend_schema_view(**minor_category_schemas)  
 class MinorCategoryViewSet(viewsets.ModelViewSet):
     """
     MinorCategory 모델을 위한 ViewSet 클래스.
@@ -175,16 +161,7 @@ class MinorCategoryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-@extend_schema_view(
-    list=extend_schema(tags=["courses"]),
-    retrieve=extend_schema(tags=["courses"]),
-    create=extend_schema(tags=["courses"]),
-    update=extend_schema(tags=["courses"]),
-    partial_update=extend_schema(tags=["courses"]),
-    destroy=extend_schema(tags=["courses"]),
-    active_enrollments=extend_schema(tags=["courses"]),
-    complete_enrollment=extend_schema(tags=["courses"]),
-)
+@extend_schema_view(**enrollment_schemas) 
 class EnrollmentViewSet(viewsets.ModelViewSet):
     """
     Enrollment 모델을 위한 ViewSet 클래스.

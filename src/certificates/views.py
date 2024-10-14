@@ -17,12 +17,20 @@ from certificates.services import (
     get_course_model,
 )
 
+from .schema import (
+    available_certificates_schema,
+    certificate_preview_schema,
+    certificate_download_schema,
+    verify_certificate_schema
+) 
+
 
 class AvailableCertificatesAPIView(APIView):
     """
     사용자가 완료한 MinorCategory와 MajorCategory의 인증서를 조회하는 API 뷰입니다.
     """
 
+    @available_certificates_schema
     def get(self, request):
         """
         사용자가 발급받을 수 있는 Minor 및 Major 카테고리의 인증서를 조회합니다.
@@ -55,6 +63,7 @@ class CertificatePreviewAPIView(APIView):
 
     permission_classes = [IsAuthenticated, IsCertificateOwner]
 
+    @certificate_preview_schema
     def get(self, request, course_type=None, course_id=None):
         """
         GET 요청을 처리하여 인증서의 PNG 이미지를 생성합니다.
@@ -90,6 +99,7 @@ class CertificateDownloadAPIView(APIView):
 
     permission_classes = [IsAuthenticated, IsCertificateOwner]
 
+    @certificate_download_schema
     def get(self, request, course_type=None, course_id=None):
         """
         GET 요청을 처리하여 인증서를 PDF 형식으로 다운로드합니다.
@@ -141,6 +151,7 @@ class VerifyCertificateAPIView(APIView):
 
     permission_classes = [AllowAny]
 
+    @verify_certificate_schema 
     def get(self, request, certificate_id):
         """
         GET 요청을 통해 인증서 ID에 해당하는 인증서의 유효성을 확인합니다.
