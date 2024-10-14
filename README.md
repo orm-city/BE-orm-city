@@ -512,8 +512,6 @@ erDiagram
 
 ## ☑︎ missions
 
-네, 제공해주신 스웨거 명세서를 바탕으로 API 명세서를 마크다운 형식으로 작성해드리겠습니다. 한글로 설명을 추가하여 이해하기 쉽게 만들었습니다.
-
 | HTTP Method | URL Pattern | Description | Authentication | Permission |
 |-------------|-------------|------|-----------|------|
 | GET/PUT/PATCH | /missions/{id}/ | 특정 미션의 세부 정보 조회,수정,업데이트 | ✅ | ✅ |
