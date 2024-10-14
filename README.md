@@ -75,7 +75,7 @@ pdm run python manage.py runserver
 
 | **이름** | 고경민 | 남민우 | 장지우 | 백승현 |
 |-------------|--------|--------|--------|--------|
-| **담당 역할** | ▪︎ 📋 프로젝트 계획 및 관리<br>▪︎🎥 영상 컨텐츠 업로드 기능<br>▪︎🎓 수강증 인증 기능<br>▪︎📊 미션 평가 기능<br>▪︎🌐 배포 환경 구축<br>▪︎🖥️ FE 구축| ▪︎ 👤 사용자 관리 기능<br>▪︎  📚강의 과목 관리 기능 | ▪︎ 💳 강의 결제 기능<br>▪︎ 📈 학습 진행 관리 기능<br>▪︎ 🖥️ FE 구축 |▪︎✍️ 미션 초안 작성<br>▪︎📋 컨벤션에 맞추어 정리<br>▪︎📜 schema 작성|
+| **담당 <br/>역할** | ▪︎ 📋 프로젝트 계획 및 관리<br>▪︎🎥 영상 컨텐츠 업로드 기능<br>▪︎🎓 수강증 인증 기능<br>▪︎📊 미션 평가 기능<br>▪︎🌐 배포 환경 구축<br>▪︎🖥️ FE 구축| ▪︎ 👤 사용자 관리 기능<br>▪︎  📚강의 과목 관리 기능 | ▪︎ 💳 강의 결제 기능<br>▪︎ 📈 학습 진행 관리 기능<br>▪︎ 🖥️ FE 구축 |▪︎✍️ 미션 초안 작성<br>▪︎📋 컨벤션에 맞추어 정리<br>▪︎📜 schema 작성|
 
 
 <br/>
@@ -158,7 +158,7 @@ pdm run python manage.py runserver
 - 어뷰징 방지를 위해 ⏱️ Throttle Rate를 적용
 
 ### 🔮 브랜치 전략 (Branch Strategy)
-우리의 브랜치 전략은 Git Flow를 기반으로 하며, 다음과 같은 브랜치를 사용합니다.
+브랜치 전략은 Git Flow를 기반으로 하며, 아래 구조와 같이 개발 작업을 진행하였습니다.
 
 - Main Branch
   - 배포 가능한 상태의 코드를 유지합니다.
@@ -553,9 +553,11 @@ erDiagram
 
 - **💳 결제 시스템**:
   - 아임포트 결제 시스템 연동으로 사용자는 과목을 결제하고 결제 내역을 조회할 수 있으며, 환불 요청도 가능합니다.
+
+<br/>
 <br/>
 
-# 🔗 URL 구조(마이크로식)
+# 프로젝트 구조
 
  ### 파일 트리
  ```
@@ -696,6 +698,12 @@ erDiagram
 ┗ 📜reset_migrations.ps1
 ```
 
+<br/>
+<br/>
+
+
+# API 명세서
+
 ### ☑︎ accounts
 | HTTP Method | URL Pattern | Description | Authentication | Permission |
 |-------------|-------------|-------------|----------------|------------|
@@ -801,8 +809,6 @@ erDiagram
 <br/>
 
 
-
-
 <br/>
 <br/>
 
@@ -812,38 +818,34 @@ erDiagram
 
 <table>
     <tr>
-        <td>로그인 하는 화면</td>
-        <td>강의 목록 조회</td>
+        <td>로그인 화면</td>
+        <td>메이저 강의 등록및 강의 목록</td>
     </tr>
     <tr>
-        <td><img src="path_to_gif" width="100%"></td>
-        <td><img src="path_to_gif" width="100%"></td>
+        <td><img src="https://github.com/user-attachments/assets/2252334c-aa53-49c4-86fa-106f7a0d0789" alt="로그인 화면" width="450" height="300"></td>
+        <td><img src="https://github.com/user-attachments/assets/7c1f94fb-2ae8-451e-a8dc-805346702856" alt="메이저 강의 등록및 강의 목록" width="450" height="300"></td>
     </tr>
     <tr>
-        <td>메이저 강의 등록</td>
-        <td>마이너 강의 등록</td>
+        <td>강의영상 등록</td>
+        <td>미션 객관식 문제 등록</td>
     </tr>
     <tr>
-        <td><img src="path_to_gif" width="100%"></td>
-        <td><img src="path_to_gif" width="100%"></td>
+        <td><img src="https://github.com/user-attachments/assets/9b29d0b3-c5ef-47ef-9c23-3354c5a6bb4b" alt="강의영상 등록" width="450" height="300"></td>
+        <td><img src="https://github.com/user-attachments/assets/5a95f74e-5a4f-451f-8b94-ecdf6d31caa1" alt="미션 객관식 문제 등록" width="450" height="300"></td>
     </tr>
     <tr>
-        <td>비디오 자료 등록</td>
-        <td>객관식 등록 화면 (관리자)</td>
+        <td>미션 주관식 문제 등록</td>
+        <td></td>
     </tr>
     <tr>
-        <td><img src="path_to_gif" width="100%"></td>
-        <td><img src="path_to_gif" width="100%"></td>
-    </tr>
-    <tr>
-        <td>주관식 등록 화면 (관리자)</td>
-        <td>미션 제출 내역 확인 화면 (관리자)</td>
-    </tr>
-    <tr>
-        <td><img src="path_to_gif" width="100%"></td>
-        <td><img src="path_to_gif" width="100%"></td>
+        <td><img src="https://github.com/user-attachments/assets/32936a5d-e3f2-4b50-a5ff-757602ff01cc" alt="미션 주관식 문제 등록" width="450" height="300"></td>
+        <td></td>
     </tr>
 </table>
+
+
+
+
 </details>
 
 <details>
@@ -854,38 +856,46 @@ erDiagram
         <td>수료증 미리보기</td>
     </tr>
     <tr>
-        <td><img src="path_to_gif" width="100%"></td>
-        <td><img src="path_to_gif" width="100%"></td>
+        <td><img src="https://github.com/user-attachments/assets/313e75e2-0457-4b16-beb2-c27e547e29d8" alt="비디오시청" width="450" height="300"></td>
+        <td><img src="https://github.com/user-attachments/assets/7bb6ca0d-bd84-439e-82f9-9a20a2022394" alt="수료증미리보기" width="450" height="300"></td>
     </tr>
     <tr>
         <td>수료증 다운로드</td>
-        <td>객관식 미션 제출</td>
+        <td>퀴즈응시및채점결과조회</td>
     </tr>
     <tr>
-        <td><img src="path_to_gif" width="100%"></td>
-        <td><img src="path_to_gif" width="100%"></td>
+        <td><img src="https://github.com/user-attachments/assets/c8fba04a-2368-4d3f-af28-0e8ce7265cc1" alt="수료증다운로드" width="450" height="300"> </td>
+        <td><img src="https://github.com/user-attachments/assets/b376bbf5-c17e-40fd-a368-838dadccd1ee" alt="퀴즈응시및채점결과조회" width="450" height="300"> </td>
     </tr>
     <tr>
-        <td>주관식 미션 제출</td>
-        <td>결제하기</td>
+        <td>강의결제</td>
+        <td>강의환불</td>
     </tr>
     <tr>
-        <td><img src="path_to_gif" width="100%"></td>
-        <td><img src="path_to_gif" width="100%"></td>
+        <td><img src="https://github.com/user-attachments/assets/d28d85aa-5dd4-483a-afd1-1e98c7455c70" alt="강의결제" width="450" height="300"> </td>
+        <td><img src="https://github.com/user-attachments/assets/1f36601c-e3b1-4129-9816-4ba9a381cc2a" alt="강의환불" width="450" height="300"> </td>
     </tr>
     <tr>
-        <td>환불하기</td>
-        <td>프로필 편집</td>
+        <td>프로필편집</td>
+        <td></td>
     </tr>
     <tr>
-        <td><img src="path_to_gif" width="100%"></td>
-        <td><img src="path_to_gif" width="100%"></td>
+        <td><img src="https://github.com/user-attachments/assets/987d1fb8-cab7-47d7-ac7c-eea75395a2f7" alt="프로필편집" width="450" height="300"></td>
+        <td></td>
     </tr>
 </table>
 </details>
 
 
 
+
+
+
+
+
+
+
+</details>
 
 
 
