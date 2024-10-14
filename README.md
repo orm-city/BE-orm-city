@@ -565,7 +565,7 @@ erDiagram
 ## ☑︎ videos
 | HTTP Method | URL Pattern | Description | Authentication | Permission |
 |-------------|-------------|-------------|----------------|------------|
-| GET/POST | /videos/ | 비디오 목록 조회 및 생성 | GET: - <br/>POST ✅ | GET - <br/>POST: ✅ |
+| GET/POST | /videos/ | 비디오 목록 조회 및 생성 | GET - <br/>POST ✅ | GET - <br/>POST ✅ |
 | GET/PUT/DELETE | /videos/int:pk/ | 비디오 상세 조회, 수정, 삭제 | ✅ | ✅ |
 | POST | /videos/complete-upload/ | 멀티파트 업로드 완료 처리 | ✅ | ✅ |
 | POST | /videos/progress/ | 사용자 비디오 진행 상황 업데이트 | ✅ | ✅ |
