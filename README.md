@@ -471,8 +471,8 @@ erDiagram
 | HTTP Method | URL Pattern | Description | Authentication | Permission |
 |-------------|-------------|-------------|----------------|------------|
 | GET | /certificates/ | 발급 가능한 수료증 목록 조회 | ✅ | |
-| GET | /certificates/preview/str:course_type/int:course_id/ | 수료증 미리보기 | ✅ | ✅ |
-| GET | /certificates/download/str:course_type/int:course_id/ | 수료증 다운로드 | ✅ | ✅ |
+| GET | /certificates/preview/<br/>str:course_type/int:course_id/ | 수료증 미리보기 | ✅ | ✅ |
+| GET | /certificates/download/<br/>str:course_type/int:course_id/ | 수료증 다운로드 | ✅ | ✅ |
 | GET | /certificates/verify/uuid:certificate_id/ | 수료증 검증 | - | - |
 
 <br/>
