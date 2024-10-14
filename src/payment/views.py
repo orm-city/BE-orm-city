@@ -302,6 +302,8 @@ class PaymentCompleteAPIView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
 class UserPaymentsView(APIView):
     """
     사용자의 결제 내역을 조회하는 APIView.
@@ -401,7 +403,7 @@ class RefundAPIView(APIView):
             "Accept": "*/*",
         }
         body = {
-            "imp_key": settings.IAMPORT["IMP_KEY"],
+            "imp_key": settings.IAMPORT["IMP_REST_API_KEY"],
             "imp_secret": settings.IAMPORT["IMP_SECRET"],
         }
         try:
@@ -506,4 +508,3 @@ class RefundAPIView(APIView):
         except requests.RequestException as e:
             logger.exception(f"Request failed during request_refund: {str(e)}")
             raise
-
