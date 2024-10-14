@@ -123,7 +123,7 @@ class Payment(models.Model):
                 )
                 self.enrollment = enrollment
                 return enrollment
-            except Exception as e:
+            except Exception as e:  # noqa
                 # 로그 처리 또는 에러 처리 로직 추가 가능
                 pass
         return None

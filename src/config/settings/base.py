@@ -30,9 +30,7 @@ DJANGO_APPS = [
 PROJECTS_APPS = [
     "accounts",
     "certificates",
-    "core",
     "courses",
-    "dashboards",
     "missions",
     "payment",
     "progress",
