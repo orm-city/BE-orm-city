@@ -457,10 +457,7 @@ erDiagram
 
 # 🔗 URL 구조(마이크로식)
 
-  
-
-<br/>
-<br/>
+ 
 
 ### ☑︎ accounts
 | HTTP Method | URL Pattern | Description | Authentication | Permission |
@@ -515,15 +512,15 @@ erDiagram
 | HTTP Method | URL Pattern | Description | Authentication | Permission |
 |-------------|-------------|------|-----------|------|
 | GET/PUT/PATCH | /missions/{id}/ | 특정 미션의 세부 정보 조회,수정,업데이트 | ✅ | ✅ |
-| GET/POST | /missions/code-submission-questions/ | 코드 제출 전체 문제 목록 조회,생성 | ✅ | ✅ |
-| GET/PUT/PATCH/DELETE | /missions/code-submission-questions/{id}/ | 특정 코드 제출 CRUD | ✅ | ✅ |
+| GET/POST | /missions/<br/>code-submission-questions/ | 코드 제출 전체 문제 목록 조회,생성 | ✅ | ✅ |
+| GET/PUT/PATCH/DELETE | /missions/<br/>code-submission-questions/{id}/ | 특정 코드 제출 CRUD | ✅ | ✅ |
 | GET | /missions/code-submissions/ | 코드 제출 목록 조회,생성 | ✅ | ✅ |
-| POST | /missions/code-submissions/{code_submission_id}/evaluate/ | 제출된 코드 평가 | ✅ | ✅ |
-| GET/PUT/PATCH/DELETE | /missions/code-submissions/{id}/ | 특정 코드 제출 CRUD | ✅ | ✅ |
-| GET | /missions/major/{major_id}/{minor_id}/{mid_or_final}/cs/ | 특정 분류의 코드 제출 문제 목록 조회 | ✅ | ✅ |
-| GET | /missions/major/{major_id}/{minor_id}/{mid_or_final}/mcqs/ | 특정 분류의 객관식 문제 목록 조회 | ✅ | ✅ |
+| POST | /missions/code-submissions/<br/>{code_submission_id}/evaluate/ | 제출된 코드 평가 | ✅ | ✅ |
+| GET/PUT/PATCH/DELETE | /missions/<br/>code-submissions/{id}/ | 특정 코드 제출 CRUD | ✅ | ✅ |
+| GET | /missions/major/{major_id}/<br/>{minor_id}/{mid_or_final}/cs/ | 특정 분류의 코드 제출 문제 목록 조회 | ✅ | ✅ |
+| GET | /missions/major/{major_id}/<br/>{minor_id}/{mid_or_final}/mcqs/ | 특정 분류의 객관식 문제 목록 조회 | ✅ | ✅ |
 | GET/POST | /missions/multiple-choice-questions/ | 객관식 문제 목록 조회,생성 | ✅ | ✅ |
-| GET/POST/PUT/PATCH/DELETE | /missions/multiple-choice-questions/{id}/ | 특정 객관식 문제 CRUD | ✅ | ✅ |
+| GET/POST/PUT/PATCH/DELETE | /missions<br/>/multiple-choice-questions/{id}/ | 특정 객관식 문제 CRUD | ✅ | ✅ |
 | GET | /missions/submissions/all/cs/ | 모든 사용자의 코드 제출 내역 조회 | ✅ | ✅ |
 | GET | /missions/submissions/all/mcqs/ | 모든 사용자의 객관식 문제 제출 내역 조회 | ✅ | ✅ |
 | GET | /missions/submissions/user/cs/ | 현재 사용자의 코드 제출 내역 조회 | ✅ | ✅ |
