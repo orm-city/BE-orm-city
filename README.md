@@ -51,21 +51,38 @@
 # 🛠️ 기술 스택
 
 
-### Frontend
+### 💠 Frontend
 <img src="https://img.shields.io/badge/html5-E34F26?style=for-the-badge&logo=html5&logoColor=white"> <img src="https://img.shields.io/badge/css-1572B6?style=for-the-badge&logo=css3&logoColor=white"> <img src="https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black">
 
+<br/>
 
-### Backend
-<img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white"> <img src="https://img.shields.io/badge/django-092E20?style=for-the-badge&logo=django&logoColor=white">
+### 💠 Backend
+- **Tools** <br/>
+![VS Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white) ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white)
 
+- **Web Framework** <br/>
+<img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=yellow"> <img src="https://img.shields.io/badge/django-092E20?style=for-the-badge&logo=django&logoColor=white"> <img src="https://camo.githubusercontent.com/6e311e5fb8b5e6c95e2609cba8f8f4de27cc35217a5d31f1119caca596cbebd4/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f444a414e474f2d524553546672616d65776f726b2d6666313730393f7374796c653d666f722d7468652d6261646765266c6f676f3d646a616e676f266c6f676f436f6c6f723d776869746526636f6c6f723d666631373039266c6162656c436f6c6f723d67726179" alt="DjangoREST" data-canonical-src="https://img.shields.io/badge/DJANGO-RESTframework-ff1709?style=for-the-badge&amp;logo=django&amp;logoColor=white&amp;color=ff1709&amp;labelColor=gray" style="max-width: 100%;">
 
-### Deploy
-<img src="https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"> ![Amazon S3](https://img.shields.io/badge/amazon%20S3-569A31?style=for-the-badge&logo=amazon%20S3&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
+<br/>
 
-
-
-### Cooperation
-![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-%23ffffff.svg?style=for-the-badge&logo=notion&logoColor=black) ![Jira](https://img.shields.io/badge/jira-%230A0FFF.svg?style=for-the-badge&logo=jira&logoColor=white) ![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)
+### 💠 Third-party
+| 패키지 이름                         | 버전        |
+|-------------------------------------|-------------|
+| django-cors-headers                 | 4.4.0       |             
+| djangorestframework-simplejwt       | 5.3.1       |           
+| drf-spectacular                     | 0.27.2      |           
+| boto3                               | 1.35.26     |           
+| botocore                            | 1.35.26     |           
+| pre-commit                          | 3.8.0       |           
+| psycopg                             | 3.2.2       |           
+| psycopg2-binary                     | 2.9.9       |           
+| pycryptodome                        | 3.21.0      |           
+| PyJWT                               | 2.9.0       |           
+| pytest                              | 8.3.3       |           
+| pytest-django                       | 4.9.0       |             
+| PyYAML                              | 6.0.2       |           
+| qrcode                              | 8.0         |   
+        
 
 <br/>
 <br/>
