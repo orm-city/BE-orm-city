@@ -553,9 +553,11 @@ erDiagram
 
 - **💳 결제 시스템**:
   - 아임포트 결제 시스템 연동으로 사용자는 과목을 결제하고 결제 내역을 조회할 수 있으며, 환불 요청도 가능합니다.
+
+<br/>
 <br/>
 
-# 🔗 URL 구조(마이크로식)
+# 프로젝트 구조
 
  ### 파일 트리
  ```
@@ -695,6 +697,12 @@ erDiagram
 ┣ 📜reset_mig.sh
 ┗ 📜reset_migrations.ps1
 ```
+
+<br/>
+<br/>
+
+
+# API 명세서
 
 ### ☑︎ accounts
 | HTTP Method | URL Pattern | Description | Authentication | Permission |
