@@ -2,17 +2,16 @@
 <a href="#" target="_blank">
 <img src="https://github.com/user-attachments/assets/6b99de1d-45c4-40f9-9c6d-5740c88a1fcf" alt="배너" width="100%"/>
 </a>
-*최종 작성 후 순서 및 목차인덱싱 예정
 
 <br/>
 <br/>
 
-# 프로젝트 목표 및 주요 기능
+# 1. 프로젝트 목표 및 주요 기능
 
-## 프로젝트 목표
+## 1.1 프로젝트 목표
 오름시티는 ICT(정보통신기술) 온라인 교육 플랫폼입니다. 이 프로젝트의 주요 목표는 학습자가 이론과 실습을 균형 있게 학습할 수 있도록 체계적으로 정리된 커리큘럼과 미션 과제를 제공하는 것입니다. 프로젝트는 사용자 친화적인 환경에서 디지털 수료증 발급, 학습 진행 관리, 결제 기능 등 다양한 학습 및 관리 기능을 통합하여 제공합니다.
 
-## 주요 기능
+## 1.2 주요 기능
 - **사용자 관리**: JWT 인증을 통한 안전한 사용자 인증 및 관리 기능 제공
 - **강의 과목 관리**: 대분류 및 소분류 과목 관리 및 수강 신청 기능
 - **동영상 학습**: AWS S3를 이용한 동영상 업로드 및 학습 진행 관리
@@ -20,7 +19,11 @@
 - **수료증 발급**: 디지털 수료증 PDF 발급 및 QR 코드를 통한 수료증 진위 확인
 - **결제 시스템**: Portone API를 통한 결제 및 환불 기능
 
-# 🚀시작하기
+
+<br/>
+<br/>
+
+# 2. 🚀 시작하기
 이 프로젝트는 [PDM](https://pdm.fming.dev/)을 사용하여 Python🐍 패키지를 관리합니다.
 
 - 🛠️ PDM 설치: PDM을 설치하지 않았다면, 아래 명령어로 설치합니다.
@@ -28,27 +31,27 @@
 💻 윈도우: pip install pdm
 🍏 맥: brew install pdm
 ```
-1. 📁 레포지토리 클론
+## 2.1  📁 레포지토리 클론
 ```
 git clone https://github.com/orm-city/BE-orm-city.git
 ```
-2. 📦 PDM을 사용하여 의존성 설치
+## 2.2 📦 PDM을 사용하여 의존성 설치
 ```
 pdm install
 ```
-3. 🚀 Django 서버 실행
+## 2.3 🚀 Django 서버 실행
 ```
 pdm run python manage.py migrate
 pdm run python manage.py runserver
 ```
 
-4. 🌐 브라우저에서 확인<br>
+## 2.4. 🌐 브라우저에서 확인<br>
 [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 <br/>
 <br/>
 
-# 📚 프로젝트 개요
+# 3. 📚 프로젝트 개요
 - 프로젝트 이름: 오름시티🏙️
   <br/>
 - 프로젝트 설명: ICT(정보통신기술) 💻 온라인 교육 플랫폼으로 각 과정은 체계적으로 정리된 📋 커리큘럼을 바탕으로 미션 과제를 통해 학습자가 📖 이론과 🛠️ 실습을 균형 있게 학습할 수 있도록 서비스를 제공합니다.
@@ -61,7 +64,7 @@ pdm run python manage.py runserver
 <br/>
 
 
-# 팀원 및 팀 소개
+# 4. 팀원 및 팀 소개
 | 고경민 | 남민우 | 장지우 | 백승현 |
 |:------:|:------:|:------:|:------:|
 | <img src="https://github.com/user-attachments/assets/89308f54-9351-43ff-907c-53a0e2b2c7a1" alt="고경민" width="150"> | <img src="https://github.com/user-attachments/assets/f4cbe0d6-bf34-4e6f-8f88-5f4f200faea0" alt="남민우" width="150"> | <img src="https://github.com/user-attachments/assets/51695336-3dd3-4ea1-8939-37fe790652b3" alt="장지우" width="150"> | <img src="https://github.com/user-attachments/assets/599b7564-d265-4a42-9389-1043f4be6710" alt="백승현" width="150"> |
@@ -69,9 +72,9 @@ pdm run python manage.py runserver
 | [GitHub](https://github.com/cumulus308) | [GitHub](https://github.com/NamMinWoo91) | [GitHub](https://github.com/cheeou) | [GitHub](https://github.com/baccine) |
 
 <br/>
-<br/>
 
-# 작업 및 역할 분담
+
+## 4.1 작업 및 역할 분담
 
 | **이름** | 고경민 | 남민우 | 장지우 | 백승현 |
 |-------------|--------|--------|--------|--------|
@@ -82,30 +85,30 @@ pdm run python manage.py runserver
 <br/>
 
 
-# 🛠️ 기술 스택
+# 5. 🛠️ 기술 스택
 
 
-### Frontend
+## 5.1 Frontend
 <img src="https://img.shields.io/badge/html5-E34F26?style=for-the-badge&logo=html5&logoColor=white"> <img src="https://img.shields.io/badge/css-1572B6?style=for-the-badge&logo=css3&logoColor=white"> <img src="https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black">
 
 
-### Backend
+## 5.2 Backend
 
 <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=yellow"> <img src="https://img.shields.io/badge/django-092E20?style=for-the-badge&logo=django&logoColor=white"> <img src="https://camo.githubusercontent.com/6e311e5fb8b5e6c95e2609cba8f8f4de27cc35217a5d31f1119caca596cbebd4/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f444a414e474f2d524553546672616d65776f726b2d6666313730393f7374796c653d666f722d7468652d6261646765266c6f676f3d646a616e676f266c6f676f436f6c6f723d776869746526636f6c6f723d666631373039266c6162656c436f6c6f723d67726179" alt="DjangoREST" data-canonical-src="https://img.shields.io/badge/DJANGO-RESTframework-ff1709?style=for-the-badge&amp;logo=django&amp;logoColor=white&amp;color=ff1709&amp;labelColor=gray" style="max-width: 100%;">
 
 
-### InfraStructure
+## 5.3 InfraStructure
 <img src="https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white">
 <img src="https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">  ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white) ![Gunicorn](https://img.shields.io/badge/gunicorn-%298729.svg?style=for-the-badge&logo=gunicorn&logoColor=white) ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white) <img src="https://img.shields.io/badge/supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white">
 
 
 
-### Project Management
+## 5.4 Project Management
 ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-%23ffffff.svg?style=for-the-badge&logo=notion&logoColor=black) ![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)
  ![Jira](https://img.shields.io/badge/jira-%230A0FFF.svg?style=for-the-badge&logo=jira&logoColor=white)
 
 
-### Third-party
+## 5.5 Third-party
 | 패키지 이름                         | 버전        |
 |-------------------------------------|-------------|
 | django-cors-headers                 | 4.4.0       |
@@ -123,41 +126,47 @@ pdm run python manage.py runserver
 | PyYAML                              | 6.0.2       |
 | qrcode                              | 8.0         |
 
+<br/>
+<br/>
 
-## 🛠️ 환경
+# 6. 🛠️ 환경
 
-### 📅 일정 관리
+## 6.1 📅 일정 관리
 - 개발에 집중할 수 있는 환경 조성
 - 📊 Jira, 📋 Notion, 🐱 GitHub을 연동하여 Notion에서 통합 관리가 가능하도록 설정
 - GitHub에서 Issue를 발행하면, 자동으로 Jira에 이슈가 생성되고, 이슈 키 번호를 기반으로 브랜치가 자동 생성
 - 생성된 브랜치가 머지되면, Jira 이슈가 자동으로 완료 처리
 - 모든 이슈 관련 정보는 Notion에서 확인 가능, 이를 통해 컨벤션, 요구 명세서, API 명세서를 한 페이지에서 관리
 
-### 🔄 CI/CD
+## 6.2 🔄 CI/CD
 - 🛑 Pre-commit hook을 사용하여 코드 품질 검사 자동화
 - Main 브랜치에 PR이 올라오면 Ruff로 코드 스타일을 검사
 - 🧪 Pytest로 테스트 진행
 - GitHub Actions로 이미지를 빌드 및 배포
 - 🔒 SSH 접속 후 Docker 이미지를 pull하여 컨테이너 실행
 
-### 🛠️ 개발
-🔒 JWT 인증
+<br/>
+<br/>
+
+# 7. 🛠️ 개발
+
+## 7.1 🔒 JWT 인증
 - djangorestframework-simplejwt를 이용하여 사용자 인증을 진행
 
-🎓 강의 수료증
+## 7.2 🎓 강의 수료증
 - reportlab을 활용하여 수료증을 📄 PDF로 출력
 - pycryptodome으로 수료증 번호를 🔐 암호화
 - qrcode[pil]로 수료증의 진위 여부를 확인할 수 있는 📱 QR코드를 생성
 
-💳 강의 결제
+## 7.3  💳 강의 결제
 - Portone API를 활용하여 결제 및 환불 기능을 구현
 
-🎥 강의 영상
+## 7.4 🎥 강의 영상
 - Boto3를 활용하여 ☁️ S3 스토리지에 파일 업로드
 - Presigned URL을 사용하여 파일에 접근
 - 어뷰징 방지를 위해 ⏱️ Throttle Rate를 적용
 
-### 🔮 브랜치 전략 (Branch Strategy)
+## 7.5 🔮 브랜치 전략 (Branch Strategy)
 브랜치 전략은 Git Flow를 기반으로 하며, 아래 구조와 같이 개발 작업을 진행하였습니다.
 
 - Main Branch
@@ -175,7 +184,7 @@ pdm run python manage.py runserver
 <br/>
 
 
-# 개발일정(WBS)
+# 8. 개발일정(WBS)
 ``` mermaid
 gantt
     dateFormat  YYYY-MM-DD
@@ -280,7 +289,7 @@ gantt
 ```
 <br/>
 
-# 데이터베이스 모델링(ERD)
+# 9. 데이터베이스 모델링(ERD)
 [ERD 이미지](README_img\erd-orm-city.jpg) 보기
 ``` mermaid
 erDiagram
@@ -515,15 +524,15 @@ erDiagram
     }
 ```
 <br/>
+<br/>
 
-
-# 프로젝트 아키텍처
+# 10. 프로젝트 아키텍처
 
 ![아키텍처](README_img/아키텍처.png)
 <br/>
 <br/>
 
-# 🌟 메인 기능
+# 11. 🌟 메인 기능
 - **👤 사용자 관리**:
   - JWT와 리프레시 토큰을 통해 안전하고 효율적인 사용자 인증 및 권한 관리 기능을 구현했습니다.
   - 회원가입, 로그인, 로그아웃 기능을 제공합니다.
@@ -557,9 +566,9 @@ erDiagram
 <br/>
 <br/>
 
-# 프로젝트 구조
+# 12. 프로젝트 구조
 
- ### 파일 트리
+ ### 12.1 파일 트리
  ```
  📦ORM_CITY
 ┣ 📂.github
@@ -702,7 +711,7 @@ erDiagram
 <br/>
 
 
-# API 명세서
+# 13. API 명세서
 
 ### ☑︎ accounts
 | HTTP Method | URL Pattern | Description | Authentication | Permission |
@@ -812,7 +821,7 @@ erDiagram
 <br/>
 <br/>
 
-# 화면구성
+# 14. 화면구성
 <details>
 <summary>어드민</summary>
 
@@ -885,16 +894,6 @@ erDiagram
     </tr>
 </table>
 </details>
-
-
-
-
-
-
-
-
-
-
 </details>
 
 
@@ -902,9 +901,9 @@ erDiagram
 <br/>
 <br/>
 
-# 트러블슈팅
+# 15. 트러블슈팅
 
-### 고경민
+### 🏙️ 고경민
 - 동영상 업로드
   - 문제 : 500 상테 메시지를 반환하였음
   - 원인 : aws에서 `"ExposeHeaders": ["ETag"],` cors에 추가가 되어있지 않았음
@@ -916,7 +915,7 @@ erDiagram
   - 해결 방법 : `pdm run manage.py makemigrations`으로 실행시키면 작동함
 <br/>
 
-### 남민우
+### 🏙️ 남민우
 - Accounts 앱 JWT 구현: 트러블슈팅 개요
   1. JWT 전환 문제
     - 트러블 슈팅 전
@@ -991,7 +990,7 @@ erDiagram
     JWT 구현을 통해 인증 시스템이 크게 개선되었습니다. 세션 기반에서 토큰 기반으로의 전환으로 서버의 부담이 줄어들고, 더 유연한 인증 방식을 제공할 수 있게 되었습니다. 그러나 클라이언트 측 토큰 관리와 보안 강화를 위한 추가적인 조치들이 필요합니다. 특히 토큰 갱신 로직, 안전한 토큰 저장 방식, 그리고 효과적인 로그아웃 처리를 위한 클라이언트 측 구현 가이드라인 제공이 향후 과제로 남아있습니다.
 <br/>
 
-### 장지우
+### 🏙️ 장지우
 **Prefetch Related**
   - 증상: UserPaymentsView에서 사용자 결제 내역 조회 시 성능 저하 발생 <br/>
   - 원인: Payment 모델의 major_category 관계에 대한 비효율적인 쿼리 실행 (N+1 문제)
@@ -1017,20 +1016,22 @@ erDiagram
     ```
   - 깨달은점
     - API 엔드포인트별 인증 방식 차이 인지와 문서 세밀한 검토의 중요성
-### 백승현
+### 🏙️ 백승현
 
 <br/>
 <br/>
 
 
 
-# 🧩 Coding Convention
+# 16. 🧩 Coding Convention
 [Notion 링크](https://www.notion.so/10f790e564188073a172ff2adb89c763)
 
+<br/>
+<br/>
 
-# 프로젝트 회고
+# 17. 프로젝트 회고
 
-### 고경민
+### 🏙️ 고경민
 ```
 몰랐기에 과감하게 도전했던 프로젝트였습니다. 과정은 험난했지만, 그만큼 많은 것을 배운 프로젝트였습니다.
 이번 경험을 통해 배운것은 크게 세 가지입니다.
@@ -1049,7 +1050,7 @@ erDiagram
 <br/>
 <br/>
 
-### 남민우
+### 🏙️ 남민우
 ```
    파이널 프로젝트를 마무리하며 많은 배움과 성장을 경험할 수 있었습니다. 저는 accounts와 courses 앱을 담당하며 사용자 관리와 강의 관리의 핵심적인 기능을 구현해 큰 보람을 느꼈습니다.
 
@@ -1080,7 +1081,7 @@ erDiagram
 <br/>
 
 
-### 장지우
+### 🏙️ 장지우
 ```
 프로젝트를 시작하면서 기능 구현에 집중하다 보니, ERD와 화면 설계에 대해 더 많은 논의를 했더라면 개발 과정이 훨씬 순조로웠을 것이라는 중요한 교훈을 얻었습니다.
 
@@ -1093,7 +1094,7 @@ erDiagram
 <br/>
 <br/>
 
-### 백승현
+### 🏙️ 백승현
 
 ```
 ```
