@@ -1022,24 +1022,19 @@ erDiagram
   - 깨달은점
     - API 엔드포인트별 인증 방식 차이 인지와 문서 세밀한 검토의 중요성
 ### 🏙️ 백승현
-🏙️ 게자
-미션 API 구현 및 이슈 해결
+문제1 : 미션 API 구현 중 발생한 **순환 참조(Circular Reference)**로 인한 시리얼라이저 에러
 
-
-
-1. 미션 API 구현 중 발생한 **순환 참조(Circular Reference)**로 인한 시리얼라이저 에러
-
-문제: 미션(Mission)과 문제(Question), 그리고 제출(Submission) 모델 간의 복잡한 관계로 인해 시리얼라이저에서 순환 참조 에러가 발생하였습니다. API로 데이터를 직렬화하여 응답할 때, 중첩된 시리얼라이저들이 서로를 참조하면서 RecursionError 또는 Maximum recursion depth exceeded 에러가 발생하였습니다.
+상세 내용: 미션(Mission)과 문제(Question), 그리고 제출(Submission) 모델 간의 복잡한 관계로 인해 시리얼라이저에서 순환 참조 에러가 발생하였습니다. API로 데이터를 직렬화하여 응답할 때, 중첩된 시리얼라이저들이 서로를 참조하면서 RecursionError 또는 Maximum recursion depth exceeded 에러가 발생하였습니다.
 
 원인:
-- **MissionSerializer**에서 **QuestionSerializer**를 중첩하여 사용하고, **QuestionSerializer**에서 다시 **MissionSerializer**를 참조하여 순환 참조가 발생하였습니다.
+- **MissionSerializer**에서 QuestionSerializer**를 중첩하여 사용하고, QuestionSerializer에서 다시 MissionSerializer를 참조하여 순환 참조가 발생하였습니다.
 - 이러한 순환 참조로 인해 시리얼라이저가 무한 재귀에 빠지면서 재귀 호출 한도를 초과하게 되었습니다.
 - 모델 간의 외래 키 관계를 직렬화하는 과정에서 깊이 제한 없이 모든 연관 객체를 직렬화하려다 보니 발생한 문제였습니다.
 
 해결 방법:
 a. 시리얼라이저 구조 재설계:
 - 필요한 데이터만 직렬화하도록 시리얼라이저를 수정하였습니다.
-- **MissionSerializer**에서 **QuestionSerializer**를 중첩하되, **QuestionSerializer**에서는 mission 필드를 제외하거나, 해당 필드를 **read_only**로 설정하여 역참조를 막았습니다.
+- MissionSerializer에서 QuestionSerializer를 중첩하되, QuestionSerializer에서는 mission 필드를 제외하거나, 해당 필드를 read_only로 설정하여 역참조를 막았습니다.
 - 불필요한 중첩을 피하기 위해 일부 필드는 ID나 간단한 정보만 포함하도록 하였습니다.
 b. SerializerMethodField 사용:
 - 순환 참조가 발생하는 필드를 **SerializerMethodField**로 대체하여, 필요한 데이터만 수동으로 직렬화하였습니다.
@@ -1071,14 +1066,7 @@ e. 모델의 __str__ 메서드 확인:
 시리얼라이저에서 순환 참조 문제가 해결되어 API 응답이 정상적으로 반환되었고, 재귀 호출 한도 초과 에러가 발생하지 않게 되었습니다.
 클라이언트 측에서도 필요한 데이터만 효율적으로 받을 수 있게 되어 성능 개선과 데이터 전송 효율성이 향상되었습니다.
 
-
-
-문제 2: 서버 실행 시 django.core.exceptions.ImproperlyConfigured: Application labels aren't unique, duplicates: drf_spectacular 에러 발생
-원인: INSTALLED_APPS에 drf_spectacular가 중복으로 추가되어 애플리케이션 레이블이 중복되는 문제가 발생함
-해결 방법:
-dev.py 또는 base.py의 INSTALLED_APPS에서 drf_spectacular가 두 번 이상 추가되어 있는지 확인하고, 중복된 항목을 제거하여 하나만 남김
-
-문제 3: Swagger UI에서 404 에러가 발생하며 API 문서에 접근 불가
+문제 2: Swagger UI에서 404 에러가 발생하며 API 문서에 접근 불가
 원인: config/urls.py에서 Swagger 관련 경로 설정이 누락되었거나, 잘못된 경로로 설정되어 있음
 해결 방법:
 config/urls.py에 Swagger 관련 경로를 정확하게 추가함
@@ -1172,6 +1160,11 @@ urlpatterns = [
 ### 🏙️ 백승현
 
 ```
+이번 파이널 프로젝트를 통해 많은 것을 배우고 성장할 수 있었습니다. 특히 미션 앱의 개발을 맡아 진행하면서 여러 도전과제를 마주했지만, 이를 해결해 나가는 과정에서 실력이 향상되었음을 느꼈습니다.
+하지만 뒤늦은 합류와 개인적인 문제로 인해 프로젝트에 적극적으로 참여하지 못한 점이 아쉬움으로 남습니다. 그럼에도 불구하고 저를 이해해주고 배려해준 팀원분들께 깊은 감사를 드립니다. 여러분의 이해와 지원 덕분에 남은 기간 동안 최선을 다해 기여할 수 있었습니다.
+팀원들과의 협업과 소통의 중요성을 다시 한 번 깨달았습니다. 특히 제가 어려움을 겪을 때마다 적극적으로 도움을 주신 팀원분들께 진심으로 감사드립니다. 여러분의 지원 덕분에 문제를 더 빠르게 해결할 수 있었고, 프로젝트를 성공적으로 마무리할 수 있었습니다.
+마지막으로, 프로젝트 기획의 중요성을 실감했습니다. 초기에는 기능 구현에만 집중하다 보니 전체적인 구조나 흐름을 놓치는 경우가 있었습니다. 앞으로는 프로젝트를 시작하기 전에 명확한 계획을 세우고, 팀원들과 충분한 논의를 통해 효율적인 개발을 진행하고자 합니다.
+이번 프로젝트를 통해 얻은 경험은 앞으로의 개발자 생활에 큰 밑거름이 될 것이라 생각합니다. 다시 한 번 저를 이해해주고 함께 해준 팀원들에게 감사의 마음을 전하며, 앞으로도 계속해서 성장하는 개발자가 되도록 노력하겠습니다.
 ```
 <br/>
 <br/>
