@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:10c45f43a5b96f368fcf73b4f3c72d57105bcc0e086f93e60f75bfca2d18c256"
+content_hash = "sha256:1cccd7cdf16af9d88cc69b107ab024766a52c15fa9bb1f32c1afa4e59660d56a"
 
 [[metadata.targets]]
 requires_python = "==3.12.*"
@@ -25,6 +25,64 @@ files = [
 ]
 
 [[package]]
+name = "attrs"
+version = "24.2.0"
+requires_python = ">=3.7"
+summary = "Classes Without Boilerplate"
+groups = ["default"]
+dependencies = [
+    "importlib-metadata; python_version < \"3.8\"",
+]
+files = [
+    {file = "attrs-24.2.0-py3-none-any.whl", hash = "sha256:81921eb96de3191c8258c199618104dd27ac608d9366f5e35d011eae1867ede2"},
+    {file = "attrs-24.2.0.tar.gz", hash = "sha256:5cfb1b9148b5b086569baec03f20d7b6bf3bcacc9a42bebf87ffaaca362f6346"},
+]
+
+[[package]]
+name = "boto3"
+version = "1.35.39"
+requires_python = ">=3.8"
+summary = "The AWS SDK for Python"
+groups = ["default"]
+dependencies = [
+    "botocore<1.36.0,>=1.35.39",
+    "jmespath<2.0.0,>=0.7.1",
+    "s3transfer<0.11.0,>=0.10.0",
+]
+files = [
+    {file = "boto3-1.35.39-py3-none-any.whl", hash = "sha256:5970b62c1ec8177501e02520f0d41839ca5fc549b30bac4e8c0c0882ae776217"},
+    {file = "boto3-1.35.39.tar.gz", hash = "sha256:670f811c65e3c5fe4ed8c8d69be0b44b1d649e992c0fc16de43816d1188f88f1"},
+]
+
+[[package]]
+name = "botocore"
+version = "1.35.39"
+requires_python = ">=3.8"
+summary = "Low-level, data-driven core of boto 3."
+groups = ["default"]
+dependencies = [
+    "jmespath<2.0.0,>=0.7.1",
+    "python-dateutil<3.0.0,>=2.1",
+    "urllib3!=2.2.0,<3,>=1.25.4; python_version >= \"3.10\"",
+    "urllib3<1.27,>=1.25.4; python_version < \"3.10\"",
+]
+files = [
+    {file = "botocore-1.35.39-py3-none-any.whl", hash = "sha256:781c547eb6a79c0e4b0bedd87b81fbfed957816b4841d33e20c8f1989c7c19ce"},
+    {file = "botocore-1.35.39.tar.gz", hash = "sha256:cb7f851933b5ccc2fba4f0a8b846252410aa0efac5bfbe93b82d10801f5f8e90"},
+]
+
+[[package]]
+name = "certifi"
+version = "2024.8.30"
+requires_python = ">=3.6"
+summary = "Python package for providing Mozilla's CA Bundle."
+groups = ["default"]
+files = [
+    {file = "certifi-2024.8.30-py3-none-any.whl", hash = "sha256:922820b53db7a7257ffbda3f597266d435245903d80737e34f8a45ff3e3230d8"},
+    {file = "certifi-2024.8.30.tar.gz", hash = "sha256:bec941d2aa8195e248a60b31ff9f0558284cf01a52591ceda73ea9afffd69fd9"},
+]
+
+[[package]]
 name = "cfgv"
 version = "3.4.0"
 requires_python = ">=3.8"
@@ -36,18 +94,67 @@ files = [
 ]
 
 [[package]]
+name = "chardet"
+version = "5.2.0"
+requires_python = ">=3.7"
+summary = "Universal encoding detector for Python 3"
+groups = ["default"]
+files = [
+    {file = "chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970"},
+    {file = "chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7"},
+]
+
+[[package]]
+name = "charset-normalizer"
+version = "3.4.0"
+requires_python = ">=3.7.0"
+summary = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
+groups = ["default"]
+files = [
+    {file = "charset_normalizer-3.4.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:0713f3adb9d03d49d365b70b84775d0a0d18e4ab08d12bc46baa6132ba78aaf6"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:de7376c29d95d6719048c194a9cf1a1b0393fbe8488a22008610b0361d834ecf"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4a51b48f42d9358460b78725283f04bddaf44a9358197b889657deba38f329db"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b295729485b06c1a0683af02a9e42d2caa9db04a373dc38a6a58cdd1e8abddf1"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:ee803480535c44e7f5ad00788526da7d85525cfefaf8acf8ab9a310000be4b03"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:3d59d125ffbd6d552765510e3f31ed75ebac2c7470c7274195b9161a32350284"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8cda06946eac330cbe6598f77bb54e690b4ca93f593dee1568ad22b04f347c15"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:07afec21bbbbf8a5cc3651aa96b980afe2526e7f048fdfb7f1014d84acc8b6d8"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:6b40e8d38afe634559e398cc32b1472f376a4099c75fe6299ae607e404c033b2"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:b8dcd239c743aa2f9c22ce674a145e0a25cb1566c495928440a181ca1ccf6719"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-musllinux_1_2_ppc64le.whl", hash = "sha256:84450ba661fb96e9fd67629b93d2941c871ca86fc38d835d19d4225ff946a631"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-musllinux_1_2_s390x.whl", hash = "sha256:44aeb140295a2f0659e113b31cfe92c9061622cadbc9e2a2f7b8ef6b1e29ef4b"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:1db4e7fefefd0f548d73e2e2e041f9df5c59e178b4c72fbac4cc6f535cfb1565"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-win32.whl", hash = "sha256:5726cf76c982532c1863fb64d8c6dd0e4c90b6ece9feb06c9f202417a31f7dd7"},
+    {file = "charset_normalizer-3.4.0-cp312-cp312-win_amd64.whl", hash = "sha256:b197e7094f232959f8f20541ead1d9862ac5ebea1d58e9849c1bf979255dfac9"},
+    {file = "charset_normalizer-3.4.0-py3-none-any.whl", hash = "sha256:fe9f97feb71aa9896b81973a7bbada8c49501dc73e58a10fcef6663af95e5079"},
+    {file = "charset_normalizer-3.4.0.tar.gz", hash = "sha256:223217c3d4f82c3ac5e29032b3f1c2eb0fb591b72161f86d93f5719079dae93e"},
+]
+
+[[package]]
+name = "colorama"
+version = "0.4.6"
+requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
+summary = "Cross-platform colored terminal text."
+groups = ["default"]
+marker = "sys_platform == \"win32\""
+files = [
+    {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
+    {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
+]
+
+[[package]]
 name = "distlib"
-version = "0.3.8"
+version = "0.3.9"
 summary = "Distribution utilities"
 groups = ["default"]
 files = [
-    {file = "distlib-0.3.8-py2.py3-none-any.whl", hash = "sha256:034db59a0b96f8ca18035f36290806a9a6e6bd9d1ff91e45a7f172eb17e51784"},
-    {file = "distlib-0.3.8.tar.gz", hash = "sha256:1530ea13e350031b6312d8580ddb6b27a104275a31106523b8f123787f494f64"},
+    {file = "distlib-0.3.9-py2.py3-none-any.whl", hash = "sha256:47f8c22fd27c27e25a65601af709b38e4f0a45ea4fc2e710f65755fa8caaaf87"},
+    {file = "distlib-0.3.9.tar.gz", hash = "sha256:a60f20dea646b8a33f3e7772f74dc0b2d0772d2837ee1342a00645c81edf9403"},
 ]
 
 [[package]]
 name = "django"
-version = "5.1.1"
+version = "5.1.2"
 requires_python = ">=3.10"
 summary = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 groups = ["default"]
@@ -57,8 +164,23 @@ dependencies = [
     "tzdata; sys_platform == \"win32\"",
 ]
 files = [
-    {file = "Django-5.1.1-py3-none-any.whl", hash = "sha256:71603f27dac22a6533fb38d83072eea9ddb4017fead6f67f2562a40402d61c3f"},
-    {file = "Django-5.1.1.tar.gz", hash = "sha256:021ffb7fdab3d2d388bc8c7c2434eb9c1f6f4d09e6119010bbb1694dda286bc2"},
+    {file = "Django-5.1.2-py3-none-any.whl", hash = "sha256:f11aa87ad8d5617171e3f77e1d5d16f004b79a2cf5d2e1d2b97a6a1f8e9ba5ed"},
+    {file = "Django-5.1.2.tar.gz", hash = "sha256:bd7376f90c99f96b643722eee676498706c9fd7dc759f55ebfaf2c08ebcdf4f0"},
+]
+
+[[package]]
+name = "django-cors-headers"
+version = "4.5.0"
+requires_python = ">=3.9"
+summary = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
+groups = ["default"]
+dependencies = [
+    "asgiref>=3.6",
+    "django>=3.2",
+]
+files = [
+    {file = "django_cors_headers-4.5.0-py3-none-any.whl", hash = "sha256:28c1ded847aa70208798de3e42422a782f427b8b720e8d7319d34b654b5978e6"},
+    {file = "django_cors_headers-4.5.0.tar.gz", hash = "sha256:6c01a85cf1ec779a7bde621db853aa3ce5c065a5ba8e27df7a9f9e8dac310f4f"},
 ]
 
 [[package]]
@@ -88,6 +210,42 @@ files = [
 ]
 
 [[package]]
+name = "djangorestframework-simplejwt"
+version = "5.3.1"
+requires_python = ">=3.8"
+summary = "A minimal JSON Web Token authentication plugin for Django REST Framework"
+groups = ["default"]
+dependencies = [
+    "django>=3.2",
+    "djangorestframework>=3.12",
+    "pyjwt<3,>=1.7.1",
+]
+files = [
+    {file = "djangorestframework_simplejwt-5.3.1-py3-none-any.whl", hash = "sha256:381bc966aa46913905629d472cd72ad45faa265509764e20ffd440164c88d220"},
+    {file = "djangorestframework_simplejwt-5.3.1.tar.gz", hash = "sha256:6c4bd37537440bc439564ebf7d6085e74c5411485197073f508ebdfa34bc9fae"},
+]
+
+[[package]]
+name = "drf-spectacular"
+version = "0.27.2"
+requires_python = ">=3.7"
+summary = "Sane and flexible OpenAPI 3 schema generation for Django REST framework"
+groups = ["default"]
+dependencies = [
+    "Django>=2.2",
+    "PyYAML>=5.1",
+    "djangorestframework>=3.10.3",
+    "inflection>=0.3.1",
+    "jsonschema>=2.6.0",
+    "typing-extensions; python_version < \"3.10\"",
+    "uritemplate>=2.0.0",
+]
+files = [
+    {file = "drf-spectacular-0.27.2.tar.gz", hash = "sha256:a199492f2163c4101055075ebdbb037d59c6e0030692fc83a1a8c0fc65929981"},
+    {file = "drf_spectacular-0.27.2-py3-none-any.whl", hash = "sha256:b1c04bf8b2fbbeaf6f59414b4ea448c8787aba4d32f76055c3b13335cf7ec37b"},
+]
+
+[[package]]
 name = "filelock"
 version = "3.16.1"
 requires_python = ">=3.8"
@@ -96,6 +254,21 @@ groups = ["default"]
 files = [
     {file = "filelock-3.16.1-py3-none-any.whl", hash = "sha256:2082e5703d51fbf98ea75855d9d5527e33d8ff23099bec374a134febee6946b0"},
     {file = "filelock-3.16.1.tar.gz", hash = "sha256:c249fbfcd5db47e5e2d6d62198e565475ee65e4831e2561c8e313fa7eb961435"},
+]
+
+[[package]]
+name = "gunicorn"
+version = "23.0.0"
+requires_python = ">=3.7"
+summary = "WSGI HTTP Server for UNIX"
+groups = ["default"]
+dependencies = [
+    "importlib-metadata; python_version < \"3.8\"",
+    "packaging",
+]
+files = [
+    {file = "gunicorn-23.0.0-py3-none-any.whl", hash = "sha256:ec400d38950de4dfd418cff8328b2c8faed0edb0d517d3394e457c317908ca4d"},
+    {file = "gunicorn-23.0.0.tar.gz", hash = "sha256:f014447a0101dc57e294f6c18ca6b40227a4c90e9bdb586042628030cba004ec"},
 ]
 
 [[package]]
@@ -110,6 +283,83 @@ files = [
 ]
 
 [[package]]
+name = "idna"
+version = "3.10"
+requires_python = ">=3.6"
+summary = "Internationalized Domain Names in Applications (IDNA)"
+groups = ["default"]
+files = [
+    {file = "idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"},
+    {file = "idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9"},
+]
+
+[[package]]
+name = "inflection"
+version = "0.5.1"
+requires_python = ">=3.5"
+summary = "A port of Ruby on Rails inflector to Python"
+groups = ["default"]
+files = [
+    {file = "inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2"},
+    {file = "inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417"},
+]
+
+[[package]]
+name = "iniconfig"
+version = "2.0.0"
+requires_python = ">=3.7"
+summary = "brain-dead simple config-ini parsing"
+groups = ["default"]
+files = [
+    {file = "iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374"},
+    {file = "iniconfig-2.0.0.tar.gz", hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3"},
+]
+
+[[package]]
+name = "jmespath"
+version = "1.0.1"
+requires_python = ">=3.7"
+summary = "JSON Matching Expressions"
+groups = ["default"]
+files = [
+    {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
+    {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
+]
+
+[[package]]
+name = "jsonschema"
+version = "4.23.0"
+requires_python = ">=3.8"
+summary = "An implementation of JSON Schema validation for Python"
+groups = ["default"]
+dependencies = [
+    "attrs>=22.2.0",
+    "importlib-resources>=1.4.0; python_version < \"3.9\"",
+    "jsonschema-specifications>=2023.03.6",
+    "pkgutil-resolve-name>=1.3.10; python_version < \"3.9\"",
+    "referencing>=0.28.4",
+    "rpds-py>=0.7.1",
+]
+files = [
+    {file = "jsonschema-4.23.0-py3-none-any.whl", hash = "sha256:fbadb6f8b144a8f8cf9f0b89ba94501d143e50411a1278633f56a7acf7fd5566"},
+    {file = "jsonschema-4.23.0.tar.gz", hash = "sha256:d71497fef26351a33265337fa77ffeb82423f3ea21283cd9467bb03999266bc4"},
+]
+
+[[package]]
+name = "jsonschema-specifications"
+version = "2024.10.1"
+requires_python = ">=3.9"
+summary = "The JSON Schema meta-schemas and vocabularies, exposed as a Registry"
+groups = ["default"]
+dependencies = [
+    "referencing>=0.31.0",
+]
+files = [
+    {file = "jsonschema_specifications-2024.10.1-py3-none-any.whl", hash = "sha256:a09a0680616357d9a0ecf05c12ad234479f549239d0f5b55f3deea67475da9bf"},
+    {file = "jsonschema_specifications-2024.10.1.tar.gz", hash = "sha256:0f38b83639958ce1152d02a7f062902c41c8fd20d558b0c34344292d417ae272"},
+]
+
+[[package]]
 name = "nodeenv"
 version = "1.9.1"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
@@ -118,6 +368,17 @@ groups = ["default"]
 files = [
     {file = "nodeenv-1.9.1-py2.py3-none-any.whl", hash = "sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9"},
     {file = "nodeenv-1.9.1.tar.gz", hash = "sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f"},
+]
+
+[[package]]
+name = "packaging"
+version = "24.1"
+requires_python = ">=3.8"
+summary = "Core utilities for Python packages"
+groups = ["default"]
+files = [
+    {file = "packaging-24.1-py3-none-any.whl", hash = "sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124"},
+    {file = "packaging-24.1.tar.gz", hash = "sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002"},
 ]
 
 [[package]]
@@ -153,8 +414,19 @@ files = [
 ]
 
 [[package]]
+name = "pluggy"
+version = "1.5.0"
+requires_python = ">=3.8"
+summary = "plugin and hook calling mechanisms for python"
+groups = ["default"]
+files = [
+    {file = "pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669"},
+    {file = "pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1"},
+]
+
+[[package]]
 name = "pre-commit"
-version = "3.8.0"
+version = "4.0.1"
 requires_python = ">=3.9"
 summary = "A framework for managing and maintaining multi-language pre-commit hooks."
 groups = ["default"]
@@ -166,8 +438,8 @@ dependencies = [
     "virtualenv>=20.10.0",
 ]
 files = [
-    {file = "pre_commit-3.8.0-py2.py3-none-any.whl", hash = "sha256:9a90a53bf82fdd8778d58085faf8d83df56e40dfe18f45b19446e26bf1b3a63f"},
-    {file = "pre_commit-3.8.0.tar.gz", hash = "sha256:8bb6494d4a20423842e198980c9ecf9f96607a07ea29549e180eef9ae80fe7af"},
+    {file = "pre_commit-4.0.1-py2.py3-none-any.whl", hash = "sha256:efde913840816312445dc98787724647c65473daefe420785f885e8ed9a06878"},
+    {file = "pre_commit-4.0.1.tar.gz", hash = "sha256:80905ac375958c0444c65e9cebebd948b3cdb518f335a091a670a89d652139d2"},
 ]
 
 [[package]]
@@ -180,6 +452,84 @@ files = [
     {file = "psycopg2-2.9.9-cp312-cp312-win32.whl", hash = "sha256:d735786acc7dd25815e89cc4ad529a43af779db2e25aa7c626de864127e5a024"},
     {file = "psycopg2-2.9.9-cp312-cp312-win_amd64.whl", hash = "sha256:a7653d00b732afb6fc597e29c50ad28087dcb4fbfb28e86092277a559ae4e693"},
     {file = "psycopg2-2.9.9.tar.gz", hash = "sha256:d1454bde93fb1e224166811694d600e746430c006fbb031ea06ecc2ea41bf156"},
+]
+
+[[package]]
+name = "pycryptodome"
+version = "3.21.0"
+requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
+summary = "Cryptographic library for Python"
+groups = ["default"]
+files = [
+    {file = "pycryptodome-3.21.0-cp36-abi3-macosx_10_9_universal2.whl", hash = "sha256:2480ec2c72438430da9f601ebc12c518c093c13111a5c1644c82cdfc2e50b1e4"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-macosx_10_9_x86_64.whl", hash = "sha256:de18954104667f565e2fbb4783b56667f30fb49c4d79b346f52a29cb198d5b6b"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2de4b7263a33947ff440412339cb72b28a5a4c769b5c1ca19e33dd6cd1dcec6e"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0714206d467fc911042d01ea3a1847c847bc10884cf674c82e12915cfe1649f8"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7d85c1b613121ed3dbaa5a97369b3b757909531a959d229406a75b912dd51dd1"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:8898a66425a57bcf15e25fc19c12490b87bd939800f39a03ea2de2aea5e3611a"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-musllinux_1_2_i686.whl", hash = "sha256:932c905b71a56474bff8a9c014030bc3c882cee696b448af920399f730a650c2"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:18caa8cfbc676eaaf28613637a89980ad2fd96e00c564135bf90bc3f0b34dd93"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-win32.whl", hash = "sha256:280b67d20e33bb63171d55b1067f61fbd932e0b1ad976b3a184303a3dad22764"},
+    {file = "pycryptodome-3.21.0-cp36-abi3-win_amd64.whl", hash = "sha256:b7aa25fc0baa5b1d95b7633af4f5f1838467f1815442b22487426f94e0d66c53"},
+    {file = "pycryptodome-3.21.0.tar.gz", hash = "sha256:f7787e0d469bdae763b876174cf2e6c0f7be79808af26b1da96f1a64bcf47297"},
+]
+
+[[package]]
+name = "pyjwt"
+version = "2.9.0"
+requires_python = ">=3.8"
+summary = "JSON Web Token implementation in Python"
+groups = ["default"]
+files = [
+    {file = "PyJWT-2.9.0-py3-none-any.whl", hash = "sha256:3b02fb0f44517787776cf48f2ae25d8e14f300e6d7545a4315cee571a415e850"},
+    {file = "pyjwt-2.9.0.tar.gz", hash = "sha256:7e1e5b56cc735432a7369cbfa0efe50fa113ebecdc04ae6922deba8b84582d0c"},
+]
+
+[[package]]
+name = "pytest"
+version = "8.3.3"
+requires_python = ">=3.8"
+summary = "pytest: simple powerful testing with Python"
+groups = ["default"]
+dependencies = [
+    "colorama; sys_platform == \"win32\"",
+    "exceptiongroup>=1.0.0rc8; python_version < \"3.11\"",
+    "iniconfig",
+    "packaging",
+    "pluggy<2,>=1.5",
+    "tomli>=1; python_version < \"3.11\"",
+]
+files = [
+    {file = "pytest-8.3.3-py3-none-any.whl", hash = "sha256:a6853c7375b2663155079443d2e45de913a911a11d669df02a50814944db57b2"},
+    {file = "pytest-8.3.3.tar.gz", hash = "sha256:70b98107bd648308a7952b06e6ca9a50bc660be218d53c257cc1fc94fda10181"},
+]
+
+[[package]]
+name = "pytest-django"
+version = "4.9.0"
+requires_python = ">=3.8"
+summary = "A Django plugin for pytest."
+groups = ["default"]
+dependencies = [
+    "pytest>=7.0.0",
+]
+files = [
+    {file = "pytest_django-4.9.0-py3-none-any.whl", hash = "sha256:1d83692cb39188682dbb419ff0393867e9904094a549a7d38a3154d5731b2b99"},
+    {file = "pytest_django-4.9.0.tar.gz", hash = "sha256:8bf7bc358c9ae6f6fc51b6cebb190fe20212196e6807121f11bd6a3b03428314"},
+]
+
+[[package]]
+name = "python-dateutil"
+version = "2.9.0.post0"
+requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+summary = "Extensions to the standard Python datetime module"
+groups = ["default"]
+dependencies = [
+    "six>=1.5",
+]
+files = [
+    {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
+    {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
 ]
 
 [[package]]
@@ -202,6 +552,131 @@ files = [
 ]
 
 [[package]]
+name = "qrcode"
+version = "8.0"
+requires_python = "<4.0,>=3.9"
+summary = "QR Code image generator"
+groups = ["default"]
+dependencies = [
+    "colorama; sys_platform == \"win32\"",
+]
+files = [
+    {file = "qrcode-8.0-py3-none-any.whl", hash = "sha256:9fc05f03305ad27a709eb742cf3097fa19e6f6f93bb9e2f039c0979190f6f1b1"},
+    {file = "qrcode-8.0.tar.gz", hash = "sha256:025ce2b150f7fe4296d116ee9bad455a6643ab4f6e7dce541613a4758cbce347"},
+]
+
+[[package]]
+name = "qrcode"
+version = "8.0"
+extras = ["pil"]
+requires_python = "<4.0,>=3.9"
+summary = "QR Code image generator"
+groups = ["default"]
+dependencies = [
+    "pillow>=9.1.0",
+    "qrcode==8.0",
+]
+files = [
+    {file = "qrcode-8.0-py3-none-any.whl", hash = "sha256:9fc05f03305ad27a709eb742cf3097fa19e6f6f93bb9e2f039c0979190f6f1b1"},
+    {file = "qrcode-8.0.tar.gz", hash = "sha256:025ce2b150f7fe4296d116ee9bad455a6643ab4f6e7dce541613a4758cbce347"},
+]
+
+[[package]]
+name = "referencing"
+version = "0.35.1"
+requires_python = ">=3.8"
+summary = "JSON Referencing + Python"
+groups = ["default"]
+dependencies = [
+    "attrs>=22.2.0",
+    "rpds-py>=0.7.0",
+]
+files = [
+    {file = "referencing-0.35.1-py3-none-any.whl", hash = "sha256:eda6d3234d62814d1c64e305c1331c9a3a6132da475ab6382eaa997b21ee75de"},
+    {file = "referencing-0.35.1.tar.gz", hash = "sha256:25b42124a6c8b632a425174f24087783efb348a6f1e0008e63cd4466fedf703c"},
+]
+
+[[package]]
+name = "reportlab"
+version = "4.2.5"
+requires_python = "<4,>=3.7"
+summary = "The Reportlab Toolkit"
+groups = ["default"]
+dependencies = [
+    "chardet",
+    "pillow>=9.0.0",
+]
+files = [
+    {file = "reportlab-4.2.5-py3-none-any.whl", hash = "sha256:eb2745525a982d9880babb991619e97ac3f661fae30571b7d50387026ca765ee"},
+    {file = "reportlab-4.2.5.tar.gz", hash = "sha256:5cf35b8fd609b68080ac7bbb0ae1e376104f7d5f7b2d3914c7adc63f2593941f"},
+]
+
+[[package]]
+name = "requests"
+version = "2.32.3"
+requires_python = ">=3.8"
+summary = "Python HTTP for Humans."
+groups = ["default"]
+dependencies = [
+    "certifi>=2017.4.17",
+    "charset-normalizer<4,>=2",
+    "idna<4,>=2.5",
+    "urllib3<3,>=1.21.1",
+]
+files = [
+    {file = "requests-2.32.3-py3-none-any.whl", hash = "sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"},
+    {file = "requests-2.32.3.tar.gz", hash = "sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760"},
+]
+
+[[package]]
+name = "rpds-py"
+version = "0.20.0"
+requires_python = ">=3.8"
+summary = "Python bindings to Rust's persistent data structures (rpds)"
+groups = ["default"]
+files = [
+    {file = "rpds_py-0.20.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:a84ab91cbe7aab97f7446652d0ed37d35b68a465aeef8fc41932a9d7eee2c1a6"},
+    {file = "rpds_py-0.20.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:56e27147a5a4c2c21633ff8475d185734c0e4befd1c989b5b95a5d0db699b21b"},
+    {file = "rpds_py-0.20.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2580b0c34583b85efec8c5c5ec9edf2dfe817330cc882ee972ae650e7b5ef739"},
+    {file = "rpds_py-0.20.0-cp312-cp312-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:b80d4a7900cf6b66bb9cee5c352b2d708e29e5a37fe9bf784fa97fc11504bf6c"},
+    {file = "rpds_py-0.20.0-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:50eccbf054e62a7b2209b28dc7a22d6254860209d6753e6b78cfaeb0075d7bee"},
+    {file = "rpds_py-0.20.0-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:49a8063ea4296b3a7e81a5dfb8f7b2d73f0b1c20c2af401fb0cdf22e14711a96"},
+    {file = "rpds_py-0.20.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ea438162a9fcbee3ecf36c23e6c68237479f89f962f82dae83dc15feeceb37e4"},
+    {file = "rpds_py-0.20.0-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:18d7585c463087bddcfa74c2ba267339f14f2515158ac4db30b1f9cbdb62c8ef"},
+    {file = "rpds_py-0.20.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:d4c7d1a051eeb39f5c9547e82ea27cbcc28338482242e3e0b7768033cb083821"},
+    {file = "rpds_py-0.20.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:e4df1e3b3bec320790f699890d41c59d250f6beda159ea3c44c3f5bac1976940"},
+    {file = "rpds_py-0.20.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:2cf126d33a91ee6eedc7f3197b53e87a2acdac63602c0f03a02dd69e4b138174"},
+    {file = "rpds_py-0.20.0-cp312-none-win32.whl", hash = "sha256:8bc7690f7caee50b04a79bf017a8d020c1f48c2a1077ffe172abec59870f1139"},
+    {file = "rpds_py-0.20.0-cp312-none-win_amd64.whl", hash = "sha256:0e13e6952ef264c40587d510ad676a988df19adea20444c2b295e536457bc585"},
+    {file = "rpds_py-0.20.0.tar.gz", hash = "sha256:d72a210824facfdaf8768cf2d7ca25a042c30320b3020de2fa04640920d4e121"},
+]
+
+[[package]]
+name = "s3transfer"
+version = "0.10.3"
+requires_python = ">=3.8"
+summary = "An Amazon S3 Transfer Manager"
+groups = ["default"]
+dependencies = [
+    "botocore<2.0a.0,>=1.33.2",
+]
+files = [
+    {file = "s3transfer-0.10.3-py3-none-any.whl", hash = "sha256:263ed587a5803c6c708d3ce44dc4dfedaab4c1a32e8329bab818933d79ddcf5d"},
+    {file = "s3transfer-0.10.3.tar.gz", hash = "sha256:4f50ed74ab84d474ce614475e0b8d5047ff080810aac5d01ea25231cfc944b0c"},
+]
+
+[[package]]
+name = "six"
+version = "1.16.0"
+requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+summary = "Python 2 and 3 compatibility utilities"
+groups = ["default"]
+files = [
+    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
+    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
+
+[[package]]
 name = "sqlparse"
 version = "0.5.1"
 requires_python = ">=3.8"
@@ -214,19 +689,41 @@ files = [
 
 [[package]]
 name = "tzdata"
-version = "2024.1"
+version = "2024.2"
 requires_python = ">=2"
 summary = "Provider of IANA time zone data"
 groups = ["default"]
 marker = "sys_platform == \"win32\""
 files = [
-    {file = "tzdata-2024.1-py2.py3-none-any.whl", hash = "sha256:9068bc196136463f5245e51efda838afa15aaeca9903f49050dfa2679db4d252"},
-    {file = "tzdata-2024.1.tar.gz", hash = "sha256:2674120f8d891909751c38abcdfd386ac0a5a1127954fbc332af6b5ceae07efd"},
+    {file = "tzdata-2024.2-py2.py3-none-any.whl", hash = "sha256:a48093786cdcde33cad18c2555e8532f34422074448fbc874186f0abd79565cd"},
+    {file = "tzdata-2024.2.tar.gz", hash = "sha256:7d85cc416e9382e69095b7bdf4afd9e3880418a2413feec7069d533d6b4e31cc"},
+]
+
+[[package]]
+name = "uritemplate"
+version = "4.1.1"
+requires_python = ">=3.6"
+summary = "Implementation of RFC 6570 URI Templates"
+groups = ["default"]
+files = [
+    {file = "uritemplate-4.1.1-py2.py3-none-any.whl", hash = "sha256:830c08b8d99bdd312ea4ead05994a38e8936266f84b9a7878232db50b044e02e"},
+    {file = "uritemplate-4.1.1.tar.gz", hash = "sha256:4346edfc5c3b79f694bccd6d6099a322bbeb628dbf2cd86eea55a456ce5124f0"},
+]
+
+[[package]]
+name = "urllib3"
+version = "2.2.3"
+requires_python = ">=3.8"
+summary = "HTTP library with thread-safe connection pooling, file post, and more."
+groups = ["default"]
+files = [
+    {file = "urllib3-2.2.3-py3-none-any.whl", hash = "sha256:ca899ca043dcb1bafa3e262d73aa25c465bfb49e0bd9dd5d59f1d0acba2f8fac"},
+    {file = "urllib3-2.2.3.tar.gz", hash = "sha256:e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"},
 ]
 
 [[package]]
 name = "virtualenv"
-version = "20.26.5"
+version = "20.26.6"
 requires_python = ">=3.7"
 summary = "Virtual Python Environment builder"
 groups = ["default"]
@@ -237,6 +734,6 @@ dependencies = [
     "platformdirs<5,>=3.9.1",
 ]
 files = [
-    {file = "virtualenv-20.26.5-py3-none-any.whl", hash = "sha256:4f3ac17b81fba3ce3bd6f4ead2749a72da5929c01774948e243db9ba41df4ff6"},
-    {file = "virtualenv-20.26.5.tar.gz", hash = "sha256:ce489cac131aa58f4b25e321d6d186171f78e6cb13fafbf32a840cee67733ff4"},
+    {file = "virtualenv-20.26.6-py3-none-any.whl", hash = "sha256:7345cc5b25405607a624d8418154577459c3e0277f5466dd79c49d5e492995f2"},
+    {file = "virtualenv-20.26.6.tar.gz", hash = "sha256:280aede09a2a5c317e409a00102e7077c6432c5a38f0ef938e643805a7ad2c48"},
 ]

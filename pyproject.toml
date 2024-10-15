@@ -12,6 +12,17 @@ dependencies = [
     "pre-commit>=3.8.0",
     "django-environ>=0.11.2",
     "psycopg2>=2.9.9",
+    "reportlab>=4.2.2",
+    "requests>=2.32.3",
+    "djangorestframework-simplejwt>=5.3.1",
+    "boto3>=1.35.26",
+    "django-cors-headers>=4.4.0",
+    "drf-spectacular>=0.27.2",
+    "pytest>=8.3.3",
+    "pytest-django>=4.9.0",
+    "pycryptodome>=3.21.0",
+    "qrcode[pil]>=8.0",
+    "gunicorn>=23.0.0",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
@@ -24,5 +35,14 @@ distribution = false
 
 [tool.pdm.scripts]
 m = "python src/manage.py"
+r = "python src/manage.py runserver"
 migs =  "python src/manage.py makemigrations"
 mig =  "python src/manage.py migrate"
+
+[tool.ruff]
+exclude = ["src/config/settings", "tests/*"]
+lint.ignore = ["F403","F405","E501","E402","B904"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "src.config.settings.dev"
+pythonpath = ". src"

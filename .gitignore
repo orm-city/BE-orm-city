@@ -130,3 +130,13 @@ dmypy.json
 
 # Cython
 cython_debug/
+
+
+node_modules/
+.vscode/
+package-lock.json
+package.json
+supabase/
+
+.dockerignore
+.ruff_cache
