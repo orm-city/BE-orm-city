@@ -1022,22 +1022,23 @@ erDiagram
   - 깨달은점
     - API 엔드포인트별 인증 방식 차이 인지와 문서 세밀한 검토의 중요성
 ### 🏙️ 백승현
-문제1 : 미션 API 구현 중 발생한 **순환 참조(Circular Reference)**로 인한 시리얼라이저 에러
+문제1 : 미션 API 구현 중 발생한 순환 참조(Circular Reference)로 인한 시리얼라이저 에러
 
 상세 내용: 미션(Mission)과 문제(Question), 그리고 제출(Submission) 모델 간의 복잡한 관계로 인해 시리얼라이저에서 순환 참조 에러가 발생하였습니다. API로 데이터를 직렬화하여 응답할 때, 중첩된 시리얼라이저들이 서로를 참조하면서 RecursionError 또는 Maximum recursion depth exceeded 에러가 발생하였습니다.
 
 원인:
-- **MissionSerializer**에서 QuestionSerializer**를 중첩하여 사용하고, QuestionSerializer에서 다시 MissionSerializer를 참조하여 순환 참조가 발생하였습니다.
+- MissionSerializer에서 QuestionSerializer를 중첩하여 사용하고, QuestionSerializer에서 다시 MissionSerializer를 참조하여 순환 참조가 발생하였습니다.
 - 이러한 순환 참조로 인해 시리얼라이저가 무한 재귀에 빠지면서 재귀 호출 한도를 초과하게 되었습니다.
 - 모델 간의 외래 키 관계를 직렬화하는 과정에서 깊이 제한 없이 모든 연관 객체를 직렬화하려다 보니 발생한 문제였습니다.
 
 해결 방법:
+
 a. 시리얼라이저 구조 재설계:
 - 필요한 데이터만 직렬화하도록 시리얼라이저를 수정하였습니다.
 - MissionSerializer에서 QuestionSerializer를 중첩하되, QuestionSerializer에서는 mission 필드를 제외하거나, 해당 필드를 read_only로 설정하여 역참조를 막았습니다.
 - 불필요한 중첩을 피하기 위해 일부 필드는 ID나 간단한 정보만 포함하도록 하였습니다.
 b. SerializerMethodField 사용:
-- 순환 참조가 발생하는 필드를 **SerializerMethodField**로 대체하여, 필요한 데이터만 수동으로 직렬화하였습니다.
+- 순환 참조가 발생하는 필드를 SerializerMethodField로 대체하여, 필요한 데이터만 수동으로 직렬화하였습니다.
 - 이를 통해 자동으로 중첩되는 시리얼라이저의 호출을 방지할 수 있었습니다.
 
 ```
