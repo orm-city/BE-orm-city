@@ -1022,7 +1022,77 @@ erDiagram
   - 깨달은점
     - API 엔드포인트별 인증 방식 차이 인지와 문서 세밀한 검토의 중요성
 ### 🏙️ 백승현
+🏙️ 게자
+미션 API 구현 및 이슈 해결
 
+
+
+1. 미션 API 구현 중 발생한 **순환 참조(Circular Reference)**로 인한 시리얼라이저 에러
+
+문제: 미션(Mission)과 문제(Question), 그리고 제출(Submission) 모델 간의 복잡한 관계로 인해 시리얼라이저에서 순환 참조 에러가 발생하였습니다. API로 데이터를 직렬화하여 응답할 때, 중첩된 시리얼라이저들이 서로를 참조하면서 RecursionError 또는 Maximum recursion depth exceeded 에러가 발생하였습니다.
+
+원인:
+- **MissionSerializer**에서 **QuestionSerializer**를 중첩하여 사용하고, **QuestionSerializer**에서 다시 **MissionSerializer**를 참조하여 순환 참조가 발생하였습니다.
+- 이러한 순환 참조로 인해 시리얼라이저가 무한 재귀에 빠지면서 재귀 호출 한도를 초과하게 되었습니다.
+- 모델 간의 외래 키 관계를 직렬화하는 과정에서 깊이 제한 없이 모든 연관 객체를 직렬화하려다 보니 발생한 문제였습니다.
+
+해결 방법:
+a. 시리얼라이저 구조 재설계:
+- 필요한 데이터만 직렬화하도록 시리얼라이저를 수정하였습니다.
+- **MissionSerializer**에서 **QuestionSerializer**를 중첩하되, **QuestionSerializer**에서는 mission 필드를 제외하거나, 해당 필드를 **read_only**로 설정하여 역참조를 막았습니다.
+- 불필요한 중첩을 피하기 위해 일부 필드는 ID나 간단한 정보만 포함하도록 하였습니다.
+b. SerializerMethodField 사용:
+- 순환 참조가 발생하는 필드를 **SerializerMethodField**로 대체하여, 필요한 데이터만 수동으로 직렬화하였습니다.
+- 이를 통해 자동으로 중첩되는 시리얼라이저의 호출을 방지할 수 있었습니다.
+
+```
+class QuestionSerializer(serializers.ModelSerializer):
+    # mission 필드를 SerializerMethodField로 변경
+    mission = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Question
+        fields = ['id', 'content', 'mission']
+
+    def get_mission(self, obj):
+        return obj.mission.id  # 또는 필요한 최소한의 정보만 반환
+
+```
+c. depth 옵션 사용 제한:
+- 시리얼라이저의 메타 클래스에서 depth 옵션을 사용하여 자동으로 중첩되는 객체의 깊이를 제한하였습니다.
+- 그러나 이 방법은 복잡한 관계에서는 충분하지 않아, 명시적으로 필드를 정의하는 방향으로 수정하였습니다.
+d. API 응답 데이터 구조 수정:
+- 클라이언트에서 필요한 데이터만 전달하도록 API의 응답 구조를 변경하였습니다.
+- 예를 들어, 미션 상세 정보를 조회할 때 문제 목록만 포함하고, 각 문제에서는 미션 정보를 제외하거나 최소한의 정보만 제공하도록 하였습니다.
+e. 모델의 __str__ 메서드 확인:
+- 모델의 __str__ 메서드에서 다른 모델을 참조하는 경우에도 순환 참조가 발생할 수 있어, 이 부분을 점검하고 수정하였습니다.
+
+결과:
+시리얼라이저에서 순환 참조 문제가 해결되어 API 응답이 정상적으로 반환되었고, 재귀 호출 한도 초과 에러가 발생하지 않게 되었습니다.
+클라이언트 측에서도 필요한 데이터만 효율적으로 받을 수 있게 되어 성능 개선과 데이터 전송 효율성이 향상되었습니다.
+
+
+
+문제 2: 서버 실행 시 django.core.exceptions.ImproperlyConfigured: Application labels aren't unique, duplicates: drf_spectacular 에러 발생
+원인: INSTALLED_APPS에 drf_spectacular가 중복으로 추가되어 애플리케이션 레이블이 중복되는 문제가 발생함
+해결 방법:
+dev.py 또는 base.py의 INSTALLED_APPS에서 drf_spectacular가 두 번 이상 추가되어 있는지 확인하고, 중복된 항목을 제거하여 하나만 남김
+
+문제 3: Swagger UI에서 404 에러가 발생하며 API 문서에 접근 불가
+원인: config/urls.py에서 Swagger 관련 경로 설정이 누락되었거나, 잘못된 경로로 설정되어 있음
+해결 방법:
+config/urls.py에 Swagger 관련 경로를 정확하게 추가함
+```
+from django.urls import path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+urlpatterns = [
+    # ... 기존 경로들
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+]
+```
+서버를 재시작하고 /schema/swagger-ui/ 경로로 접속하여 Swagger UI가 정상적으로 표시되는지 확인함
 <br/>
 <br/>
 
