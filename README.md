@@ -44,6 +44,13 @@ pdm install
 pdm run python manage.py migrate
 pdm run python manage.py runserver
 ```
+또는 PDM 스크립트를 작성해두었기 떄무에 아래 명령어를 실행해 주세요.
+```
+pdm mig
+pdm r
+```
+추가적인 스크립트는 `pyproject.toml`의 [tool.pdm.scripts]를 확인하시면 됩니다.
+ps. mac의 경우 reset_mig파일, windows의 경우 reset_migrations파일의 제일 위 코드를 실행시키면 모든 마이그레이션 파일이 삭제됩니다.
 
 ## 2.4. 🌐 브라우저에서 확인<br>
 [http://127.0.0.1:8000](http://127.0.0.1:8000)
