@@ -78,7 +78,7 @@ pdm run python manage.py runserver
 
 | **이름** | 고경민 | 남민우 | 장지우 | 백승현 |
 |-------------|--------|--------|--------|--------|
-| **담당 <br/>역할** | ▪︎ 📋 프로젝트 계획 및 관리<br>▪︎🎥 영상 컨텐츠 업로드 기능<br>▪︎🎓 수강증 인증 기능<br>▪︎📊 미션 평가 기능<br>▪︎🌐 배포 환경 구축<br>▪︎🖥️ FE 구축| ▪︎ 👤 사용자 관리 기능<br>▪︎  📚강의 과목 관리 기능 | ▪︎ 💳 강의 결제 기능<br>▪︎ 📈 학습 진행 관리 기능<br>▪︎ 🖥️ FE 구축 |▪︎✍️ 미션 초안 작성<br>▪︎📋 컨벤션에 맞추어 정리<br>▪︎📜 schema 작성|
+| **담당 <br/>역할** | ▪︎ 📋 프로젝트 계획 및 관리<br>▪︎🎥 영상 컨텐츠 업로드 기능<br>▪︎🎓 수강증 인증 기능<br>▪︎📊 미션 평가 기능<br>▪︎🌐 배포 환경 구축<br>▪︎🖥️ FE 구축| ▪︎ 👤 사용자 관리 기능<br>▪︎  📚강의 과목 관리 기능<br>▪︎ 📝 문서 정리 | ▪︎ 💳 강의 결제 기능<br>▪︎ 📈 학습 진행 관리 기능<br>▪︎ 🖥️ FE 구축 |▪︎✍️ 미션 초안 작성<br>▪︎📋 컨벤션에 맞추어 정리<br>▪︎📜 schema 작성|
 
 
 <br/>
@@ -145,6 +145,20 @@ pdm run python manage.py runserver
 - GitHub Actions로 이미지를 빌드 및 배포
 - 🔒 SSH 접속 후 Docker 이미지를 pull하여 컨테이너 실행
 
+## 6.3 🔮 브랜치 전략 (Branch Strategy)
+브랜치 전략은 Git Flow를 기반으로 하며, 아래 구조와 같이 개발 작업을 진행하였습니다.
+
+- Main Branch
+  - 배포 가능한 상태의 코드를 유지합니다.
+  - 모든 배포는 이 브랜치에서 이루어집니다.
+
+- Dev Branch
+  - 배포를 위한 개발 브랜치입니다.
+  - 모든 기능 개발 취합이 해당 브랜치에서 이루어집니다.
+
+- Issue Branch
+  - GitHub 이슈 생성 시 Jira와 GitHub Actions 자동화를 통해 작업 브랜치가 자동 생성되어 개발을 작업을 진행합니다.
+
 <br/>
 <br/>
 
@@ -166,19 +180,10 @@ pdm run python manage.py runserver
 - Presigned URL을 사용하여 파일에 접근
 - 어뷰징 방지를 위해 ⏱️ Throttle Rate를 적용
 
-## 7.5 🔮 브랜치 전략 (Branch Strategy)
-브랜치 전략은 Git Flow를 기반으로 하며, 아래 구조와 같이 개발 작업을 진행하였습니다.
+## 7.5 📋 객관식 & 주관식 문제
+- 실제 코드를 입력받아 🖥️ `subprocess`를 활용해 코드를 실행하고, 결과에 따라 자동 채점을 진행
+- 코드를 안전하게 실행하기 위해 ⏱️ 실행 시간과 💾 메모리를 제한
 
-- Main Branch
-  - 배포 가능한 상태의 코드를 유지합니다.
-  - 모든 배포는 이 브랜치에서 이루어집니다.
-
-- Dev Branch
-  - 배포를 위한 개발 브랜치입니다.
-  - 모든 기능 개발 취합이 해당 브랜치에서 이루어집니다.
-
-- Issue Branch
-  - GitHub 이슈 생성 시 Jira와 GitHub Actions 자동화를 통해 작업 브랜치가 자동 생성되어 개발을 작업을 진행합니다.
 
 <br/>
 <br/>
@@ -290,7 +295,7 @@ gantt
 <br/>
 
 # 9. 데이터베이스 모델링(ERD)
-[ERD 이미지](README_img\erd-orm-city.jpg) 보기
+[ERD 이미지 보기](README_img/erd-orm-city.jpg)
 ``` mermaid
 erDiagram
 
@@ -568,7 +573,10 @@ erDiagram
 
 # 12. 프로젝트 구조
 
- ### 12.1 파일 트리
+
+ <details>
+  <summary>📂 파일 트리 보기</summary>
+
  ```
  📦ORM_CITY
 ┣ 📂.github
@@ -706,7 +714,7 @@ erDiagram
 ┣ 📜reset_mig.sh
 ┗ 📜reset_migrations.ps1
 ```
-
+ </details>
 <br/>
 <br/>
 
